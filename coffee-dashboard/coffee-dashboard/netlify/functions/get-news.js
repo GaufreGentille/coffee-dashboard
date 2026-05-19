@@ -5,6 +5,11 @@ const headers = {
   'Content-Type': 'application/json',
 }
 
+// In-memory cache — persists across warm invocations (typically 15-60 min)
+let memCache = null
+let memCacheTime = 0
+const CACHE_TTL = 23 * 60 * 60 * 1000 // 23 hours
+
 function httpsPost(options, body) {
   return new Promise((resolve, reject) => {
     const req = https.request(options, (res) => {
@@ -59,19 +64,6 @@ Fill in all REPLACE values with real relevant specialty coffee content from May 
   return safeParseJSON(data.content?.[0]?.text ?? '')
 }
 
-// ── Simple file-based cache via Netlify Blobs ─────────────
-// Netlify Blobs is available automatically — no setup needed
-async function getBlobs() {
-  try {
-    const { getStore } = require('@netlify/blobs')
-    return getStore('coffee-cache')
-  } catch(e) {
-    return null
-  }
-}
-
-const CACHE_TTL_MS = 23 * 60 * 60 * 1000 // 23 hours
-
 exports.handler = async function(event, context) {
   context.callbackWaitsForEmptyEventLoop = false
 
@@ -84,52 +76,41 @@ exports.handler = async function(event, context) {
     return { statusCode: 500, headers, body: JSON.stringify({ error: 'Missing ANTHROPIC_API_KEY' }) }
   }
 
+  const forceRefresh = event.queryStringParameters?.refresh === '1'
+  const now = Date.now()
+
+  // Serve from in-memory cache if fresh
+  if (memCache && !forceRefresh && (now - memCacheTime) < CACHE_TTL) {
+    return {
+      statusCode: 200,
+      headers: { ...headers, 'X-Cache': 'HIT' },
+      body: JSON.stringify({ ...memCache, fromCache: true })
+    }
+  }
+
   const today = new Date().toLocaleDateString('fr-FR', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   })
 
-  // Force refresh if ?refresh=1 in URL
-  const forceRefresh = event.queryStringParameters?.refresh === '1'
-
   try {
-    const store = await getBlobs()
-
-    // Try to read cache
-    if (store && !forceRefresh) {
-      try {
-        const cached = await store.get('daily-content', { type: 'json' })
-        if (cached && cached.generatedAt) {
-          const age = Date.now() - new Date(cached.generatedAt).getTime()
-          if (age < CACHE_TTL_MS) {
-            // Cache hit — serve instantly, no Claude call
-            return {
-              statusCode: 200,
-              headers: { ...headers, 'X-Cache': 'HIT', 'X-Cache-Age': Math.floor(age / 60000) + 'min' },
-              body: JSON.stringify({ ...cached, fromCache: true })
-            }
-          }
-        }
-      } catch(e) {
-        // Cache miss — continue to generate
-      }
-    }
-
-    // Cache miss or expired — call Claude
     const content = await callClaude(KEY, today)
-    const result  = { ...content, generatedAt: new Date().toISOString() }
-
-    // Store in cache
-    if (store) {
-      try { await store.set('daily-content', JSON.stringify(result)) } catch(e) {}
-    }
+    memCache     = { ...content, generatedAt: new Date().toISOString() }
+    memCacheTime = now
 
     return {
       statusCode: 200,
       headers: { ...headers, 'X-Cache': 'MISS' },
-      body: JSON.stringify(result)
+      body: JSON.stringify(memCache)
     }
-
   } catch(err) {
+    // If Claude fails but we have stale cache, serve it anyway
+    if (memCache) {
+      return {
+        statusCode: 200,
+        headers: { ...headers, 'X-Cache': 'STALE' },
+        body: JSON.stringify({ ...memCache, fromCache: true, stale: true })
+      }
+    }
     return {
       statusCode: 500,
       headers,
