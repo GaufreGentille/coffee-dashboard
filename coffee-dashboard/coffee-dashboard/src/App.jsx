@@ -9,15 +9,15 @@ const BRAND = {
 }
 
 const DARK = {
-  bg:      '#0f1014',
-  surf:    '#16181f',
-  surf2:   '#1c1f28',
-  surf3:   '#222630',
-  border:  '#252930',
-  border2: '#2e3340',
-  text:    '#f4f6ff',
-  dim:     '#a0a8c0',
-  faint:   '#404658',
+  bg:      '#09090d',
+  surf:    '#111318',
+  surf2:   '#161820',
+  surf3:   '#1c1f28',
+  border:  '#222530',
+  border2: '#2c3045',
+  text:    '#ffffff',
+  dim:     '#c8cde8',
+  faint:   '#8890aa',
 }
 
 const LIGHT = {
@@ -117,12 +117,12 @@ function HeroCard({ item, T }) {
         </div>
         <div style={{ padding:'18px 20px 22px' }}>
           <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
-            <span style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.09em', color:BRAND.amber }}>{item.source}</span>
+            <span style={{ fontSize:12, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.09em', color:BRAND.amber }}>{item.source}</span>
             <span style={{ fontSize:9, color:T.faint }}>{item.date}</span>
           </div>
-          <div style={{ fontFamily:'Georgia,serif', fontSize:'1.32rem', fontWeight:700, color:T.text, lineHeight:1.35, marginBottom:10 }}>{item.title}</div>
-          <div style={{ fontSize:'0.92rem', color:T.dim, lineHeight:1.7 }}>{item.summary}</div>
-          <div style={{ marginTop:14, display:'inline-flex', alignItems:'center', gap:6, color:BRAND.purple, fontSize:'0.72rem', fontWeight:600 }}>
+          <div style={{ fontFamily:'Georgia,serif', fontSize:'1.55rem', fontWeight:700, color:T.text, lineHeight:1.35, marginBottom:10 }}>{item.title}</div>
+          <div style={{ fontSize:'1rem', color:T.dim, lineHeight:1.7 }}>{item.summary}</div>
+          <div style={{ marginTop:14, display:'inline-flex', alignItems:'center', gap:6, color:BRAND.purple, fontSize:'0.85rem', fontWeight:700 }}>
             Lire l article <span style={{ fontSize:'1rem' }}>→</span>
           </div>
         </div>
@@ -143,12 +143,12 @@ function NewsCard({ item, img, i, T }) {
         </div>
         <div style={{ padding:'12px 14px 16px' }}>
           <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6 }}>
-            <span style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.09em', color:BRAND.amber }}>{item.source}</span>
+            <span style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.09em', color:BRAND.amber }}>{item.source}</span>
             <span style={{ fontSize:9, color:T.faint }}>{item.date}</span>
           </div>
-          <div style={{ fontSize:'0.95rem', fontWeight:600, color:T.text, lineHeight:1.4, marginBottom:6, display:'-webkit-box', WebkitLineClamp:3, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.title}</div>
-          <div style={{ fontSize:'0.82rem', color:T.dim, lineHeight:1.55, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.summary}</div>
-          <div style={{ marginTop:10, fontSize:'0.65rem', color:BRAND.purple, fontWeight:600 }}>Lire →</div>
+          <div style={{ fontSize:'1.05rem', fontWeight:700, color:T.text, lineHeight:1.4, marginBottom:6, display:'-webkit-box', WebkitLineClamp:3, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.title}</div>
+          <div style={{ fontSize:'0.9rem', color:T.dim, lineHeight:1.55, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.summary}</div>
+          <div style={{ marginTop:10, fontSize:'0.8rem', color:BRAND.purple, fontWeight:700 }}>Lire →</div>
         </div>
       </div>
     </a>
@@ -166,13 +166,13 @@ function SciCard({ item, img, i, T }) {
         </div>
         <div style={{ padding:'13px 15px' }}>
           <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
-            <span style={{ fontSize:9, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.12em', color:'#7a9e78' }}>{item.field}</span>
+            <span style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', color:'#7a9e78' }}>{item.field}</span>
             <span style={{ fontSize:9, color:T.faint }}>{item.date}</span>
           </div>
-          <div style={{ fontSize:9.5, color:T.dim, marginBottom:5, fontStyle:'italic' }}>{item.journal}</div>
-          <div style={{ fontSize:'0.95rem', fontWeight:600, color:T.text, lineHeight:1.38, marginBottom:6, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.title}</div>
-          <div style={{ fontSize:'0.82rem', color:T.dim, lineHeight:1.5, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.abstract}</div>
-          <div style={{ marginTop:8, fontSize:'0.63rem', color:BRAND.purple, fontWeight:600 }}>Voir l article →</div>
+          <div style={{ fontSize:11, color:T.dim, marginBottom:5, fontStyle:'italic', fontWeight:500 }}>{item.journal}</div>
+          <div style={{ fontSize:'1.05rem', fontWeight:700, color:T.text, lineHeight:1.38, marginBottom:6, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.title}</div>
+          <div style={{ fontSize:'0.92rem', color:T.dim, lineHeight:1.5, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.abstract}</div>
+          <div style={{ marginTop:8, fontSize:'0.8rem', color:BRAND.purple, fontWeight:700 }}>Voir l article →</div>
         </div>
       </div>
     </a>
@@ -192,12 +192,12 @@ function InstaCard({ account, i, T }) {
         <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:10 }}>
           <div style={{ width:40, height:40, borderRadius:'50%', backgroundImage:`url(${account.avatar})`, backgroundSize:'cover', backgroundPosition:'center', border:`2px solid ${catColor}`, flexShrink:0 }} />
           <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ fontSize:'0.84rem', fontWeight:700, color:T.text }}>@{account.handle}</div>
+            <div style={{ fontSize:'1rem', fontWeight:700, color:T.text }}>@{account.handle}</div>
             <div style={{ fontSize:9, color:T.faint, marginTop:1 }}>{account.location}</div>
           </div>
           <span style={{ fontSize:9, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', color:catColor, background:catColor+'22', border:`1px solid ${catColor}44`, borderRadius:4, padding:'2px 7px', flexShrink:0 }}>{account.category}</span>
         </div>
-        <div style={{ fontSize:'0.78rem', color:T.dim, lineHeight:1.6, marginBottom:12, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{account.bio}</div>
+        <div style={{ fontSize:'0.9rem', color:T.dim, lineHeight:1.6, marginBottom:12, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{account.bio}</div>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
           <span style={{ fontSize:'0.72rem', color:T.faint }}>{account.followers} abonn&#233;s</span>
           <a href={account.url} target="_blank" rel="noopener noreferrer"
@@ -220,7 +220,7 @@ function RedditCard({ post, i, T }) {
         <div style={{ display:'flex', gap:12 }}>
           <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:3, minWidth:38 }}>
             <span style={{ fontSize:12, color:BRAND.orange }}>▲</span>
-            <span style={{ fontSize:'0.75rem', fontWeight:700, color:T.text }}>{post.upvotes}</span>
+            <span style={{ fontSize:'0.9rem', fontWeight:700, color:T.text }}>{post.upvotes}</span>
           </div>
           <div style={{ flex:1, minWidth:0 }}>
             <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:7, flexWrap:'wrap' }}>
@@ -228,11 +228,11 @@ function RedditCard({ post, i, T }) {
               {post.hot && <span style={{ fontSize:9, color:BRAND.orange, fontWeight:700 }}>🔥 Hot</span>}
               <span style={{ fontSize:9, background:T.surf3, border:`1px solid ${T.border}`, borderRadius:3, padding:'1px 6px', color:T.faint }}>{post.flair}</span>
             </div>
-            <div style={{ fontSize:'1rem', fontWeight:600, color:T.text, lineHeight:1.4, marginBottom:8 }}>{post.title}</div>
+            <div style={{ fontSize:'1.08rem', fontWeight:700, color:T.text, lineHeight:1.4, marginBottom:8 }}>{post.title}</div>
             <div style={{ display:'flex', alignItems:'center', gap:12, flexWrap:'wrap' }}>
-              <span style={{ fontSize:'0.68rem', color:T.faint }}>{post.author}</span>
-              <span style={{ fontSize:'0.68rem', color:T.faint }}>💬 {post.comments}</span>
-              <span style={{ fontSize:'0.68rem', color:T.faint, marginLeft:'auto' }}>{post.date}</span>
+              <span style={{ fontSize:'0.75rem', color:T.dim }}>{post.author}</span>
+              <span style={{ fontSize:'0.75rem', color:T.dim }}>💬 {post.comments}</span>
+              <span style={{ fontSize:'0.75rem', color:T.dim, marginLeft:'auto' }}>{post.date}</span>
             </div>
           </div>
         </div>
@@ -286,7 +286,7 @@ export default function App() {
   useEffect(() => { fetchAll() }, [fetchAll])
 
   return (
-    <div style={{ background:T.bg, minHeight:'100vh', color:T.text, fontFamily:"Inter,-apple-system,system-ui,sans-serif", fontWeight:400, transition:'background 0.3s, color 0.3s' }}>
+    <div style={{ background:T.bg, minHeight:'100vh', color:T.text, fontFamily:"Inter,-apple-system,system-ui,sans-serif", fontWeight:500, fontSize:17, transition:'background 0.3s, color 0.3s' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'); @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
         @keyframes spin{to{transform:rotate(360deg)}}
@@ -297,12 +297,9 @@ export default function App() {
       <div style={{ background:T.surf, borderBottom:`1px solid ${T.border}`, padding:'0 20px', height:54, display:'flex', alignItems:'center', justifyContent:'space-between', position:'sticky', top:0, zIndex:100, backdropFilter:'blur(12px)' }}>
         <div style={{ display:'flex', alignItems:'center', gap:12 }}>
           {/* Logo */}
-          <div style={{ display:'flex', alignItems:'center', gap:8 }}>
-            <div style={{ width:28, height:28, borderRadius:8, background:`linear-gradient(135deg, ${BRAND.yellow}, ${BRAND.orange})`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.9rem' }}>☕</div>
-            <div>
-              <div style={{ fontFamily:'Georgia,serif', fontSize:'0.92rem', fontWeight:700, color:T.text, lineHeight:1 }}>Specialty Coffee Daily</div>
-              <div style={{ fontSize:8.5, color:T.faint, letterSpacing:'0.08em', textTransform:'uppercase' }}>by GaufreGentille</div>
-            </div>
+          <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+            <img src="/logo.png" alt="Kissa Soko" style={{ height:36, width:'auto', display:'block' }} />
+            <div style={{ fontSize:11, color:T.dim, letterSpacing:'0.08em', textTransform:'uppercase', fontWeight:500 }}>by GaufreGentille · Actu Cafe</div>
           </div>
         </div>
         <div style={{ display:'flex', alignItems:'center', gap:10 }}>
@@ -321,7 +318,7 @@ export default function App() {
       </div>
 
       {/* MARKETS STRIP */}
-      <div style={{ background:T.surf, borderBottom:`2px solid ${BRAND.yellow}22`, display:'flex', overflowX:'auto', padding:'0 20px' }}>
+      <div style={{ background:T.surf, borderBottom:`2px solid ${BRAND.yellow}22`, display:'flex', overflowX:'auto', padding:'0 24px', minHeight:64 }}>
         {(markets.length ? markets : [
           {label:'Arabica ICE',val:'--',unit:'c/lb',chg:'',up:true},
           {label:'Robusta ICE',val:'--',unit:'$/t', chg:'',up:false},
@@ -329,19 +326,19 @@ export default function App() {
           {label:'BRL/USD',   val:'--',unit:'',    chg:'',up:true},
         ]).map((m,i) => (
           <div key={i} style={{ padding:'9px 24px 9px 0', minWidth:140, borderRight:`1px solid ${T.border}`, flexShrink:0 }}>
-            <div style={{ fontSize:9, textTransform:'uppercase', letterSpacing:'0.12em', color:T.faint, marginBottom:3 }}>{m.label}</div>
+            <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.1em', color:T.dim, marginBottom:5, fontWeight:600 }}>{m.label}</div>
             <div style={{ display:'flex', alignItems:'baseline', gap:7 }}>
-              <span style={{ fontSize:'1rem', fontWeight:600, color:T.text }}>
+              <span style={{ fontSize:'1.25rem', fontWeight:700, color:T.text }}>
                 {m.val}{m.unit && <span style={{ fontSize:9, color:T.faint, marginLeft:3 }}>{m.unit}</span>}
               </span>
-              {m.chg && <span style={{ fontSize:'0.7rem', color:m.up ? '#7cb87c' : '#c07070', fontWeight:600 }}>{m.up ? '▲' : '▼'}{m.chg}</span>}
+              {m.chg && <span style={{ fontSize:'0.85rem', color:m.up ? '#7cb87c' : '#c07070', fontWeight:700 }}>{m.up ? '▲' : '▼'}{m.chg}</span>}
             </div>
             {m.note && <div style={{ fontSize:8, color:T.faint, marginTop:2 }}>{m.note}</div>}
           </div>
         ))}
         <div style={{ padding:'9px 0 9px 20px', minWidth:80, flexShrink:0 }}>
-          <div style={{ fontSize:9, textTransform:'uppercase', letterSpacing:'0.12em', color:T.faint, marginBottom:3 }}>Mis a jour</div>
-          <div style={{ fontSize:'0.8rem', color:T.dim, fontWeight:500 }}>{mktTime}</div>
+          <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.1em', color:T.dim, marginBottom:5, fontWeight:600 }}>Mis a jour</div>
+          <div style={{ fontSize:'1.1rem', color:T.text, fontWeight:700 }}>{mktTime}</div>
         </div>
       </div>
 
@@ -353,7 +350,7 @@ export default function App() {
             borderBottom: tab===t.id ? `3px solid ${BRAND.yellow}` : '3px solid transparent',
             color: tab===t.id ? T.text : T.dim,
             fontWeight: tab===t.id ? 600 : 400,
-            fontSize:'0.9rem', padding:'13px 18px 10px',
+            fontSize:'0.95rem', padding:'14px 20px 11px', letterSpacing:'0.02em',
             cursor:'pointer', whiteSpace:'nowrap', transition:'all 0.15s', fontFamily:'inherit',
           }}>
             {t.label}
@@ -384,7 +381,7 @@ export default function App() {
         {/* INSTAGRAM */}
         {tab==='instagram' && (
           <div>
-            <div style={{ fontSize:9, textTransform:'uppercase', letterSpacing:'0.18em', color:T.faint, marginBottom:8, paddingBottom:10, borderBottom:`1px solid ${T.border}` }}>
+            <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.15em', color:T.dim, fontWeight:600, marginBottom:10, paddingBottom:12, borderBottom:`1px solid ${T.border}` }}>
               Comptes a suivre - {INSTAGRAM.length} selectionnes · torrefacteurs, producteurs, baristas, materiel
             </div>
             <div style={{ fontSize:'0.73rem', color:T.faint, marginBottom:16, padding:'10px 14px', background:T.surf, border:`1px solid ${T.border}`, borderRadius:8, display:'flex', alignItems:'center', gap:8 }}>
@@ -401,7 +398,7 @@ export default function App() {
           loading ? <Spinner label="Chargement des posts Reddit..." T={T} /> :
           reddit.length ? (
             <div>
-              <div style={{ fontSize:9, textTransform:'uppercase', letterSpacing:'0.18em', color:T.faint, marginBottom:14, paddingBottom:10, borderBottom:`1px solid ${T.border}` }}>
+              <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.15em', color:T.dim, fontWeight:600, marginBottom:16, paddingBottom:12, borderBottom:`1px solid ${T.border}` }}>
                 Reddit - hot posts · r/espresso · r/Coffee · r/barista · {dateStr}
               </div>
               <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
@@ -416,7 +413,7 @@ export default function App() {
           loading ? <Spinner label="Recherche d articles scientifiques..." T={T} /> :
           science.length ? (
             <div>
-              <div style={{ fontSize:9, textTransform:'uppercase', letterSpacing:'0.18em', color:T.faint, marginBottom:14, paddingBottom:10, borderBottom:`1px solid ${T.border}` }}>
+              <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.15em', color:T.dim, fontWeight:600, marginBottom:16, paddingBottom:12, borderBottom:`1px solid ${T.border}` }}>
                 Articles scientifiques - {science.length} articles · 2025-2026
               </div>
               <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
