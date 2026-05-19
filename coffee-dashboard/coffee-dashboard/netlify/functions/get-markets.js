@@ -1,64 +1,68 @@
-export default async (req, context) => {
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Content-Type': 'application/json',
+const https = require('https')
+
+const headers = {
+  'Access-Control-Allow-Origin': '*',
+  'Content-Type': 'application/json',
+}
+
+function httpsGet(url) {
+  return new Promise((resolve, reject) => {
+    https.get(url, (res) => {
+      let data = ''
+      res.on('data', chunk => data += chunk)
+      res.on('end', () => {
+        try { resolve(JSON.parse(data)) }
+        catch(e) { reject(new Error('Parse error')) }
+      })
+    }).on('error', reject)
+  })
+}
+
+exports.handler = async function(event, context) {
+  if (event.httpMethod === 'OPTIONS') {
+    return { statusCode: 200, headers, body: 'ok' }
   }
 
   const AV_KEY = process.env.ALPHA_VANTAGE_KEY
-  if (!AV_KEY) {
-    return new Response(JSON.stringify({ error: 'Missing market API key' }), { status: 500, headers })
-  }
 
-  // Fetch Forex rates (EUR/USD, BRL/USD) from Alpha Vantage
   async function getForex(from, to) {
-    const url = `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=${from}&to_currency=${to}&apikey=${AV_KEY}`
-    const res = await fetch(url)
-    const data = await res.json()
-    const rate = data['Realtime Currency Exchange Rate']
-    if (!rate) return null
-    return {
-      price: parseFloat(rate['5. Exchange Rate']),
-      prev:  parseFloat(rate['8. Bid Price']),
-    }
+    if (!AV_KEY) return null
+    try {
+      const url = `https://www.alphavantage.co/query?function=CURRENCY_EXCHANGE_RATE&from_currency=${from}&to_currency=${to}&apikey=${AV_KEY}`
+      const data = await httpsGet(url)
+      const rate = data['Realtime Currency Exchange Rate']
+      if (!rate) return null
+      const price = parseFloat(rate['5. Exchange Rate'])
+      const bid   = parseFloat(rate['8. Bid Price'])
+      const chg   = price - bid
+      const pct   = (chg / bid) * 100
+      return {
+        val:  price.toFixed(4),
+        chg:  `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`,
+        up:   pct >= 0,
+        note: 'Temps reel'
+      }
+    } catch { return null }
   }
 
-  try {
-    // Alpha Vantage free tier: commodity futures not available directly.
-    // We use forex for EUR/USD and BRL/USD, and serve indicative coffee prices
-    // (real ICE futures require a paid commodity feed — upgrade path noted below)
-    const [eurusd, brlusd] = await Promise.all([
-      getForex('EUR', 'USD'),
-      getForex('BRL', 'USD'),
-    ])
+  const [eurusd, brlusd] = await Promise.all([
+    getForex('EUR', 'USD'),
+    getForex('BRL', 'USD'),
+  ])
 
-    const calcChg = (q) => {
-      if (!q) return { val:'N/A', chg:'—', up:true }
-      const chg = q.price - q.prev
-      const pct = (chg / q.prev) * 100
-      return {
-        val:  q.price.toFixed(4),
-        chg:  `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`,
-        up:   pct >= 0
-      }
-    }
+  const markets = [
+    { label:'Arabica ICE', val:'305.2', unit:'c/lb', chg:'+0.9%', up:true,  note:'Indicatif' },
+    { label:'Robusta ICE', val:'5,490', unit:'$/t',  chg:'-0.3%', up:false, note:'Indicatif' },
+    { label:'EUR/USD', ...(eurusd || { val:'1.1240', chg:'+0.1%', up:true,  note:'Indicatif' }), unit:'' },
+    { label:'BRL/USD', ...(brlusd || { val:'0.1876', chg:'+0.4%', up:true,  note:'Indicatif' }), unit:'' },
+  ]
 
-    // Coffee commodity prices: indicative (ICE real-time requires paid feed)
-    // Once you have a paid feed (e.g. Commodities-API.com), replace these
-    const markets = [
-      { label:'Arabica · ICE', val:'305.2', unit:'¢/lb', chg:'+0.9%', up:true,  note:'Indicatif ICE' },
-      { label:'Robusta · ICE', val:'5,490', unit:'$/t',  chg:'-0.3%', up:false, note:'Indicatif ICE' },
-      { label:'EUR/USD',       ...calcChg(eurusd), unit:'',     note:'Temps réel' },
-      { label:'BRL/USD',       ...calcChg(brlusd), unit:'',     note:'Temps réel' },
-    ]
-
-    return new Response(JSON.stringify({
+  return {
+    statusCode: 200,
+    headers,
+    body: JSON.stringify({
       markets,
       updatedAt: new Date().toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' })
-    }), { headers })
-
-  } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers })
+    })
   }
 }
-
-export const config = { path: '/api/markets' }
