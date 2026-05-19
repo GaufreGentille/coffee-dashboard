@@ -15,8 +15,8 @@ const DARK = {
   surf3:   '#222630',
   border:  '#252930',
   border2: '#2e3340',
-  text:    '#eef0f8',
-  dim:     '#8890a8',
+  text:    '#f4f6ff',
+  dim:     '#a0a8c0',
   faint:   '#404658',
 }
 
@@ -70,10 +70,10 @@ const INSTAGRAM = [
 ]
 
 const TABS = [
-  { id:'news',      label:'Actualites', icon:'📰' },
-  { id:'instagram', label:'Instagram',  icon:'📸' },
-  { id:'reddit',    label:'Reddit',     icon:'🤿' },
-  { id:'science',   label:'Science',    icon:'🔬' },
+  { id:'news',      label:'Actualites' },
+  { id:'instagram', label:'Instagram'  },
+  { id:'reddit',    label:'Reddit'     },
+  { id:'science',   label:'Science'    },
 ]
 
 function Tag({ topic, lang, T }) {
@@ -120,8 +120,8 @@ function HeroCard({ item, T }) {
             <span style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.09em', color:BRAND.amber }}>{item.source}</span>
             <span style={{ fontSize:9, color:T.faint }}>{item.date}</span>
           </div>
-          <div style={{ fontFamily:'Georgia,serif', fontSize:'1.2rem', fontWeight:700, color:T.text, lineHeight:1.35, marginBottom:10 }}>{item.title}</div>
-          <div style={{ fontSize:'0.82rem', color:T.dim, lineHeight:1.7 }}>{item.summary}</div>
+          <div style={{ fontFamily:'Georgia,serif', fontSize:'1.32rem', fontWeight:700, color:T.text, lineHeight:1.35, marginBottom:10 }}>{item.title}</div>
+          <div style={{ fontSize:'0.92rem', color:T.dim, lineHeight:1.7 }}>{item.summary}</div>
           <div style={{ marginTop:14, display:'inline-flex', alignItems:'center', gap:6, color:BRAND.purple, fontSize:'0.72rem', fontWeight:600 }}>
             Lire l article <span style={{ fontSize:'1rem' }}>→</span>
           </div>
@@ -146,8 +146,8 @@ function NewsCard({ item, img, i, T }) {
             <span style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.09em', color:BRAND.amber }}>{item.source}</span>
             <span style={{ fontSize:9, color:T.faint }}>{item.date}</span>
           </div>
-          <div style={{ fontSize:'0.85rem', fontWeight:600, color:T.text, lineHeight:1.4, marginBottom:6, display:'-webkit-box', WebkitLineClamp:3, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.title}</div>
-          <div style={{ fontSize:'0.73rem', color:T.dim, lineHeight:1.55, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.summary}</div>
+          <div style={{ fontSize:'0.95rem', fontWeight:600, color:T.text, lineHeight:1.4, marginBottom:6, display:'-webkit-box', WebkitLineClamp:3, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.title}</div>
+          <div style={{ fontSize:'0.82rem', color:T.dim, lineHeight:1.55, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.summary}</div>
           <div style={{ marginTop:10, fontSize:'0.65rem', color:BRAND.purple, fontWeight:600 }}>Lire →</div>
         </div>
       </div>
@@ -162,7 +162,7 @@ function SciCard({ item, img, i, T }) {
       <div onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
         style={{ background:T.surf, border:`1px solid ${h ? T.border2 : T.border}`, borderRadius:12, overflow:'hidden', cursor:'pointer', display:'grid', gridTemplateColumns:'90px 1fr', animation:`fadeUp 0.35s ease ${i*80}ms both`, transition:'all 0.2s', minHeight:104, boxShadow: h ? `0 4px 16px rgba(0,0,0,0.1)` : 'none' }}>
         <div style={{ backgroundImage:`url(${img})`, backgroundSize:'cover', backgroundPosition:'center', borderRight:`1px solid ${T.border}`, position:'relative' }}>
-          <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.45)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.9rem' }}>{item.emoji || '🔬'}</div>
+          <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.45)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.9rem' }}></div>
         </div>
         <div style={{ padding:'13px 15px' }}>
           <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
@@ -170,8 +170,8 @@ function SciCard({ item, img, i, T }) {
             <span style={{ fontSize:9, color:T.faint }}>{item.date}</span>
           </div>
           <div style={{ fontSize:9.5, color:T.dim, marginBottom:5, fontStyle:'italic' }}>{item.journal}</div>
-          <div style={{ fontSize:'0.82rem', fontWeight:600, color:T.text, lineHeight:1.38, marginBottom:6, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.title}</div>
-          <div style={{ fontSize:'0.72rem', color:T.dim, lineHeight:1.5, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.abstract}</div>
+          <div style={{ fontSize:'0.95rem', fontWeight:600, color:T.text, lineHeight:1.38, marginBottom:6, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.title}</div>
+          <div style={{ fontSize:'0.82rem', color:T.dim, lineHeight:1.5, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.abstract}</div>
           <div style={{ marginTop:8, fontSize:'0.63rem', color:BRAND.purple, fontWeight:600 }}>Voir l article →</div>
         </div>
       </div>
@@ -228,7 +228,7 @@ function RedditCard({ post, i, T }) {
               {post.hot && <span style={{ fontSize:9, color:BRAND.orange, fontWeight:700 }}>🔥 Hot</span>}
               <span style={{ fontSize:9, background:T.surf3, border:`1px solid ${T.border}`, borderRadius:3, padding:'1px 6px', color:T.faint }}>{post.flair}</span>
             </div>
-            <div style={{ fontSize:'0.87rem', fontWeight:600, color:T.text, lineHeight:1.4, marginBottom:8 }}>{post.title}</div>
+            <div style={{ fontSize:'1rem', fontWeight:600, color:T.text, lineHeight:1.4, marginBottom:8 }}>{post.title}</div>
             <div style={{ display:'flex', alignItems:'center', gap:12, flexWrap:'wrap' }}>
               <span style={{ fontSize:'0.68rem', color:T.faint }}>{post.author}</span>
               <span style={{ fontSize:'0.68rem', color:T.faint }}>💬 {post.comments}</span>
@@ -286,9 +286,9 @@ export default function App() {
   useEffect(() => { fetchAll() }, [fetchAll])
 
   return (
-    <div style={{ background:T.bg, minHeight:'100vh', color:T.text, fontFamily:'system-ui,-apple-system,sans-serif', fontWeight:300, transition:'background 0.3s, color 0.3s' }}>
+    <div style={{ background:T.bg, minHeight:'100vh', color:T.text, fontFamily:"Inter,-apple-system,system-ui,sans-serif", fontWeight:400, transition:'background 0.3s, color 0.3s' }}>
       <style>{`
-        @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'); @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
         @keyframes spin{to{transform:rotate(360deg)}}
         *{box-sizing:border-box;margin:0;padding:0;} a{color:inherit;} ::-webkit-scrollbar{width:6px;} ::-webkit-scrollbar-track{background:transparent;} ::-webkit-scrollbar-thumb{background:${T.border2};border-radius:3px;}
       `}</style>
@@ -331,7 +331,7 @@ export default function App() {
           <div key={i} style={{ padding:'9px 24px 9px 0', minWidth:140, borderRight:`1px solid ${T.border}`, flexShrink:0 }}>
             <div style={{ fontSize:9, textTransform:'uppercase', letterSpacing:'0.12em', color:T.faint, marginBottom:3 }}>{m.label}</div>
             <div style={{ display:'flex', alignItems:'baseline', gap:7 }}>
-              <span style={{ fontSize:'0.92rem', fontWeight:600, color:T.text }}>
+              <span style={{ fontSize:'1rem', fontWeight:600, color:T.text }}>
                 {m.val}{m.unit && <span style={{ fontSize:9, color:T.faint, marginLeft:3 }}>{m.unit}</span>}
               </span>
               {m.chg && <span style={{ fontSize:'0.7rem', color:m.up ? '#7cb87c' : '#c07070', fontWeight:600 }}>{m.up ? '▲' : '▼'}{m.chg}</span>}
@@ -353,10 +353,10 @@ export default function App() {
             borderBottom: tab===t.id ? `3px solid ${BRAND.yellow}` : '3px solid transparent',
             color: tab===t.id ? T.text : T.dim,
             fontWeight: tab===t.id ? 600 : 400,
-            fontSize:'0.8rem', padding:'13px 16px 10px',
+            fontSize:'0.9rem', padding:'13px 18px 10px',
             cursor:'pointer', whiteSpace:'nowrap', transition:'all 0.15s', fontFamily:'inherit',
           }}>
-            {t.icon} {t.label}
+            {t.label}
           </button>
         ))}
       </div>
