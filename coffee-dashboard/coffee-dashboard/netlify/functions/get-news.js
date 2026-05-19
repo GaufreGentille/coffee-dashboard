@@ -13,19 +13,20 @@ function httpsPost(options, body) {
       res.on('data', chunk => data += chunk)
       res.on('end', () => {
         try { resolve(JSON.parse(data)) }
-        catch(e) { reject(new Error('JSON parse error: ' + data.slice(0, 200))) }
+        catch(e) { reject(new Error('JSON parse error: ' + data.slice(0, 300))) }
       })
     })
     req.on('error', reject)
+    req.setTimeout(25000, () => { req.destroy(); reject(new Error('Request timeout')) })
     req.write(body)
     req.end()
   })
 }
 
-async function callClaude(apiKey, prompt) {
+async function callClaude(apiKey, prompt, maxTokens) {
   const body = JSON.stringify({
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 1200,
+    model: 'claude-haiku-4-5-20251001',
+    max_tokens: maxTokens || 800,
     messages: [{ role: 'user', content: prompt }]
   })
   const data = await httpsPost({
@@ -39,11 +40,15 @@ async function callClaude(apiKey, prompt) {
       'Content-Length': Buffer.byteLength(body)
     }
   }, body)
+  if (data.error) throw new Error(data.error.message || JSON.stringify(data.error))
   const text = data.content?.[0]?.text ?? ''
-  return JSON.parse(text.replace(/```json|```/g, '').trim())
+  const cleaned = text.replace(/```json|```/g, '').trim()
+  return JSON.parse(cleaned)
 }
 
 exports.handler = async function(event, context) {
+  context.callbackWaitsForEmptyEventLoop = false
+
   if (event.httpMethod === 'OPTIONS') {
     return { statusCode: 200, headers, body: 'ok' }
   }
@@ -57,33 +62,29 @@ exports.handler = async function(event, context) {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   })
 
-  const NEWS_PROMPT = `Tu es un agregateur specialise dans le cafe de specialite. Aujourd'hui nous sommes le ${today}.
-Genere 6 actualites recentes et realistes du monde du cafe de specialite.
-Sources : Perfect Daily Grind, Sprudge, SCA News, Barista Hustle, Coffee Intelligence, Barista Magazine.
-Sujets : marches/prix ICE, competitions WBC/WBrC 2026, torrefacteurs, durabilite, processing, producteurs, certifications, nouveau materiel.
-Melange naturellement titres en francais et en anglais (50/50).
-Reponds UNIQUEMENT en JSON valide, sans backticks ni markdown :
-[{"source":"","title":"","summary":"","url":"https://","topic":"marche|culture|durabilite|competition|producteur|technique|materiel","lang":"fr|en","date":"DD mois YYYY"}]`
+  const NEWS_PROMPT = `Agregateur cafe specialite. Date: ${today}.
+6 actualites realistes du cafe de specialite. Sources: Perfect Daily Grind, Sprudge, SCA News, Barista Hustle, Coffee Intelligence.
+Sujets: marches ICE 2026, WBC 2026, torrefacteurs, processing, producteurs, materiel.
+Mix 50/50 francais/anglais. JSON valide uniquement, sans backticks:
+[{"source":"","title":"","summary":"","url":"https://perfectdailygrind.com","topic":"marche","lang":"fr","date":"19 mai 2026"}]`
 
-  const SCI_PROMPT = `Tu es un agregateur scientifique cafe. Aujourd'hui nous sommes le ${today}.
-Genere 5 articles scientifiques recents et realistes sur Coffea arabica/canephora publies en 2025-2026.
-Domaines : botanique, agronomie, biochimie, fermentation, genomique, rouille orangee, changement climatique, chimie de tasse.
-Journaux : Food Chemistry, Frontiers in Plant Science, Scientia Horticulturae, J. Agric. Food Chem., Agronomy.
-Reponds UNIQUEMENT en JSON valide sans backticks :
-[{"journal":"","title":"","abstract":"","url":"https://doi.org/10.","field":"botanique|agronomie|biochimie|fermentation|genomique|climatologie","emoji":"plante","date":"Mois YYYY"}]`
+  const SCI_PROMPT = `Agregateur scientifique cafe. Date: ${today}.
+5 articles scientifiques 2025-2026 sur Coffea arabica/canephora.
+Domaines: botanique, agronomie, biochimie, fermentation, genomique, climatologie.
+JSON valide uniquement, sans backticks:
+[{"journal":"Food Chemistry","title":"","abstract":"","url":"https://doi.org/10.1016/j.foodchem.2026.01.042","field":"fermentation","emoji":"plant","date":"Avril 2026"}]`
 
-  const REDDIT_PROMPT = `Tu es un agregateur Reddit specialise cafe de specialite. Aujourd'hui nous sommes le ${today}.
-Genere 8 posts Reddit realistes de r/espresso, r/Coffee et r/barista.
-Melange posts en francais et en anglais. Sujets : extraction, materiel, competitions, origines, marches, technique.
-Reponds UNIQUEMENT en JSON valide sans backticks :
+  const REDDIT_PROMPT = `Agregateur Reddit cafe. Date: ${today}.
+8 posts Reddit de r/espresso, r/Coffee, r/barista. Mix francais/anglais.
+JSON valide uniquement, sans backticks:
 [{"sub":"r/espresso","title":"","author":"u/pseudo","upvotes":"1.2k","comments":45,"flair":"Technique","url":"https://reddit.com/r/espresso","hot":true,"date":"il y a 4h"}]`
 
   try {
-    const [news, science, reddit] = await Promise.all([
-      callClaude(ANTHROPIC_KEY, NEWS_PROMPT),
-      callClaude(ANTHROPIC_KEY, SCI_PROMPT),
-      callClaude(ANTHROPIC_KEY, REDDIT_PROMPT),
-    ])
+    // Sequential calls to avoid timeout — Haiku is much faster than Sonnet
+    const news    = await callClaude(ANTHROPIC_KEY, NEWS_PROMPT, 700)
+    const science = await callClaude(ANTHROPIC_KEY, SCI_PROMPT, 700)
+    const reddit  = await callClaude(ANTHROPIC_KEY, REDDIT_PROMPT, 600)
+
     return {
       statusCode: 200,
       headers,
@@ -93,7 +94,7 @@ Reponds UNIQUEMENT en JSON valide sans backticks :
     return {
       statusCode: 500,
       headers,
-      body: JSON.stringify({ error: err.message })
+      body: JSON.stringify({ error: err.message, stack: err.stack })
     }
   }
 }
