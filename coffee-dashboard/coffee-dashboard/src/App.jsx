@@ -298,7 +298,7 @@ export default function App() {
         <div style={{ display:'flex', alignItems:'center', gap:12 }}>
           {/* Logo */}
           <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-            <img src="/logo.png" alt="Kissa Soko" style={{ height:36, width:'auto', display:'block' }} />
+            <img src="/logo.png" alt="Kissa Soko" style={{ height:36, width:'auto', display:'block', borderRadius:10 }} />
             <div style={{ fontSize:11, color:T.dim, letterSpacing:'0.08em', textTransform:'uppercase', fontWeight:500 }}>by GaufreGentille · Actu Cafe</div>
           </div>
         </div>
