@@ -370,7 +370,7 @@ export default function App() {
 
         {/* SCIENCE */}
         {tab==='science' && (
-          loading ? <Spinner label='Recherche d\'articles scientifiques…' /> :
+          loading ? <Spinner label='Recherche d'articles scientifiques...' /> :
           science.length ? (
             <div>
               <div style={{ fontSize:9, textTransform:'uppercase', letterSpacing:'0.18em', color:C.faint, marginBottom:14, paddingBottom:10, borderBottom:`1px solid ${C.border}` }}>
