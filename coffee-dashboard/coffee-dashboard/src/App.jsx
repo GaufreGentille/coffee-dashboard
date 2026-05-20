@@ -1,5 +1,4 @@
 import { useState, useEffect, useCallback } from 'react'
-import { createPortal } from 'react-dom'
 
 // GaufreGentille brand palette
 const BRAND = {
@@ -554,6 +553,7 @@ const TABS = [
   { id:'reddit',    label:'Reddit'     },
   { id:'science',   label:'Science'    },
   { id:'gear',      label:'Ca fait du bruit' },
+  { id:'music',     label:'Musique' },
 ]
 
 function Tag({ topic, lang, T }) {
@@ -869,8 +869,6 @@ export default function App() {
   const [error, setError]     = useState(null)
   const [lastRefresh, setLastRefresh] = useState(null)
   const [instaFilter, setInstaFilter] = useState('Tous')
-  const [playerOpen, setPlayerOpen]   = useState(false)
-  const [trackIdx, setTrackIdx]       = useState(0)
   const [gear, setGear]         = useState([])
 
   const T = dark ? DARK : LIGHT
@@ -1084,6 +1082,62 @@ export default function App() {
           ) : <ErrMsg msg="Impossible de charger les articles scientifiques." T={T} />
         )}
 
+        {/* MUSIQUE */}
+        {tab==='music' && (
+          <div>
+            <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.15em', color:T.dim, fontWeight:600, marginBottom:16, paddingBottom:12, borderBottom:`1px solid ${T.border}` }}>
+              Musique · GaufreGentille · {TRACKS.length} tracks sur Suno
+            </div>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))', gap:12 }}>
+              {TRACKS.map((track, i) => (
+                <a key={i} href={track.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration:'none' }}>
+                  <div style={{
+                    background:T.surf, border:`1px solid ${T.border}`,
+                    borderRadius:12, overflow:'hidden', cursor:'pointer',
+                    transition:'all 0.2s',
+                  }}
+                    onMouseEnter={e=>{ e.currentTarget.style.borderColor=BRAND.amber; e.currentTarget.style.transform='translateY(-3px)' }}
+                    onMouseLeave={e=>{ e.currentTarget.style.borderColor=T.border; e.currentTarget.style.transform='translateY(0)' }}
+                  >
+                    {/* Cover art */}
+                    <div style={{
+                      height:160,
+                      background:`linear-gradient(135deg, ${BRAND.purple}44, ${BRAND.orange}44)`,
+                      display:'flex', alignItems:'center', justifyContent:'center',
+                      position:'relative',
+                    }}>
+                      <div style={{
+                        width:60, height:60, borderRadius:'50%',
+                        background:`linear-gradient(135deg, ${BRAND.purple}, ${BRAND.orange})`,
+                        display:'flex', alignItems:'center', justifyContent:'center',
+                        fontSize:'1.6rem',
+                      }}>♪</div>
+                      <div style={{
+                        position:'absolute', top:10, right:10,
+                        background:'rgba(0,0,0,0.5)', borderRadius:4,
+                        padding:'2px 8px', fontSize:10, color:'#fff', fontWeight:600
+                      }}>#{i+1}</div>
+                    </div>
+                    {/* Info */}
+                    <div style={{ padding:'12px 14px 14px' }}>
+                      <div style={{ fontSize:'0.7rem', color:BRAND.amber, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:5 }}>GaufreGentille</div>
+                      <div style={{ fontSize:'0.88rem', fontWeight:600, color:T.text, marginBottom:8 }}>Track {i+1}</div>
+                      <div style={{
+                        display:'inline-flex', alignItems:'center', gap:6,
+                        background:BRAND.amber, color:'#000',
+                        fontSize:'0.7rem', fontWeight:700,
+                        padding:'5px 12px', borderRadius:20,
+                      }}>
+                        ▶ Ecouter sur Suno
+                      </div>
+                    </div>
+                  </div>
+                </a>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* CA FAIT DU BRUIT */}
         {tab==='gear' && (
           loading ? <Spinner label="Chargement des nouveautes materiel..." T={T} /> :
@@ -1101,7 +1155,6 @@ export default function App() {
         )}
 
       </div>
-    {createPortal(<MiniPlayer open={playerOpen} setOpen={setPlayerOpen} trackIdx={trackIdx} setTrackIdx={setTrackIdx} T={T} />, document.body)}
     </div>
   )
 }
