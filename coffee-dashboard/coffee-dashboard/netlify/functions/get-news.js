@@ -41,13 +41,15 @@ function safeJSON(text) {
   return JSON.parse(clean.slice(start, end + 1))
 }
 
-function claude(key, prompt, tokens) {
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)) }
+
+async function claude(key, prompt, tokens) {
   const body = JSON.stringify({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: tokens || 700,
+    max_tokens: tokens || 600,
     messages: [{ role: 'user', content: prompt }]
   })
-  return httpsPost({
+  const data = await httpsPost({
     hostname: 'api.anthropic.com', path: '/v1/messages', method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -55,10 +57,57 @@ function claude(key, prompt, tokens) {
       'anthropic-version': '2023-06-01',
       'Content-Length': Buffer.byteLength(body)
     }
-  }, body).then(d => {
-    if (d.error) throw new Error(d.error.message)
-    return safeJSON(d.content?.[0]?.text ?? '')
-  })
+  }, body)
+  if (data.error) {
+    if (data.error.type === 'overloaded_error') throw new Error('Overloaded')
+    throw new Error(data.error.message)
+  }
+  return safeJSON(data.content?.[0]?.text ?? '')
+}
+
+// Single mega-prompt — one call, everything at once
+function buildMegaPrompt(today) {
+  return `You are a specialty coffee dashboard content generator. Today: ${today}.
+Return ONE valid JSON object with exactly these 4 keys. No markdown, no explanation, just JSON.
+
+{
+  "news": [
+    {"source":"Perfect Daily Grind","title":"Arabica steadies above 300c as Brazil outlook brightens","summary":"Arabica futures hold near 305c after January highs of 340c. Improved rainfall in Cerrado Mineiro lifts 2026/27 crop forecasts.","url":"https://perfectdailygrind.com","topic":"marche","lang":"en","date":"20 mai 2026"},
+    {"source":"SCA News","title":"WRITE a real WBC 2026 news title in French","summary":"WRITE 1-2 sentence summary in French","url":"https://sca.coffee","topic":"competition","lang":"fr","date":"19 mai 2026"},
+    {"source":"Sprudge","title":"WRITE a real specialty coffee producer news title","summary":"WRITE 1-2 sentence summary","url":"https://sprudge.com","topic":"producteur","lang":"en","date":"18 mai 2026"},
+    {"source":"Barista Hustle","title":"WRITE a real extraction or technique news title in French","summary":"WRITE 1-2 sentence summary in French","url":"https://baristahustle.com","topic":"technique","lang":"fr","date":"17 mai 2026"},
+    {"source":"Coffee Intelligence","title":"WRITE a real market or business news title","summary":"WRITE 1-2 sentence summary","url":"https://coffeeintelligence.com","topic":"marche","lang":"en","date":"16 mai 2026"},
+    {"source":"Cafe Specialite FR","title":"WRITE a real French specialty coffee news title","summary":"WRITE 1-2 sentence summary in French","url":"https://cafedespecialite.fr","topic":"materiel","lang":"fr","date":"15 mai 2026"}
+  ],
+  "science": [
+    {"journal":"Food Chemistry","title":"WRITE real 2026 coffee science paper title","abstract":"WRITE 1-2 sentence abstract","url":"https://doi.org/10.1016/j.foodchem.2026.01.042","field":"fermentation","emoji":"flask","date":"Avr 2026"},
+    {"journal":"Frontiers in Plant Science","title":"WRITE real paper title","abstract":"WRITE abstract","url":"https://doi.org/10.3389/fpls.2026.001","field":"genomique","emoji":"leaf","date":"Mar 2026"},
+    {"journal":"Scientia Horticulturae","title":"WRITE real paper title","abstract":"WRITE abstract","url":"https://doi.org/10.1016/j.scienta.2026.001","field":"agronomie","emoji":"seedling","date":"Fev 2026"},
+    {"journal":"J. Agric Food Chem","title":"WRITE real paper title","abstract":"WRITE abstract","url":"https://doi.org/10.1021/acs.jafc.6c001","field":"biochimie","emoji":"atom","date":"Jan 2026"},
+    {"journal":"Agronomy","title":"WRITE real paper title","abstract":"WRITE abstract","url":"https://doi.org/10.3390/agronomy2026.001","field":"climatologie","emoji":"globe","date":"Jan 2026"}
+  ],
+  "reddit": [
+    {"sub":"r/espresso","title":"WRITE real Reddit post title about espresso extraction","author":"u/extractionnerve","upvotes":"2.4k","comments":187,"flair":"Technique","url":"https://reddit.com/r/espresso","hot":true,"date":"il y a 3h"},
+    {"sub":"r/Coffee","title":"WRITE real Reddit post title about coffee origins","author":"u/terroir_fan","upvotes":"1.8k","comments":312,"flair":"Discussion","url":"https://reddit.com/r/Coffee","hot":true,"date":"il y a 5h"},
+    {"sub":"r/barista","title":"WRITE real Reddit post title about barista competition","author":"u/SCAobserver","upvotes":"3.1k","comments":224,"flair":"Competition","url":"https://reddit.com/r/barista","hot":true,"date":"il y a 8h"},
+    {"sub":"r/espresso","title":"WRITE real post title","author":"u/profilemaster","upvotes":"1.2k","comments":98,"flair":"Guide","url":"https://reddit.com/r/espresso","hot":false,"date":"il y a 11h"},
+    {"sub":"r/Coffee","title":"WRITE real post title about coffee origins","author":"u/origingeek","upvotes":"876","comments":143,"flair":"Origine","url":"https://reddit.com/r/Coffee","hot":false,"date":"il y a 14h"},
+    {"sub":"r/barista","title":"WRITE real post title about barista training","author":"u/sca_student","upvotes":"654","comments":77,"flair":"Formation","url":"https://reddit.com/r/barista","hot":false,"date":"il y a 17h"},
+    {"sub":"r/espresso","title":"WRITE real post title about market prices","author":"u/mktwatch","upvotes":"1.5k","comments":289,"flair":"Marche","url":"https://reddit.com/r/espresso","hot":true,"date":"il y a 20h"},
+    {"sub":"r/Coffee","title":"WRITE real post title about brew method","author":"u/bloombro","upvotes":"2.0k","comments":156,"flair":"Technique","url":"https://reddit.com/r/Coffee","hot":false,"date":"il y a 1j"}
+  ],
+  "gear": [
+    {"brand":"Fellow","name":"WRITE real Fellow product name","description":"WRITE real description","category":"Moulin","price":"199 EUR","url":"https://fellowproducts.com","hot":true,"img_seed":0},
+    {"brand":"La Marzocco","name":"WRITE real La Marzocco product","description":"WRITE description","category":"Machine","price":"WRITE price","url":"https://lamarzocco.com","hot":false,"img_seed":1},
+    {"brand":"Normcore","name":"WRITE real Normcore product","description":"WRITE description","category":"Accessories","price":"WRITE price","url":"https://normcorewares.com","hot":true,"img_seed":2},
+    {"brand":"Loveramics","name":"WRITE real Loveramics cup","description":"WRITE description","category":"Tasse","price":"WRITE price","url":"https://loveramics.com","hot":false,"img_seed":3},
+    {"brand":"Weber Workshops","name":"WRITE real Weber product","description":"WRITE description","category":"Moulin","price":"WRITE price","url":"https://weberworkshops.com","hot":true,"img_seed":4},
+    {"brand":"Sibarist","name":"WRITE real Sibarist filter","description":"WRITE description","category":"Filtre","price":"WRITE price","url":"https://sibaristcoffee.com","hot":false,"img_seed":5},
+    {"brand":"Orea","name":"WRITE real Orea product","description":"WRITE description","category":"Accessories","price":"WRITE price","url":"https://orea.uk","hot":true,"img_seed":6},
+    {"brand":"Kinto","name":"WRITE real Kinto product","description":"WRITE description","category":"Tasse","price":"WRITE price","url":"https://kinto.co.jp","hot":false,"img_seed":7},
+    {"brand":"Aillio","name":"WRITE real Aillio product","description":"WRITE description","category":"Torrefacteur","price":"WRITE price","url":"https://aillio.com","hot":true,"img_seed":0}
+  ]
+}`
 }
 
 const GEAR_IMGS = [
@@ -82,56 +131,35 @@ exports.handler = async function(event, context) {
   const forceRefresh = event.queryStringParameters?.refresh === '1'
   const now = Date.now()
 
-  // Serve cache
   if (memCache && !forceRefresh && (now - memCacheTime) < CACHE_TTL) {
     return { statusCode:200, headers:{ ...headers,'X-Cache':'HIT' }, body: JSON.stringify({ ...memCache, fromCache:true }) }
   }
 
   const today = new Date().toLocaleDateString('fr-FR', { weekday:'long', year:'numeric', month:'long', day:'numeric' })
 
-  // ── PROMPTS (concis pour rester sous 10s en parallèle) ──────────────
-  const P_NEWS = `Specialty coffee aggregator. Today: ${today}. Return ONLY valid JSON array, no markdown.
-Fill REPLACE with real specialty coffee news May 2026. Sources: Perfect Daily Grind, Sprudge, SCA, Barista Hustle, Coffee Intelligence.
-[{"source":"Perfect Daily Grind","title":"Arabica holds above 300c as Brazil 2026 harvest improves","summary":"Arabica futures stabilize at 305c after January highs near 340c. Better crop forecasts from Cerrado Mineiro ease volatility.","url":"https://perfectdailygrind.com","topic":"marche","lang":"en","date":"20 mai 2026"},{"source":"SCA News","title":"REPLACE","summary":"REPLACE","url":"https://sca.coffee","topic":"competition","lang":"fr","date":"19 mai 2026"},{"source":"Sprudge","title":"REPLACE","summary":"REPLACE","url":"https://sprudge.com","topic":"producteur","lang":"en","date":"18 mai 2026"},{"source":"Barista Hustle","title":"REPLACE","summary":"REPLACE","url":"https://baristahustle.com","topic":"technique","lang":"fr","date":"17 mai 2026"},{"source":"Coffee Intelligence","title":"REPLACE","summary":"REPLACE","url":"https://coffeeintelligence.com","topic":"marche","lang":"en","date":"16 mai 2026"},{"source":"Cafe Specialite FR","title":"REPLACE","summary":"REPLACE","url":"https://cafedespecialite.fr","topic":"materiel","lang":"fr","date":"15 mai 2026"}]`
-
-  const P_SCI = `Coffee science aggregator. Today: ${today}. Return ONLY valid JSON array, no markdown.
-[{"journal":"Food Chemistry","title":"REPLACE with real 2026 paper title","abstract":"REPLACE","url":"https://doi.org/10.1016/j.foodchem.2026.01.042","field":"fermentation","emoji":"flask","date":"Avr 2026"},{"journal":"Frontiers Plant Sci.","title":"REPLACE","abstract":"REPLACE","url":"https://doi.org/10.3389/fpls.2026.001","field":"genomique","emoji":"leaf","date":"Mar 2026"},{"journal":"Scientia Horticulturae","title":"REPLACE","abstract":"REPLACE","url":"https://doi.org/10.1016/j.scienta.2026.001","field":"agronomie","emoji":"seedling","date":"Fev 2026"},{"journal":"J. Agric Food Chem","title":"REPLACE","abstract":"REPLACE","url":"https://doi.org/10.1021/acs.jafc.6c001","field":"biochimie","emoji":"atom","date":"Jan 2026"},{"journal":"Agronomy","title":"REPLACE","abstract":"REPLACE","url":"https://doi.org/10.3390/agronomy2026.001","field":"climatologie","emoji":"globe","date":"Jan 2026"}]`
-
-  const P_REDDIT = `Reddit coffee aggregator. Today: ${today}. Return ONLY valid JSON array, no markdown. Replace all REPLACE.
-[{"sub":"r/espresso","title":"REPLACE","author":"u/extractionnerve","upvotes":"2.4k","comments":187,"flair":"Technique","url":"https://reddit.com/r/espresso","hot":true,"date":"il y a 3h"},{"sub":"r/Coffee","title":"REPLACE","author":"u/terroir_fan","upvotes":"1.8k","comments":312,"flair":"Discussion","url":"https://reddit.com/r/Coffee","hot":true,"date":"il y a 5h"},{"sub":"r/barista","title":"REPLACE","author":"u/SCAobserver","upvotes":"3.1k","comments":224,"flair":"Competition","url":"https://reddit.com/r/barista","hot":true,"date":"il y a 8h"},{"sub":"r/espresso","title":"REPLACE","author":"u/profilemaster","upvotes":"1.2k","comments":98,"flair":"Guide","url":"https://reddit.com/r/espresso","hot":false,"date":"il y a 11h"},{"sub":"r/Coffee","title":"REPLACE","author":"u/origingeek","upvotes":"876","comments":143,"flair":"Origine","url":"https://reddit.com/r/Coffee","hot":false,"date":"il y a 14h"},{"sub":"r/barista","title":"REPLACE","author":"u/sca_student","upvotes":"654","comments":77,"flair":"Formation","url":"https://reddit.com/r/barista","hot":false,"date":"il y a 17h"},{"sub":"r/espresso","title":"REPLACE","author":"u/mktwatch","upvotes":"1.5k","comments":289,"flair":"Marche","url":"https://reddit.com/r/espresso","hot":true,"date":"il y a 20h"},{"sub":"r/Coffee","title":"REPLACE","author":"u/bloombro","upvotes":"2.0k","comments":156,"flair":"Technique","url":"https://reddit.com/r/Coffee","hot":false,"date":"il y a 1j"}]`
-
-  const P_GEAR = `Coffee equipment curator. Today: ${today}. Return ONLY valid JSON array, no markdown. Replace all REPLACE with real products from these brands: La Marzocco, Fellow, Mahlkonig, Timemore, 1Zpresso, Weber Workshops, Decent Espresso, Niche Coffee, Normcore, Orea, Sibarist, Hario, Kinto, Saint Anthony Industries, Pullman, Comandante, Kinu, Loveramics, Aillio, Ikawa, Victoria Arduino. hot:true=new release. img_seed 0-7.
-[{"brand":"Fellow","name":"REPLACE real product","description":"REPLACE","category":"Moulin","price":"199 EUR","url":"https://fellowproducts.com","hot":true,"img_seed":0},{"brand":"REPLACE","name":"REPLACE","description":"REPLACE","category":"Machine","price":"REPLACE","url":"https://lamarzocco.com","hot":false,"img_seed":1},{"brand":"REPLACE","name":"REPLACE","description":"REPLACE","category":"Accessories","price":"REPLACE","url":"https://","hot":true,"img_seed":2},{"brand":"REPLACE","name":"REPLACE","description":"REPLACE","category":"Tasse","price":"REPLACE","url":"https://","hot":false,"img_seed":3},{"brand":"REPLACE","name":"REPLACE","description":"REPLACE","category":"Moulin","price":"REPLACE","url":"https://","hot":true,"img_seed":4},{"brand":"REPLACE","name":"REPLACE","description":"REPLACE","category":"Accessories","price":"REPLACE","url":"https://","hot":false,"img_seed":5},{"brand":"REPLACE","name":"REPLACE","description":"REPLACE","category":"Filtre","price":"REPLACE","url":"https://","hot":true,"img_seed":6},{"brand":"REPLACE","name":"REPLACE","description":"REPLACE","category":"Machine","price":"REPLACE","url":"https://","hot":false,"img_seed":7},{"brand":"REPLACE","name":"REPLACE","description":"REPLACE","category":"Tasse","price":"REPLACE","url":"https://","hot":true,"img_seed":0}]`
-
   try {
-    // Run all 4 calls in parallel — each takes ~2-3s, total ~3-4s well under 10s limit
-    const [news, science, reddit, gearRaw] = await Promise.all([
-      claude(KEY, P_NEWS, 650),
-      claude(KEY, P_SCI, 650),
-      claude(KEY, P_REDDIT, 700),
-      claude(KEY, P_GEAR, 800),
-    ])
+    // Single call with everything — avoids overload from parallel calls
+    const result = await claude(KEY, buildMegaPrompt(today), 2000)
 
-    const gear = Array.isArray(gearRaw) ? gearRaw.map((g, i) => ({
+    const gear = Array.isArray(result.gear) ? result.gear.map((g, i) => ({
       ...g,
       img: GEAR_IMGS[(typeof g.img_seed === 'number' ? g.img_seed : i) % GEAR_IMGS.length]
     })) : []
 
-    const result = {
-      news:    Array.isArray(news)    ? news    : [],
-      science: Array.isArray(science) ? science : [],
-      reddit:  Array.isArray(reddit)  ? reddit  : [],
+    const final = {
+      news:    Array.isArray(result.news)    ? result.news    : [],
+      science: Array.isArray(result.science) ? result.science : [],
+      reddit:  Array.isArray(result.reddit)  ? result.reddit  : [],
       gear,
       generatedAt: new Date().toISOString()
     }
 
-    memCache     = result
+    memCache     = final
     memCacheTime = now
 
-    return { statusCode:200, headers:{ ...headers,'X-Cache':'MISS' }, body: JSON.stringify(result) }
+    return { statusCode:200, headers:{ ...headers,'X-Cache':'MISS' }, body: JSON.stringify(final) }
 
   } catch(err) {
-    // Serve stale cache if available
     if (memCache) {
       return { statusCode:200, headers:{ ...headers,'X-Cache':'STALE' }, body: JSON.stringify({ ...memCache, fromCache:true, stale:true }) }
     }
