@@ -71,6 +71,27 @@ const GEAR_IMG = [
   'https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=600&q=80',
 ]
 
+const TRACKS = [
+  { id:'CXXRtw8zFAP5Lceu', url:'https://suno.com/s/CXXRtw8zFAP5Lceu' },
+  { id:'8ut1Myz4xl5WvE4P', url:'https://suno.com/s/8ut1Myz4xl5WvE4P' },
+  { id:'drL5ANQ9lKVQVKgi', url:'https://suno.com/s/drL5ANQ9lKVQVKgi' },
+  { id:'Tbjubv2aJPODJv8p', url:'https://suno.com/s/Tbjubv2aJPODJv8p' },
+  { id:'Qcbq7cVryiNcqhK6', url:'https://suno.com/s/Qcbq7cVryiNcqhK6' },
+  { id:'FHsqlwavsnGEi2Lf', url:'https://suno.com/s/FHsqlwavsnGEi2Lf' },
+  { id:'t2UoQmM2NthLWOhh', url:'https://suno.com/s/t2UoQmM2NthLWOhh' },
+  { id:'8F6oGUHRD1dJtxcu', url:'https://suno.com/s/8F6oGUHRD1dJtxcu' },
+  { id:'LxWE8KlFea18gMCG', url:'https://suno.com/s/LxWE8KlFea18gMCG' },
+  { id:'1kmeh2bUMUU33CsD', url:'https://suno.com/s/1kmeh2bUMUU33CsD' },
+  { id:'bZQeRTMTzz5Qa1rW', url:'https://suno.com/s/bZQeRTMTzz5Qa1rW' },
+  { id:'QybwBKqJA2D9NaTb', url:'https://suno.com/s/QybwBKqJA2D9NaTb' },
+  { id:'Cyrb0uSZG2x9ESH3', url:'https://suno.com/s/Cyrb0uSZG2x9ESH3' },
+  { id:'syMjGeoS3a005QDc', url:'https://suno.com/s/syMjGeoS3a005QDc' },
+  { id:'FQaPQ63sd9b0sNYP', url:'https://suno.com/s/FQaPQ63sd9b0sNYP' },
+  { id:'u1CITYVJEtUWeZiO', url:'https://suno.com/s/u1CITYVJEtUWeZiO' },
+  { id:'b3UArYz7FMDueoiH', url:'https://suno.com/s/b3UArYz7FMDueoiH' },
+  { id:'2l7uaalaXZ94K9gv', url:'https://suno.com/s/2l7uaalaXZ94K9gv' },
+]
+
 const INSTAGRAM = [
   {handle:"hario_asia_official",name:"Hario Asia Official",category:"Materiel",location:"Japon / Asie",bio:"Hario official Asia - V60, Woodneck, Switch, Skerton.",followers:"--",avatar:"https://images.unsplash.com/photo-1611854779393-1b2da9d400fe?w=80&q=80",url:"https://instagram.com/hario_asia_official",posts:["https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=300&q=75","https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=300&q=75","https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=300&q=75"]},
   {handle:"hariotaiwan",name:"Hario Taiwan",category:"Materiel",location:"Taiwan",bio:"Hario Taiwan - V60, dripper, carafe et accessoires brew.",followers:"--",avatar:"https://images.unsplash.com/photo-1486299267070-83823f5448dd?w=80&q=80",url:"https://instagram.com/hariotaiwan",posts:["https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=300&q=75","https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=300&q=75","https://images.unsplash.com/photo-1611854779393-1b2da9d400fe?w=300&q=75"]},
@@ -540,6 +561,7 @@ function Tag({ topic, lang, T }) {
     <div style={{ display:'flex', gap:5, alignItems:'center', flexWrap:'wrap' }}>
       <span style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', color, background:color+'22', border:`1px solid ${color}44`, borderRadius:4, padding:'2px 8px' }}>{topic}</span>
       {lang && <span style={{ fontSize:9, textTransform:'uppercase', color:T.faint, background:T.surf3, border:`1px solid ${T.border}`, borderRadius:3, padding:'2px 6px' }}>{lang === 'fr' ? 'FR' : 'EN'}</span>}
+    <MiniPlayer open={playerOpen} setOpen={setPlayerOpen} trackIdx={trackIdx} setTrackIdx={setTrackIdx} T={T} />
     </div>
   )
 }
@@ -758,6 +780,82 @@ function GearCard({ item, i, T }) {
   )
 }
 
+function MiniPlayer({ open, setOpen, trackIdx, setTrackIdx, T }) {
+  const track = TRACKS[trackIdx]
+  const prev = () => setTrackIdx(i => (i - 1 + TRACKS.length) % TRACKS.length)
+  const next = () => setTrackIdx(i => (i + 1) % TRACKS.length)
+
+  return (
+    <div style={{
+      position:'fixed', bottom:0, left:0, right:0, zIndex:200,
+      background: T.surf,
+      borderTop:`1px solid ${BRAND.amber}44`,
+      display:'flex', alignItems:'center',
+      padding:'0 20px',
+      height: open ? 56 : 38,
+      transition:'height 0.2s',
+      boxShadow:'0 -4px 24px rgba(0,0,0,0.3)',
+    }}>
+      {/* Logo Suno + titre */}
+      <div style={{ display:'flex', alignItems:'center', gap:10, flex:1, minWidth:0 }}>
+        <div style={{
+          width:28, height:28, borderRadius:6, flexShrink:0,
+          background:`linear-gradient(135deg, ${BRAND.purple}, ${BRAND.orange})`,
+          display:'flex', alignItems:'center', justifyContent:'center',
+          fontSize:'0.8rem', fontWeight:700, color:'#fff',
+        }}>♪</div>
+        {open && (
+          <div style={{ minWidth:0 }}>
+            <div style={{ fontSize:'0.72rem', color:T.text, fontWeight:600, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>
+              GaufreGentille · Track {trackIdx + 1}/{TRACKS.length}
+            </div>
+            <div style={{ fontSize:'0.62rem', color:T.faint }}>Kissa Soko playlist · Suno</div>
+          </div>
+        )}
+        {!open && (
+          <span style={{ fontSize:'0.7rem', color:T.dim }}>GaufreGentille · {trackIdx + 1}/{TRACKS.length}</span>
+        )}
+      </div>
+
+      {/* Controls */}
+      {open && (
+        <div style={{ display:'flex', alignItems:'center', gap:8, marginRight:16 }}>
+          <button onClick={prev} style={{ background:'none', border:'none', color:T.dim, fontSize:'1rem', cursor:'pointer', padding:'4px 6px' }}>⏮</button>
+          <a href={track.url} target="_blank" rel="noopener noreferrer"
+            style={{ background:BRAND.amber, color:'#000', fontSize:'0.72rem', fontWeight:700, padding:'6px 14px', borderRadius:20, textDecoration:'none', display:'flex', alignItems:'center', gap:5 }}>
+            ▶ Ecouter sur Suno
+          </a>
+          <button onClick={next} style={{ background:'none', border:'none', color:T.dim, fontSize:'1rem', cursor:'pointer', padding:'4px 6px' }}>⏭</button>
+        </div>
+      )}
+
+      {/* Track dots */}
+      {open && (
+        <div style={{ display:'flex', gap:4, marginRight:16, flexWrap:'wrap', maxWidth:120 }}>
+          {TRACKS.map((_, i) => (
+            <div key={i} onClick={() => setTrackIdx(i)} style={{
+              width:6, height:6, borderRadius:'50%', cursor:'pointer',
+              background: i === trackIdx ? BRAND.amber : T.faint,
+              transition:'background 0.15s',
+            }} />
+          ))}
+        </div>
+      )}
+
+      {/* Toggle */}
+      <button onClick={() => setOpen(o => !o)} style={{
+        background:'none', border:`1px solid ${T.border2}`,
+        color:T.dim, fontSize:'0.65rem', fontWeight:600,
+        padding:'4px 10px', borderRadius:6, cursor:'pointer',
+        fontFamily:'inherit', letterSpacing:'0.05em',
+        flexShrink:0,
+      }}>
+        {open ? '▼ Reduire' : '♪ Musique'}
+      </button>
+    </div>
+  )
+}
+
 export default function App() {
   const [tab, setTab]         = useState('news')
   const [dark, setDark]       = useState(true)
@@ -770,6 +868,8 @@ export default function App() {
   const [error, setError]     = useState(null)
   const [lastRefresh, setLastRefresh] = useState(null)
   const [instaFilter, setInstaFilter] = useState('Tous')
+  const [playerOpen, setPlayerOpen]   = useState(false)
+  const [trackIdx, setTrackIdx]       = useState(0)
   const [gear, setGear]         = useState([])
 
   const T = dark ? DARK : LIGHT
@@ -879,7 +979,7 @@ export default function App() {
       </div>
 
       {/* CONTENT */}
-      <div style={{ maxWidth:960, margin:'0 auto', padding:'20px 16px 80px' }}>
+      <div style={{ maxWidth:960, margin:'0 auto', padding:'20px 16px 100px' }}>
         {error && <ErrMsg msg={error} T={T} />}
 
         {/* NEWS */}
