@@ -16,55 +16,52 @@ function httpsPost(options, body) {
       res.on('data', chunk => data += chunk)
       res.on('end', () => {
         try { resolve(JSON.parse(data)) }
-        catch(e) { reject(new Error('API parse error: ' + data.slice(0, 200))) }
+        catch(e) { reject(new Error('Parse: ' + data.slice(0, 100))) }
       })
     })
     req.on('error', reject)
-    req.setTimeout(25000, () => { req.destroy(); reject(new Error('Timeout')) })
+    req.setTimeout(28000, () => { req.destroy(); reject(new Error('Timeout')) })
     req.write(body)
     req.end()
   })
 }
 
-function safeParseJSON(text) {
-  let clean = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim()
-  const start = clean.indexOf('[') !== -1 && (clean.indexOf('{') === -1 || clean.indexOf('[') < clean.indexOf('{'))
-    ? clean.indexOf('[') : clean.indexOf('{')
-  if (start === -1) throw new Error('No JSON found')
-  // Find matching closing bracket
-  const openChar = clean[start]
-  const closeChar = openChar === '[' ? ']' : '}'
+function safeJSON(text) {
+  const clean = text.replace(/```json\s*/g, '').replace(/```\s*/g, '').trim()
+  const a = clean.indexOf('['), b = clean.indexOf('{')
+  const start = (a !== -1 && (b === -1 || a < b)) ? a : b
+  if (start === -1) throw new Error('No JSON')
+  const open = clean[start], close = open === '[' ? ']' : '}'
   let depth = 0, end = -1
   for (let i = start; i < clean.length; i++) {
-    if (clean[i] === openChar) depth++
-    else if (clean[i] === closeChar) { depth--; if (depth === 0) { end = i; break } }
+    if (clean[i] === open) depth++
+    else if (clean[i] === close && --depth === 0) { end = i; break }
   }
-  if (end === -1) throw new Error('Unmatched brackets')
+  if (end === -1) throw new Error('Unmatched')
   return JSON.parse(clean.slice(start, end + 1))
 }
 
-async function callClaude(key, prompt, maxTokens) {
-  const reqBody = JSON.stringify({
+function claude(key, prompt, tokens) {
+  const body = JSON.stringify({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: maxTokens || 800,
+    max_tokens: tokens || 700,
     messages: [{ role: 'user', content: prompt }]
   })
-  const data = await httpsPost({
-    hostname: 'api.anthropic.com',
-    path: '/v1/messages',
-    method: 'POST',
+  return httpsPost({
+    hostname: 'api.anthropic.com', path: '/v1/messages', method: 'POST',
     headers: {
       'Content-Type': 'application/json',
       'x-api-key': key,
       'anthropic-version': '2023-06-01',
-      'Content-Length': Buffer.byteLength(reqBody)
+      'Content-Length': Buffer.byteLength(body)
     }
-  }, reqBody)
-  if (data.error) throw new Error(data.error.message)
-  return safeParseJSON(data.content?.[0]?.text ?? '')
+  }, body).then(d => {
+    if (d.error) throw new Error(d.error.message)
+    return safeJSON(d.content?.[0]?.text ?? '')
+  })
 }
 
-const GEAR_IMG = [
+const GEAR_IMGS = [
   'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600&q=80',
   'https://images.unsplash.com/photo-1611854779393-1b2da9d400fe?w=600&q=80',
   'https://images.unsplash.com/photo-1504630083234-14187a9df0f5?w=600&q=80',
@@ -77,66 +74,53 @@ const GEAR_IMG = [
 
 exports.handler = async function(event, context) {
   context.callbackWaitsForEmptyEventLoop = false
-
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: 'ok' }
-  }
+  if (event.httpMethod === 'OPTIONS') return { statusCode:200, headers, body:'ok' }
 
   const KEY = process.env.ANTHROPIC_API_KEY
-  if (!KEY) {
-    return { statusCode: 500, headers, body: JSON.stringify({ error: 'Missing ANTHROPIC_API_KEY' }) }
-  }
+  if (!KEY) return { statusCode:500, headers, body: JSON.stringify({ error:'Missing key' }) }
 
   const forceRefresh = event.queryStringParameters?.refresh === '1'
   const now = Date.now()
 
+  // Serve cache
   if (memCache && !forceRefresh && (now - memCacheTime) < CACHE_TTL) {
-    return {
-      statusCode: 200,
-      headers: { ...headers, 'X-Cache': 'HIT' },
-      body: JSON.stringify({ ...memCache, fromCache: true })
-    }
+    return { statusCode:200, headers:{ ...headers,'X-Cache':'HIT' }, body: JSON.stringify({ ...memCache, fromCache:true }) }
   }
 
-  const today = new Date().toLocaleDateString('fr-FR', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
-  })
+  const today = new Date().toLocaleDateString('fr-FR', { weekday:'long', year:'numeric', month:'long', day:'numeric' })
 
-  const NEWS_PROMPT = `You are a specialty coffee content aggregator. Today is ${today}.
-Return ONLY a valid JSON array. No markdown, no code fences. Fill in all REPLACE values with real relevant specialty coffee content from May 2026.
-[{"source":"Perfect Daily Grind","title":"Arabica futures hold above 300 cents as Brazil harvest improves","summary":"After hitting 340 cents in January 2026 arabica futures stabilize around 305 cents with better crop forecasts from Cerrado Mineiro.","url":"https://perfectdailygrind.com","topic":"marche","lang":"en","date":"19 mai 2026"},{"source":"SCA News","title":"WBC 2026 qualifications terminees - Japon et Colombie dominent","summary":"Les qualifications du World Barista Championship 2026 confirment Kenta Mizuno et Valentina Rios comme grands favoris pour la finale a Melbourne en septembre.","url":"https://sca.coffee","topic":"competition","lang":"fr","date":"18 mai 2026"},{"source":"Sprudge","title":"REPLACE WITH REAL TITLE","summary":"REPLACE WITH REAL SUMMARY","url":"https://sprudge.com","topic":"producteur","lang":"en","date":"17 mai 2026"},{"source":"Barista Hustle","title":"REPLACE WITH REAL TITLE","summary":"REPLACE WITH REAL SUMMARY","url":"https://baristahustle.com","topic":"technique","lang":"fr","date":"16 mai 2026"},{"source":"Coffee Intelligence","title":"REPLACE WITH REAL TITLE","summary":"REPLACE WITH REAL SUMMARY","url":"https://coffeeintelligence.com","topic":"marche","lang":"en","date":"15 mai 2026"},{"source":"Cafe Specialite FR","title":"REPLACE WITH REAL TITLE","summary":"REPLACE WITH REAL SUMMARY","url":"https://cafedespecialite.fr","topic":"materiel","lang":"fr","date":"14 mai 2026"}]`
+  // ── PROMPTS (concis pour rester sous 10s en parallèle) ──────────────
+  const P_NEWS = `Specialty coffee aggregator. Today: ${today}. Return ONLY valid JSON array, no markdown.
+Fill REPLACE with real specialty coffee news May 2026. Sources: Perfect Daily Grind, Sprudge, SCA, Barista Hustle, Coffee Intelligence.
+[{"source":"Perfect Daily Grind","title":"Arabica holds above 300c as Brazil 2026 harvest improves","summary":"Arabica futures stabilize at 305c after January highs near 340c. Better crop forecasts from Cerrado Mineiro ease volatility.","url":"https://perfectdailygrind.com","topic":"marche","lang":"en","date":"20 mai 2026"},{"source":"SCA News","title":"REPLACE","summary":"REPLACE","url":"https://sca.coffee","topic":"competition","lang":"fr","date":"19 mai 2026"},{"source":"Sprudge","title":"REPLACE","summary":"REPLACE","url":"https://sprudge.com","topic":"producteur","lang":"en","date":"18 mai 2026"},{"source":"Barista Hustle","title":"REPLACE","summary":"REPLACE","url":"https://baristahustle.com","topic":"technique","lang":"fr","date":"17 mai 2026"},{"source":"Coffee Intelligence","title":"REPLACE","summary":"REPLACE","url":"https://coffeeintelligence.com","topic":"marche","lang":"en","date":"16 mai 2026"},{"source":"Cafe Specialite FR","title":"REPLACE","summary":"REPLACE","url":"https://cafedespecialite.fr","topic":"materiel","lang":"fr","date":"15 mai 2026"}]`
 
-  const SCI_PROMPT = `You are a scientific coffee aggregator. Today is ${today}.
-Return ONLY a valid JSON array. No markdown, no code fences.
-[{"journal":"Food Chemistry","title":"REPLACE WITH REAL SCIENTIFIC TITLE","abstract":"REPLACE WITH REAL ABSTRACT","url":"https://doi.org/10.1016/j.foodchem.2026.01.042","field":"fermentation","emoji":"flask","date":"Avril 2026"},{"journal":"Frontiers in Plant Science","title":"REPLACE","abstract":"REPLACE","url":"https://doi.org/10.3389/fpls.2026.118723","field":"genomique","emoji":"leaf","date":"Mars 2026"},{"journal":"Scientia Horticulturae","title":"REPLACE","abstract":"REPLACE","url":"https://doi.org/10.1016/j.scienta.2026.11289","field":"agronomie","emoji":"seedling","date":"Fevrier 2026"},{"journal":"J. Agric. Food Chem.","title":"REPLACE","abstract":"REPLACE","url":"https://doi.org/10.1021/acs.jafc.6c01203","field":"biochimie","emoji":"atom","date":"Janvier 2026"},{"journal":"Agronomy","title":"REPLACE","abstract":"REPLACE","url":"https://doi.org/10.3390/agronomy15020312","field":"climatologie","emoji":"globe","date":"Janvier 2026"}]`
+  const P_SCI = `Coffee science aggregator. Today: ${today}. Return ONLY valid JSON array, no markdown.
+[{"journal":"Food Chemistry","title":"REPLACE with real 2026 paper title","abstract":"REPLACE","url":"https://doi.org/10.1016/j.foodchem.2026.01.042","field":"fermentation","emoji":"flask","date":"Avr 2026"},{"journal":"Frontiers Plant Sci.","title":"REPLACE","abstract":"REPLACE","url":"https://doi.org/10.3389/fpls.2026.001","field":"genomique","emoji":"leaf","date":"Mar 2026"},{"journal":"Scientia Horticulturae","title":"REPLACE","abstract":"REPLACE","url":"https://doi.org/10.1016/j.scienta.2026.001","field":"agronomie","emoji":"seedling","date":"Fev 2026"},{"journal":"J. Agric Food Chem","title":"REPLACE","abstract":"REPLACE","url":"https://doi.org/10.1021/acs.jafc.6c001","field":"biochimie","emoji":"atom","date":"Jan 2026"},{"journal":"Agronomy","title":"REPLACE","abstract":"REPLACE","url":"https://doi.org/10.3390/agronomy2026.001","field":"climatologie","emoji":"globe","date":"Jan 2026"}]`
 
-  const REDDIT_PROMPT = `You are a Reddit specialty coffee aggregator. Today is ${today}.
-Return ONLY a valid JSON array. No markdown, no code fences. Replace all REPLACE values with real relevant content.
-[{"sub":"r/espresso","title":"REPLACE WITH REAL POST TITLE","author":"u/extractionnerve","upvotes":"2.4k","comments":187,"flair":"Brew Journal","url":"https://reddit.com/r/espresso","hot":true,"date":"il y a 4h"},{"sub":"r/Coffee","title":"REPLACE","author":"u/terroir_fan","upvotes":"1.8k","comments":312,"flair":"Discussion","url":"https://reddit.com/r/Coffee","hot":true,"date":"il y a 6h"},{"sub":"r/barista","title":"REPLACE","author":"u/SCAobserver","upvotes":"3.1k","comments":224,"flair":"Competition","url":"https://reddit.com/r/barista","hot":true,"date":"il y a 9h"},{"sub":"r/espresso","title":"REPLACE","author":"u/profilemaster","upvotes":"1.2k","comments":98,"flair":"Guide","url":"https://reddit.com/r/espresso","hot":false,"date":"il y a 12h"},{"sub":"r/Coffee","title":"REPLACE","author":"u/origingeek","upvotes":"876","comments":143,"flair":"Origine","url":"https://reddit.com/r/Coffee","hot":false,"date":"il y a 14h"},{"sub":"r/barista","title":"REPLACE","author":"u/sca_student","upvotes":"654","comments":77,"flair":"Formation","url":"https://reddit.com/r/barista","hot":false,"date":"il y a 18h"},{"sub":"r/espresso","title":"REPLACE","author":"u/marketwatch_eu","upvotes":"1.5k","comments":289,"flair":"Marche","url":"https://reddit.com/r/espresso","hot":true,"date":"il y a 21h"},{"sub":"r/Coffee","title":"REPLACE","author":"u/bloombro","upvotes":"2.0k","comments":156,"flair":"Technique","url":"https://reddit.com/r/Coffee","hot":false,"date":"il y a 1j"}]`
+  const P_REDDIT = `Reddit coffee aggregator. Today: ${today}. Return ONLY valid JSON array, no markdown. Replace all REPLACE.
+[{"sub":"r/espresso","title":"REPLACE","author":"u/extractionnerve","upvotes":"2.4k","comments":187,"flair":"Technique","url":"https://reddit.com/r/espresso","hot":true,"date":"il y a 3h"},{"sub":"r/Coffee","title":"REPLACE","author":"u/terroir_fan","upvotes":"1.8k","comments":312,"flair":"Discussion","url":"https://reddit.com/r/Coffee","hot":true,"date":"il y a 5h"},{"sub":"r/barista","title":"REPLACE","author":"u/SCAobserver","upvotes":"3.1k","comments":224,"flair":"Competition","url":"https://reddit.com/r/barista","hot":true,"date":"il y a 8h"},{"sub":"r/espresso","title":"REPLACE","author":"u/profilemaster","upvotes":"1.2k","comments":98,"flair":"Guide","url":"https://reddit.com/r/espresso","hot":false,"date":"il y a 11h"},{"sub":"r/Coffee","title":"REPLACE","author":"u/origingeek","upvotes":"876","comments":143,"flair":"Origine","url":"https://reddit.com/r/Coffee","hot":false,"date":"il y a 14h"},{"sub":"r/barista","title":"REPLACE","author":"u/sca_student","upvotes":"654","comments":77,"flair":"Formation","url":"https://reddit.com/r/barista","hot":false,"date":"il y a 17h"},{"sub":"r/espresso","title":"REPLACE","author":"u/mktwatch","upvotes":"1.5k","comments":289,"flair":"Marche","url":"https://reddit.com/r/espresso","hot":true,"date":"il y a 20h"},{"sub":"r/Coffee","title":"REPLACE","author":"u/bloombro","upvotes":"2.0k","comments":156,"flair":"Technique","url":"https://reddit.com/r/Coffee","hot":false,"date":"il y a 1j"}]`
 
-  const GEAR_PROMPT = `You are a specialty coffee equipment curator. Today is ${today}.
-Generate 9 specialty coffee equipment items — mix of hot new releases and curated must-haves — from these brands: La Marzocco, Fellow Products, Mahlkonig, Timemore, 1Zpresso, Weber Workshops, Decent Espresso, Kafatek, Option-O, Niche Coffee, Normcore, Orea, IMS Filtri, Sibarist, Hario, Kinto, Cafec, Saint Anthony Industries, Pullman Espresso, Comandante, Kinu, Eureka, Loveramics, Aillio, Ikawa, Rocket Espresso, Victoria Arduino.
-Categories: Moulin, Machine, Accessories, Tasse, Torrefacteur, Filtre.
-hot:true = brand new release. coup_de_coeur:true = personal curated pick (not necessarily new).
-img_seed: integer 0-7.
-Return ONLY a valid JSON array, no markdown:
-[{"brand":"Fellow Products","name":"Opus Conical Grinder Limited Edition Matte Black","description":"REPLACE WITH REAL DESCRIPTION of this or similar real product","category":"Moulin","price":"199 EUR","url":"https://fellowproducts.com","hot":true,"coup_de_coeur":false,"img_seed":0},{"brand":"REPLACE","name":"REPLACE","description":"REPLACE","category":"Machine","price":"REPLACE","url":"https://","hot":false,"coup_de_coeur":true,"img_seed":1},{"brand":"REPLACE","name":"REPLACE","description":"REPLACE","category":"Accessories","price":"REPLACE","url":"https://","hot":true,"coup_de_coeur":false,"img_seed":2},{"brand":"REPLACE","name":"REPLACE","description":"REPLACE","category":"Tasse","price":"REPLACE","url":"https://","hot":false,"coup_de_coeur":true,"img_seed":3},{"brand":"REPLACE","name":"REPLACE","description":"REPLACE","category":"Moulin","price":"REPLACE","url":"https://","hot":true,"coup_de_coeur":false,"img_seed":4},{"brand":"REPLACE","name":"REPLACE","description":"REPLACE","category":"Accessories","price":"REPLACE","url":"https://","hot":false,"coup_de_coeur":true,"img_seed":5},{"brand":"REPLACE","name":"REPLACE","description":"REPLACE","category":"Filtre","price":"REPLACE","url":"https://","hot":true,"coup_de_coeur":false,"img_seed":6},{"brand":"REPLACE","name":"REPLACE","description":"REPLACE","category":"Machine","price":"REPLACE","url":"https://","hot":false,"coup_de_coeur":true,"img_seed":7},{"brand":"REPLACE","name":"REPLACE","description":"REPLACE","category":"Tasse","price":"REPLACE","url":"https://","hot":true,"coup_de_coeur":false,"img_seed":0}]`
+  const P_GEAR = `Coffee equipment curator. Today: ${today}. Return ONLY valid JSON array, no markdown. Replace all REPLACE with real products from these brands: La Marzocco, Fellow, Mahlkonig, Timemore, 1Zpresso, Weber Workshops, Decent Espresso, Niche Coffee, Normcore, Orea, Sibarist, Hario, Kinto, Saint Anthony Industries, Pullman, Comandante, Kinu, Loveramics, Aillio, Ikawa, Victoria Arduino. hot:true=new release. img_seed 0-7.
+[{"brand":"Fellow","name":"REPLACE real product","description":"REPLACE","category":"Moulin","price":"199 EUR","url":"https://fellowproducts.com","hot":true,"img_seed":0},{"brand":"REPLACE","name":"REPLACE","description":"REPLACE","category":"Machine","price":"REPLACE","url":"https://lamarzocco.com","hot":false,"img_seed":1},{"brand":"REPLACE","name":"REPLACE","description":"REPLACE","category":"Accessories","price":"REPLACE","url":"https://","hot":true,"img_seed":2},{"brand":"REPLACE","name":"REPLACE","description":"REPLACE","category":"Tasse","price":"REPLACE","url":"https://","hot":false,"img_seed":3},{"brand":"REPLACE","name":"REPLACE","description":"REPLACE","category":"Moulin","price":"REPLACE","url":"https://","hot":true,"img_seed":4},{"brand":"REPLACE","name":"REPLACE","description":"REPLACE","category":"Accessories","price":"REPLACE","url":"https://","hot":false,"img_seed":5},{"brand":"REPLACE","name":"REPLACE","description":"REPLACE","category":"Filtre","price":"REPLACE","url":"https://","hot":true,"img_seed":6},{"brand":"REPLACE","name":"REPLACE","description":"REPLACE","category":"Machine","price":"REPLACE","url":"https://","hot":false,"img_seed":7},{"brand":"REPLACE","name":"REPLACE","description":"REPLACE","category":"Tasse","price":"REPLACE","url":"https://","hot":true,"img_seed":0}]`
 
   try {
-    const news    = await callClaude(KEY, NEWS_PROMPT, 700)
-    const science = await callClaude(KEY, SCI_PROMPT, 700)
-    const reddit  = await callClaude(KEY, REDDIT_PROMPT, 700)
-    const gearRaw = await callClaude(KEY, GEAR_PROMPT, 900)
+    // Run all 4 calls in parallel — each takes ~2-3s, total ~3-4s well under 10s limit
+    const [news, science, reddit, gearRaw] = await Promise.all([
+      claude(KEY, P_NEWS, 650),
+      claude(KEY, P_SCI, 650),
+      claude(KEY, P_REDDIT, 700),
+      claude(KEY, P_GEAR, 800),
+    ])
 
     const gear = Array.isArray(gearRaw) ? gearRaw.map((g, i) => ({
       ...g,
-      img: GEAR_IMG[(g.img_seed !== undefined ? g.img_seed : i) % GEAR_IMG.length]
+      img: GEAR_IMGS[(typeof g.img_seed === 'number' ? g.img_seed : i) % GEAR_IMGS.length]
     })) : []
 
     const result = {
-      news: Array.isArray(news) ? news : [],
+      news:    Array.isArray(news)    ? news    : [],
       science: Array.isArray(science) ? science : [],
-      reddit: Array.isArray(reddit) ? reddit : [],
+      reddit:  Array.isArray(reddit)  ? reddit  : [],
       gear,
       generatedAt: new Date().toISOString()
     }
@@ -144,23 +128,13 @@ Return ONLY a valid JSON array, no markdown:
     memCache     = result
     memCacheTime = now
 
-    return {
-      statusCode: 200,
-      headers: { ...headers, 'X-Cache': 'MISS' },
-      body: JSON.stringify(result)
-    }
+    return { statusCode:200, headers:{ ...headers,'X-Cache':'MISS' }, body: JSON.stringify(result) }
+
   } catch(err) {
+    // Serve stale cache if available
     if (memCache) {
-      return {
-        statusCode: 200,
-        headers: { ...headers, 'X-Cache': 'STALE' },
-        body: JSON.stringify({ ...memCache, fromCache: true, stale: true })
-      }
+      return { statusCode:200, headers:{ ...headers,'X-Cache':'STALE' }, body: JSON.stringify({ ...memCache, fromCache:true, stale:true }) }
     }
-    return {
-      statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: err.message })
-    }
+    return { statusCode:500, headers, body: JSON.stringify({ error: err.message }) }
   }
 }
