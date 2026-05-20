@@ -59,6 +59,18 @@ const CAT_COLORS = {
 }
 const SUB_COLORS = { 'r/espresso': BRAND.amber, 'r/Coffee': BRAND.orange, 'r/barista': BRAND.purple }
 
+
+const GEAR_IMG = [
+  'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600&q=80',
+  'https://images.unsplash.com/photo-1611854779393-1b2da9d400fe?w=600&q=80',
+  'https://images.unsplash.com/photo-1504630083234-14187a9df0f5?w=600&q=80',
+  'https://images.unsplash.com/photo-1497935586351-b67a49e012bf?w=600&q=80',
+  'https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=600&q=80',
+  'https://images.unsplash.com/photo-1486299267070-83823f5448dd?w=600&q=80',
+  'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=600&q=80',
+  'https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=600&q=80',
+]
+
 const INSTAGRAM = [
   {handle:"hario_asia_official",name:"Hario Asia Official",category:"Materiel",location:"Japon / Asie",bio:"Hario official Asia - V60, Woodneck, Switch, Skerton.",followers:"--",avatar:"https://images.unsplash.com/photo-1611854779393-1b2da9d400fe?w=80&q=80",url:"https://instagram.com/hario_asia_official",posts:["https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=300&q=75","https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=300&q=75","https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=300&q=75"]},
   {handle:"hariotaiwan",name:"Hario Taiwan",category:"Materiel",location:"Taiwan",bio:"Hario Taiwan - V60, dripper, carafe et accessoires brew.",followers:"--",avatar:"https://images.unsplash.com/photo-1486299267070-83823f5448dd?w=80&q=80",url:"https://instagram.com/hariotaiwan",posts:["https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=300&q=75","https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=300&q=75","https://images.unsplash.com/photo-1611854779393-1b2da9d400fe?w=300&q=75"]},
@@ -519,6 +531,7 @@ const TABS = [
   { id:'instagram', label:'Instagram'  },
   { id:'reddit',    label:'Reddit'     },
   { id:'science',   label:'Science'    },
+  { id:'gear',      label:'Ca fait du bruit' },
 ]
 
 function Tag({ topic, lang, T }) {
@@ -686,6 +699,65 @@ function RedditCard({ post, i, T }) {
   )
 }
 
+
+function GearHeroCard({ item, T }) {
+  const [h, setH] = useState(false)
+  return (
+    <a href={item.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration:'none' }}>
+      <div onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
+        style={{ background:T.surf, border:`1px solid ${h?BRAND.amber+'88':T.border2}`, borderRadius:14, overflow:'hidden', marginBottom:12, cursor:'pointer', transition:'all 0.2s', boxShadow:h?`0 4px 24px ${BRAND.amber}18`:'none' }}>
+        <div style={{ height:220, backgroundImage:`url(${item.img})`, backgroundSize:'cover', backgroundPosition:'center', position:'relative' }}>
+          <div style={{ position:'absolute', inset:0, background:`linear-gradient(to top, ${T.surf}f0 0%, ${T.surf}44 50%, transparent 100%)` }} />
+          <div style={{ position:'absolute', top:14, left:16, display:'flex', gap:8, alignItems:'center' }}>
+            {item.hot && <span style={{ fontSize:'1.1rem' }}>🔥</span>}
+            <span style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', background:T.surf+'cc', backdropFilter:'blur(8px)', color:BRAND.amber, border:`1px solid ${BRAND.amber}44`, borderRadius:5, padding:'3px 9px' }}>{item.category}</span>
+          </div>
+          <div style={{ position:'absolute', bottom:16, left:18, right:18 }}>
+            <div style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', color:BRAND.amber, marginBottom:6 }}>{item.brand}</div>
+            <div style={{ fontFamily:'Georgia,serif', fontSize:'1.25rem', fontWeight:700, color:'#fff', lineHeight:1.3, textShadow:'0 1px 8px rgba(0,0,0,0.6)' }}>{item.name}</div>
+          </div>
+        </div>
+        <div style={{ padding:'16px 18px 20px' }}>
+          <div style={{ fontSize:'0.9rem', color:T.dim, lineHeight:1.7, marginBottom:12 }}>{item.description}</div>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+            {item.price && <span style={{ fontSize:'1rem', fontWeight:700, color:BRAND.yellow }}>{item.price}</span>}
+            <span style={{ fontSize:'0.72rem', color:BRAND.purple, fontWeight:600 }}>Voir le produit →</span>
+          </div>
+        </div>
+      </div>
+    </a>
+  )
+}
+
+function GearCard({ item, i, T }) {
+  const [h, setH] = useState(false)
+  return (
+    <a href={item.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration:'none' }}>
+      <div onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
+        style={{ background:T.surf, border:`1px solid ${h?T.border2:T.border}`, borderRadius:12, overflow:'hidden', cursor:'pointer', transform:h?'translateY(-3px)':'translateY(0)', transition:'all 0.2s', boxShadow:h?`0 8px 24px rgba(0,0,0,0.12)`:'none', animation:`fadeUp 0.35s ease ${i*60}ms both` }}>
+        <div style={{ height:160, backgroundImage:`url(${item.img})`, backgroundSize:'cover', backgroundPosition:'center', position:'relative' }}>
+          <div style={{ position:'absolute', inset:0, background:`linear-gradient(to top, ${T.surf}ee 0%, transparent 50%)` }} />
+          <div style={{ position:'absolute', top:10, left:12, display:'flex', gap:6, alignItems:'center' }}>
+            {item.hot && <span style={{ fontSize:'1rem' }}>🔥</span>}
+          </div>
+          <div style={{ position:'absolute', bottom:10, left:12 }}>
+            <span style={{ fontSize:9, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', color:BRAND.amber, background:T.surf+'dd', borderRadius:4, padding:'2px 7px' }}>{item.category}</span>
+          </div>
+        </div>
+        <div style={{ padding:'13px 15px 16px' }}>
+          <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.09em', color:BRAND.amber, marginBottom:5 }}>{item.brand}</div>
+          <div style={{ fontSize:'0.95rem', fontWeight:700, color:T.text, lineHeight:1.35, marginBottom:7, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.name}</div>
+          <div style={{ fontSize:'0.78rem', color:T.dim, lineHeight:1.55, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.description}</div>
+          <div style={{ marginTop:10, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+            {item.price && <span style={{ fontSize:'0.88rem', fontWeight:700, color:BRAND.yellow }}>{item.price}</span>}
+            <span style={{ fontSize:'0.7rem', color:BRAND.purple, fontWeight:600 }}>Voir →</span>
+          </div>
+        </div>
+      </div>
+    </a>
+  )
+}
+
 export default function App() {
   const [tab, setTab]         = useState('news')
   const [dark, setDark]       = useState(true)
@@ -698,6 +770,7 @@ export default function App() {
   const [error, setError]     = useState(null)
   const [lastRefresh, setLastRefresh] = useState(null)
   const [instaFilter, setInstaFilter] = useState('Tous')
+  const [gear, setGear]         = useState([])
 
   const T = dark ? DARK : LIGHT
 
@@ -719,6 +792,7 @@ export default function App() {
       if (content.news)    setNews(content.news)
       if (content.science) setSci(content.science)
       if (content.reddit)  setReddit(content.reddit)
+      if (content.gear)    setGear(content.gear)
       if (mkt.markets)     setMarkets(mkt.markets)
       if (mkt.updatedAt)   setMktTime(mkt.updatedAt)
       setLastRefresh(new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}))
