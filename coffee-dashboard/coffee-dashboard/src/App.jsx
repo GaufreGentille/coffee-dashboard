@@ -561,7 +561,6 @@ function Tag({ topic, lang, T }) {
     <div style={{ display:'flex', gap:5, alignItems:'center', flexWrap:'wrap' }}>
       <span style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', color, background:color+'22', border:`1px solid ${color}44`, borderRadius:4, padding:'2px 8px' }}>{topic}</span>
       {lang && <span style={{ fontSize:9, textTransform:'uppercase', color:T.faint, background:T.surf3, border:`1px solid ${T.border}`, borderRadius:3, padding:'2px 6px' }}>{lang === 'fr' ? 'FR' : 'EN'}</span>}
-    <MiniPlayer open={playerOpen} setOpen={setPlayerOpen} trackIdx={trackIdx} setTrackIdx={setTrackIdx} T={T} />
     </div>
   )
 }
@@ -1100,6 +1099,7 @@ export default function App() {
         )}
 
       </div>
+    <MiniPlayer open={playerOpen} setOpen={setPlayerOpen} trackIdx={trackIdx} setTrackIdx={setTrackIdx} T={T} />
     </div>
   )
 }
