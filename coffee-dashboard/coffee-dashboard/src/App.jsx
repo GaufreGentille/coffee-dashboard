@@ -71,25 +71,28 @@ const GEAR_IMG = [
   'https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=600&q=80',
 ]
 
-const TRACKS = [
-  { id:'CXXRtw8zFAP5Lceu', url:'https://suno.com/s/CXXRtw8zFAP5Lceu' },
-  { id:'8ut1Myz4xl5WvE4P', url:'https://suno.com/s/8ut1Myz4xl5WvE4P' },
-  { id:'drL5ANQ9lKVQVKgi', url:'https://suno.com/s/drL5ANQ9lKVQVKgi' },
-  { id:'Tbjubv2aJPODJv8p', url:'https://suno.com/s/Tbjubv2aJPODJv8p' },
-  { id:'Qcbq7cVryiNcqhK6', url:'https://suno.com/s/Qcbq7cVryiNcqhK6' },
-  { id:'FHsqlwavsnGEi2Lf', url:'https://suno.com/s/FHsqlwavsnGEi2Lf' },
-  { id:'t2UoQmM2NthLWOhh', url:'https://suno.com/s/t2UoQmM2NthLWOhh' },
-  { id:'8F6oGUHRD1dJtxcu', url:'https://suno.com/s/8F6oGUHRD1dJtxcu' },
-  { id:'LxWE8KlFea18gMCG', url:'https://suno.com/s/LxWE8KlFea18gMCG' },
-  { id:'1kmeh2bUMUU33CsD', url:'https://suno.com/s/1kmeh2bUMUU33CsD' },
-  { id:'bZQeRTMTzz5Qa1rW', url:'https://suno.com/s/bZQeRTMTzz5Qa1rW' },
-  { id:'QybwBKqJA2D9NaTb', url:'https://suno.com/s/QybwBKqJA2D9NaTb' },
-  { id:'Cyrb0uSZG2x9ESH3', url:'https://suno.com/s/Cyrb0uSZG2x9ESH3' },
-  { id:'syMjGeoS3a005QDc', url:'https://suno.com/s/syMjGeoS3a005QDc' },
-  { id:'FQaPQ63sd9b0sNYP', url:'https://suno.com/s/FQaPQ63sd9b0sNYP' },
-  { id:'u1CITYVJEtUWeZiO', url:'https://suno.com/s/u1CITYVJEtUWeZiO' },
-  { id:'b3UArYz7FMDueoiH', url:'https://suno.com/s/b3UArYz7FMDueoiH' },
-  { id:'2l7uaalaXZ94K9gv', url:'https://suno.com/s/2l7uaalaXZ94K9gv' },
+const PLAYLISTS = [
+  {
+    name: 'Midnight Cassette',
+    url: 'https://suno.com/playlist/6400cd5b-e7a3-4d8a-8c5b-a5c07bb02ecd',
+    tracks: 26,
+    cover: '/playlist-midnight.jpg',
+    vibe: 'City pop · J-pop · Late night drives',
+  },
+  {
+    name: 'Kagemusha',
+    url: 'https://suno.com/playlist/a1394680-db07-46e7-b7cd-60f42412989c',
+    tracks: 18,
+    cover: '/playlist-kagemusha.jpg',
+    vibe: 'Tokyo nights · Neon · Electronic',
+  },
+  {
+    name: 'Sakura',
+    url: 'https://suno.com/playlist/b6243889-9e57-46cb-90ae-fad1f0adb8a0',
+    tracks: '—',
+    cover: '/playlist-sakura.jpg',
+    vibe: 'Ambient · Cinematic · Japan',
+  },
 ]
 
 const INSTAGRAM = [
@@ -1085,51 +1088,67 @@ export default function App() {
         {/* MUSIQUE */}
         {tab==='music' && (
           <div>
-            <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.15em', color:T.dim, fontWeight:600, marginBottom:16, paddingBottom:12, borderBottom:`1px solid ${T.border}` }}>
-              Musique · GaufreGentille · {TRACKS.length} tracks sur Suno
+            <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.15em', color:T.dim, fontWeight:600, marginBottom:20, paddingBottom:12, borderBottom:`1px solid ${T.border}` }}>
+              Musique · GaufreGentille · {PLAYLISTS.length} playlists sur Suno
             </div>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(200px,1fr))', gap:12 }}>
-              {TRACKS.map((track, i) => (
-                <a key={i} href={track.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration:'none' }}>
+            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:16 }}>
+              {PLAYLISTS.map((pl, i) => (
+                <a key={i} href={pl.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration:'none' }}>
                   <div style={{
                     background:T.surf, border:`1px solid ${T.border}`,
-                    borderRadius:12, overflow:'hidden', cursor:'pointer',
-                    transition:'all 0.2s',
+                    borderRadius:14, overflow:'hidden', cursor:'pointer',
+                    transition:'all 0.22s',
+                    animation:`fadeUp 0.35s ease ${i*100}ms both`,
                   }}
-                    onMouseEnter={e=>{ e.currentTarget.style.borderColor=BRAND.amber; e.currentTarget.style.transform='translateY(-3px)' }}
-                    onMouseLeave={e=>{ e.currentTarget.style.borderColor=T.border; e.currentTarget.style.transform='translateY(0)' }}
+                    onMouseEnter={e=>{ e.currentTarget.style.borderColor=BRAND.amber+'88'; e.currentTarget.style.transform='translateY(-4px)'; e.currentTarget.style.boxShadow=`0 12px 32px rgba(0,0,0,0.3)` }}
+                    onMouseLeave={e=>{ e.currentTarget.style.borderColor=T.border; e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='none' }}
                   >
-                    {/* Cover art */}
+                    {/* Cover */}
                     <div style={{
-                      height:160,
-                      background:`linear-gradient(135deg, ${BRAND.purple}44, ${BRAND.orange}44)`,
-                      display:'flex', alignItems:'center', justifyContent:'center',
+                      height:220,
+                      backgroundImage:`url(${pl.cover})`,
+                      backgroundSize:'cover',
+                      backgroundPosition:'center',
                       position:'relative',
                     }}>
+                      <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 60%)' }} />
+                      {/* Play button overlay */}
                       <div style={{
-                        width:60, height:60, borderRadius:'50%',
-                        background:`linear-gradient(135deg, ${BRAND.purple}, ${BRAND.orange})`,
+                        position:'absolute', inset:0,
                         display:'flex', alignItems:'center', justifyContent:'center',
-                        fontSize:'1.6rem',
-                      }}>♪</div>
+                        opacity:0, transition:'opacity 0.2s',
+                      }}
+                        onMouseEnter={e=>e.currentTarget.style.opacity='1'}
+                        onMouseLeave={e=>e.currentTarget.style.opacity='0'}
+                      >
+                        <div style={{
+                          width:56, height:56, borderRadius:'50%',
+                          background:BRAND.amber, display:'flex', alignItems:'center', justifyContent:'center',
+                          fontSize:'1.4rem', color:'#000',
+                        }}>▶</div>
+                      </div>
+                      {/* Track count badge */}
                       <div style={{
-                        position:'absolute', top:10, right:10,
-                        background:'rgba(0,0,0,0.5)', borderRadius:4,
-                        padding:'2px 8px', fontSize:10, color:'#fff', fontWeight:600
-                      }}>#{i+1}</div>
+                        position:'absolute', top:12, right:12,
+                        background:'rgba(0,0,0,0.6)', backdropFilter:'blur(8px)',
+                        borderRadius:20, padding:'3px 10px',
+                        fontSize:11, color:'#fff', fontWeight:600,
+                      }}>{pl.tracks} tracks</div>
+                      {/* Title overlay */}
+                      <div style={{ position:'absolute', bottom:14, left:16, right:16 }}>
+                        <div style={{ fontSize:'0.65rem', color:BRAND.amber, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:4 }}>GaufreGentille</div>
+                        <div style={{ fontFamily:'Georgia,serif', fontSize:'1.3rem', fontWeight:700, color:'#fff', textShadow:'0 2px 8px rgba(0,0,0,0.8)' }}>{pl.name}</div>
+                      </div>
                     </div>
-                    {/* Info */}
-                    <div style={{ padding:'12px 14px 14px' }}>
-                      <div style={{ fontSize:'0.7rem', color:BRAND.amber, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.08em', marginBottom:5 }}>GaufreGentille</div>
-                      <div style={{ fontSize:'0.88rem', fontWeight:600, color:T.text, marginBottom:8 }}>Track {i+1}</div>
+                    {/* Footer */}
+                    <div style={{ padding:'14px 16px 16px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                      <div style={{ fontSize:'0.78rem', color:T.dim, fontStyle:'italic' }}>{pl.vibe}</div>
                       <div style={{
-                        display:'inline-flex', alignItems:'center', gap:6,
+                        display:'inline-flex', alignItems:'center', gap:5,
                         background:BRAND.amber, color:'#000',
                         fontSize:'0.7rem', fontWeight:700,
-                        padding:'5px 12px', borderRadius:20,
-                      }}>
-                        ▶ Ecouter sur Suno
-                      </div>
+                        padding:'5px 13px', borderRadius:20, flexShrink:0,
+                      }}>▶ Suno</div>
                     </div>
                   </div>
                 </a>
