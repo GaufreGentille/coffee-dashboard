@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import { createPortal } from 'react-dom'
 
 // GaufreGentille brand palette
 const BRAND = {
@@ -786,14 +787,15 @@ function MiniPlayer({ open, setOpen, trackIdx, setTrackIdx, T }) {
 
   return (
     <div style={{
-      position:'fixed', bottom:0, left:0, right:0, zIndex:200,
+      position:'fixed', bottom:0, left:0, right:0, zIndex:99999,
       background: T.surf,
-      borderTop:`1px solid ${BRAND.amber}44`,
+      borderTop:`2px solid ${BRAND.amber}`,
       display:'flex', alignItems:'center',
       padding:'0 20px',
       height: open ? 56 : 38,
       transition:'height 0.2s',
-      boxShadow:'0 -4px 24px rgba(0,0,0,0.3)',
+      boxShadow:'0 -4px 24px rgba(0,0,0,0.5)',
+      transform:'translateZ(0)',
     }}>
       {/* Logo Suno + titre */}
       <div style={{ display:'flex', alignItems:'center', gap:10, flex:1, minWidth:0 }}>
@@ -905,7 +907,7 @@ export default function App() {
   useEffect(() => { fetchAll() }, [fetchAll])
 
   return (
-    <div style={{ background:T.bg, minHeight:'100vh', color:T.text, fontFamily:"Inter,-apple-system,system-ui,sans-serif", fontWeight:500, fontSize:17, transition:'background 0.3s, color 0.3s' }}>
+    <div style={{ background:T.bg, minHeight:'100vh', color:T.text, fontFamily:"Inter,-apple-system,system-ui,sans-serif", fontWeight:500, fontSize:17, transition:'background 0.3s, color 0.3s', position:'relative' }}>
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'); @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
         @keyframes spin{to{transform:rotate(360deg)}}
@@ -1099,7 +1101,7 @@ export default function App() {
         )}
 
       </div>
-    <MiniPlayer open={playerOpen} setOpen={setPlayerOpen} trackIdx={trackIdx} setTrackIdx={setTrackIdx} T={T} />
+    {createPortal(<MiniPlayer open={playerOpen} setOpen={setPlayerOpen} trackIdx={trackIdx} setTrackIdx={setTrackIdx} T={T} />, document.body)}
     </div>
   )
 }
