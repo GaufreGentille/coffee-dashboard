@@ -2,23 +2,15 @@ name: Daily Refresh
 
 on:
   schedule:
-    # Every day at 7:00 AM Paris time (5:00 UTC in winter, 6:00 UTC in summer)
-    # Using 6:00 UTC to cover both seasons
     - cron: '0 6 * * *'
-  workflow_dispatch: # Allow manual trigger from GitHub UI
+  workflow_dispatch:
 
 jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
-      - name: Trigger Netlify cache refresh
-        run: |
-          curl -s -o /dev/null -w "HTTP %{http_code}" \
-            "https://kissasoko.netlify.app/.netlify/functions/get-news?refresh=1"
-          echo " — Cache refreshed at $(date)"
+      - name: Refresh content cache
+        run: curl -s "https://kissasoko.netlify.app/.netlify/functions/get-news?refresh=1"
 
-      - name: Trigger markets refresh
-        run: |
-          curl -s -o /dev/null -w "HTTP %{http_code}" \
-            "https://kissasoko.netlify.app/.netlify/functions/get-markets"
-          echo " — Markets refreshed at $(date)"
+      - name: Refresh markets cache
+        run: curl -s "https://kissasoko.netlify.app/.netlify/functions/get-markets"
