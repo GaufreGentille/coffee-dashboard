@@ -557,6 +557,7 @@ const TABS = [
   { id:'science',   label:'Science'    },
   { id:'gear',      label:'Ca fait du bruit' },
   { id:'music',     label:'Musique' },
+  { id:'esport',    label:'Team Vitality' },
 ]
 
 function Tag({ topic, lang, T }) {
@@ -1083,6 +1084,104 @@ export default function App() {
               </div>
             </div>
           ) : <ErrMsg msg="Impossible de charger les articles scientifiques." T={T} />
+        )}
+
+
+        {/* TEAM VITALITY */}
+        {tab==='esport' && (
+          <div style={{ animation:'fadeUp 0.3s ease both' }}>
+            {/* Header */}
+            <div style={{ display:'flex', alignItems:'center', gap:16, marginBottom:20, paddingBottom:14, borderBottom:`1px solid ${T.border}` }}>
+              <div style={{ width:48, height:48, borderRadius:10, background:'#FFDE00', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                <span style={{ fontSize:'1.4rem' }}>⚡</span>
+              </div>
+              <div>
+                <div style={{ fontSize:'1.1rem', fontWeight:700, color:T.text }}>Team Vitality · CS2</div>
+                <div style={{ fontSize:'0.75rem', color:T.dim }}>Rang mondial #1 · apEX · ropz · ZywOo · flameZ · mezii</div>
+              </div>
+              <a href="https://bo3.gg/teams/vitality/matches" target="_blank" rel="noopener noreferrer"
+                style={{ marginLeft:'auto', fontSize:'0.7rem', color:BRAND.slate, textDecoration:'none', flexShrink:0 }}>
+                Tous les matchs →
+              </a>
+            </div>
+
+            <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
+              {/* Derniers résultats */}
+              <div style={{ background:T.surf, border:`1px solid ${T.border}`, borderRadius:12, padding:'16px 18px' }}>
+                <div style={{ fontSize:10, textTransform:'uppercase', letterSpacing:'0.15em', color:T.faint, fontWeight:600, marginBottom:14 }}>Derniers résultats</div>
+                {[
+                  { date:'15 mai', event:'IEM Atlanta 2026', opp:'Natus Vincere', score:'0 - 2', win:false },
+                  { date:'13 mai', event:'IEM Atlanta 2026', opp:'B8', score:'2 - 0', win:true },
+                  { date:'03 mai', event:'BLAST Rivals Spring', opp:'Finale', score:'1er', win:true },
+                  { date:'23 mars', event:'BLAST Rotterdam', opp:'PARIVISION', score:'2 - 0', win:true },
+                  { date:'21 mars', event:'BLAST Rotterdam', opp:'The MongolZ', score:'2 - 0', win:true },
+                ].map((m, i) => (
+                  <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 0', borderBottom: i < 4 ? `1px solid ${T.border}` : 'none' }}>
+                    <div style={{ width:32, height:32, borderRadius:6, background: m.win ? '#7cb87c22' : '#be6f6f22', border:`1px solid ${m.win ? '#7cb87c44' : '#be6f6f44'}`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.75rem', fontWeight:700, color: m.win ? '#7cb87c' : '#be6f6f', flexShrink:0 }}>
+                      {m.win ? 'W' : 'L'}
+                    </div>
+                    <div style={{ flex:1, minWidth:0 }}>
+                      <div style={{ fontSize:'0.82rem', fontWeight:600, color:T.text, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' }}>{m.opp}</div>
+                      <div style={{ fontSize:'0.68rem', color:T.faint }}>{m.event}</div>
+                    </div>
+                    <div style={{ fontSize:'0.82rem', fontWeight:700, color: m.win ? '#7cb87c' : '#be6f6f', flexShrink:0 }}>{m.score}</div>
+                    <div style={{ fontSize:'0.65rem', color:T.faint, flexShrink:0 }}>{m.date}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Prochains matchs + stats */}
+              <div style={{ display:'flex', flexDirection:'column', gap:14 }}>
+                {/* Prochains matchs */}
+                <div style={{ background:T.surf, border:`1px solid ${T.border}`, borderRadius:12, padding:'16px 18px' }}>
+                  <div style={{ fontSize:10, textTransform:'uppercase', letterSpacing:'0.15em', color:T.faint, fontWeight:600, marginBottom:14 }}>Prochains matchs</div>
+                  {[
+                    { date:'A venir', event:'IEM Atlanta 2026', opp:'Playoffs', note:'En cours' },
+                    { date:'Juin 2026', event:'IEM Cologne 2026', opp:'TBD', note:'S-Tier' },
+                    { date:'Juil 2026', event:'PGL Major 2026', opp:'TBD', note:'Major' },
+                  ].map((m, i) => (
+                    <div key={i} style={{ display:'flex', alignItems:'center', gap:10, padding:'8px 0', borderBottom: i < 2 ? `1px solid ${T.border}` : 'none' }}>
+                      <div style={{ width:32, height:32, borderRadius:6, background:`${BRAND.amber}22`, border:`1px solid ${BRAND.amber}44`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:'0.7rem', color:BRAND.amber, flexShrink:0 }}>▶</div>
+                      <div style={{ flex:1, minWidth:0 }}>
+                        <div style={{ fontSize:'0.82rem', fontWeight:600, color:T.text }}>{m.opp}</div>
+                        <div style={{ fontSize:'0.68rem', color:T.faint }}>{m.event}</div>
+                      </div>
+                      <div style={{ fontSize:'0.65rem', background:T.surf3, border:`1px solid ${T.border}`, borderRadius:4, padding:'2px 7px', color:T.dim, flexShrink:0 }}>{m.note}</div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Stats rapides */}
+                <div style={{ background:T.surf, border:`1px solid ${T.border}`, borderRadius:12, padding:'16px 18px' }}>
+                  <div style={{ fontSize:10, textTransform:'uppercase', letterSpacing:'0.15em', color:T.faint, fontWeight:600, marginBottom:14 }}>Stats 2026</div>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:10 }}>
+                    {[
+                      { val:'#1', label:'Rang HLTV' },
+                      { val:'83%', label:'Win rate 30j' },
+                      { val:'5', label:'Titres 2026' },
+                      { val:'35', label:'Matchs joués' },
+                    ].map((s, i) => (
+                      <div key={i} style={{ background:T.surf2, border:`1px solid ${T.border}`, borderRadius:8, padding:'10px 12px' }}>
+                        <div style={{ fontSize:'1.2rem', fontWeight:800, color:'#FFDE00' }}>{s.val}</div>
+                        <div style={{ fontSize:'0.65rem', color:T.faint, marginTop:3 }}>{s.label}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Titres 2026 */}
+                <div style={{ background:T.surf, border:`1px solid ${T.border}`, borderRadius:12, padding:'16px 18px' }}>
+                  <div style={{ fontSize:10, textTransform:'uppercase', letterSpacing:'0.15em', color:T.faint, fontWeight:600, marginBottom:12 }}>Titres 2026 🏆</div>
+                  {['BLAST Rivals Spring', 'IEM Rio', 'BLAST Rotterdam', 'PGL Cluj-Napoca', 'IEM Krakow'].map((t, i) => (
+                    <div key={i} style={{ display:'flex', alignItems:'center', gap:8, padding:'5px 0' }}>
+                      <span style={{ color:'#FFDE00', fontSize:'0.8rem' }}>★</span>
+                      <span style={{ fontSize:'0.78rem', color:T.dim }}>{t}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
         )}
 
         {/* MUSIQUE */}
