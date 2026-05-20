@@ -640,11 +640,11 @@ function InstaCard({ account, i, T }) {
             <div style={{ fontSize:'1rem', fontWeight:700, color:T.text }}>@{account.handle}</div>
             <div style={{ fontSize:9, color:T.faint, marginTop:1 }}>{account.location}</div>
           </div>
-          <span style={{ fontSize:9, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', color:catColor, background:catColor+'22', border:`1px solid ${catColor}44`, borderRadius:4, padding:'2px 7px', flexShrink:0 }}>{account.category}</span>
+
         </div>
         <div style={{ fontSize:'0.9rem', color:T.dim, lineHeight:1.6, marginBottom:12, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{account.bio}</div>
         <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-          <span style={{ fontSize:'0.72rem', color:T.faint }}>{account.followers} abonn&#233;s</span>
+          <span style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', color:catColor, background:catColor+'22', border:`1px solid ${catColor}44`, borderRadius:4, padding:'3px 9px' }}>{account.category}</span>
           <a href={account.url} target="_blank" rel="noopener noreferrer"
             style={{ background:'linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045)', color:'#fff', fontSize:'0.68rem', fontWeight:700, padding:'6px 13px', borderRadius:7, textDecoration:'none' }}>
             Voir le profil →
