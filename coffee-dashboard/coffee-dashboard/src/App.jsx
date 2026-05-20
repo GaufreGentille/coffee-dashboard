@@ -1092,9 +1092,7 @@ export default function App() {
           <div style={{ animation:'fadeUp 0.3s ease both' }}>
             {/* Header */}
             <div style={{ display:'flex', alignItems:'center', gap:16, marginBottom:20, paddingBottom:14, borderBottom:`1px solid ${T.border}` }}>
-              <div style={{ width:48, height:48, borderRadius:10, background:'#FFDE00', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
-                <span style={{ fontSize:'1.4rem' }}>⚡</span>
-              </div>
+              <img src="/vitality-logo.webp" alt="Team Vitality" style={{ width:48, height:48, borderRadius:10, flexShrink:0, objectFit:'cover' }} />
               <div>
                 <div style={{ fontSize:'1.1rem', fontWeight:700, color:T.text }}>Team Vitality · CS2</div>
                 <div style={{ fontSize:'0.75rem', color:T.dim }}>Rang mondial #1 · apEX · ropz · ZywOo · flameZ · mezii</div>
