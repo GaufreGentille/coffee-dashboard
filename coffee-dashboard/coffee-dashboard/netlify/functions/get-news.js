@@ -31,14 +31,34 @@ function safeJSON(text) {
   const a = clean.indexOf('['), b = clean.indexOf('{')
   const start = (a !== -1 && (b === -1 || a < b)) ? a : b
   if (start === -1) throw new Error('No JSON')
+  // First try direct parse
+  try { return JSON.parse(clean.slice(start)) } catch(e) {}
+  // Try finding matching bracket
   const open = clean[start], close = open === '[' ? ']' : '}'
   let depth = 0, end = -1
   for (let i = start; i < clean.length; i++) {
     if (clean[i] === open) depth++
     else if (clean[i] === close && --depth === 0) { end = i; break }
   }
-  if (end === -1) throw new Error('Unmatched')
-  return JSON.parse(clean.slice(start, end + 1))
+  if (end !== -1) {
+    try { return JSON.parse(clean.slice(start, end + 1)) } catch(e) {}
+  }
+  // Response was truncated — try to salvage by closing open brackets
+  let partial = clean.slice(start)
+  // Count open braces/brackets to close them
+  let opens = []
+  for (let i = 0; i < partial.length; i++) {
+    if (partial[i] === '{') opens.push('}')
+    else if (partial[i] === '[') opens.push(']')
+    else if (partial[i] === '}' || partial[i] === ']') opens.pop()
+  }
+  // Remove trailing comma if any
+  partial = partial.replace(/,\s*$/, '')
+  // Close all open brackets
+  partial += opens.reverse().join('')
+  try { return JSON.parse(partial) } catch(e) {
+    throw new Error('Unmatched: ' + e.message.slice(0,50))
+  }
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)) }
@@ -46,7 +66,7 @@ function sleep(ms) { return new Promise(r => setTimeout(r, ms)) }
 async function claude(key, prompt, tokens) {
   const body = JSON.stringify({
     model: 'claude-haiku-4-5-20251001',
-    max_tokens: tokens || 600,
+    max_tokens: tokens || 3500,
     messages: [{ role: 'user', content: prompt }]
   })
   const data = await httpsPost({
@@ -139,7 +159,7 @@ exports.handler = async function(event, context) {
 
   try {
     // Single call with everything — avoids overload from parallel calls
-    const result = await claude(KEY, buildMegaPrompt(today), 2000)
+    const result = await claude(KEY, buildMegaPrompt(today), 3500)
 
     const gear = Array.isArray(result.gear) ? result.gear.map((g, i) => ({
       ...g,
