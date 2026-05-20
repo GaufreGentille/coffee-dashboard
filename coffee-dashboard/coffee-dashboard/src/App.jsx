@@ -982,6 +982,23 @@ export default function App() {
             </div>
           ) : <ErrMsg msg="Impossible de charger les articles scientifiques." T={T} />
         )}
+
+        {/* CA FAIT DU BRUIT */}
+        {tab==='gear' && (
+          loading ? <Spinner label="Chargement des nouveautes materiel..." T={T} /> :
+          gear.length ? (
+            <div>
+              <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.15em', color:T.dim, fontWeight:600, marginBottom:16, paddingBottom:12, borderBottom:`1px solid ${T.border}` }}>
+                Ca fait du bruit - {gear.length} nouveautes · materiel, moulins, machines, accessoires
+              </div>
+              <GearHeroCard item={gear[0]} T={T} />
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(225px,1fr))', gap:12 }}>
+                {gear.slice(1).map((item,i) => <GearCard key={i} item={item} i={i} T={T} />)}
+              </div>
+            </div>
+          ) : <ErrMsg msg="Impossible de charger les nouveautes." T={T} />
+        )}
+
       </div>
     </div>
   )
