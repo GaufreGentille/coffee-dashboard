@@ -1046,14 +1046,11 @@ export default function App() {
         <div style={{ display:'flex', alignItems:'center', gap:12, paddingLeft:24, borderLeft:`1px solid ${T.border}`, flexShrink:0 }}>
           {/* Music button */}
           <button onClick={() => { setShowMusic(v => !v); setShowVitality(false) }} style={{
-            background: showMusic ? BRAND.purple+'22' : 'none',
-            border: `1px solid ${showMusic ? BRAND.purple+'88' : T.border}`,
-            borderRadius:10, cursor:'pointer', padding:'6px 14px',
-            display:'flex', flexDirection:'column', alignItems:'center', gap:3,
-            transition:'all 0.2s', color: showMusic ? BRAND.purple : T.dim,
+            background:'none', border:'none', cursor:'pointer', padding:4, borderRadius:8,
+            opacity: showMusic ? 1 : 0.65, transition:'all 0.2s',
+            transform: showMusic ? 'scale(1.05)' : 'scale(1)',
           }} title="Musique — GaufreGentille">
-            <span style={{ fontSize:'1.3rem' }}>♪</span>
-            <span style={{ fontSize:9, fontWeight:600, letterSpacing:'0.05em', textTransform:'uppercase' }}>Musique</span>
+            <img src="/gg-logo.png" alt="GaufreGentille Musique" style={{ width:62, height:62, borderRadius:8, objectFit:'cover', display:'block' }} />
           </button>
           {/* Vitality button */}
           <button onClick={() => { setShowVitality(v => !v); setShowMusic(false) }} style={{
