@@ -73,12 +73,18 @@ function parseTiles(xml) {
     const title = m[1].replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&#[0-9]+;/g,'').replace(/\u2019/g,"'").trim()
     const body  = m[2]
     if (!title || title.length < 4) continue
+    const promoSections = ["roaster's village", "coffee gear!", "roasters village", "coffee gear"]
+    if (promoSections.some(s => title.toLowerCase().includes(s))) continue
 
     const sprudgeLink = (body.match(/href="(https:\/\/sprudge\.com\/[^"]+)"/) || [])[1] || null
-    const isAd = !sprudgeLink && (
-      body.includes('swisswater.com') || body.includes('pacificfoodservice') ||
-      body.includes('noissue.co') || body.includes('lamarzoccousa.com/about')
-    )
+    // Skip sections that are purely ads or promos (no real sprudge article link)
+    const adDomains = ['swisswater.com','pacificfoodservice','noissue.co','lamarzoccousa.com/about',
+      'klatchcoffee.com','8thandroast.com','nightswimcoffee.com','equatorcoffees.com',
+      'labarbacoffee.com','joecoffeecompany.com','blueprintcoffee.com','stumptowncoffee.com',
+      'partnerscoffee.com','philsebastian.com','onyxcoffeelab.com','madcapcoffee.com',
+      'olympiacoffee.com','portlandcoffeeroasters.com','mrespresso.com','prestacoffee.com',
+      'perccoffee.com','vervecoffee.com','caffeumbria.com']
+    const isAd = !sprudgeLink && adDomains.some(d => body.includes(d))
     if (isAd) continue
 
     const paras = [...body.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/g)]
@@ -89,13 +95,11 @@ function parseTiles(xml) {
 
     if (!text) continue
 
-    const imgM = body.match(/src="(https:\/\/substackcdn[^"]+\.(jpg|jpeg|png|webp|heic)[^"]*)"/i)
     tiles.push({
       source: 'The Sprudge Report',
       title, summary: text,
       url: sprudgeLink || 'https://sprudge.com',
       date: pubDate,
-      img: imgM ? imgM[1] : null,
     })
   }
   return tiles.slice(0, 10)
