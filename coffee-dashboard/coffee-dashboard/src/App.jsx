@@ -555,7 +555,7 @@ const TABS = [
   { id:'instagram', label:'Instagram'  },
   { id:'reddit',    label:'Communaute' },
   { id:'science',   label:'Science'    },
-  { id:'gear',      label:'Ca fait du bruit' },
+  { id:'gear',      label:'Ça fait du bruit' },
   { id:'music',     label:'Musique' },
   { id:'esport',    label:'Team Vitality' },
 ]
@@ -772,10 +772,11 @@ function GearHeroCard({ item, T }) {
           </div>
         </div>
         <div style={{ padding:'16px 18px 20px' }}>
-          <div style={{ fontSize:'0.9rem', color:T.dim, lineHeight:1.7, marginBottom:12 }}>{item.description}</div>
+          <div style={{ fontSize:'0.9rem', color:T.dim, lineHeight:1.7, marginBottom:12 }}>{item.description || item.summary}</div>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             {item.price && <span style={{ fontSize:'1rem', fontWeight:700, color:BRAND.yellow }}>{item.price}</span>}
-            <span style={{ fontSize:'0.72rem', color:BRAND.purple, fontWeight:600 }}>Voir le produit →</span>
+            {item.source && <span style={{ fontSize:'0.7rem', color:T.faint }}>{item.source} · {item.date}</span>}
+            <span style={{ fontSize:'0.72rem', color:BRAND.purple, fontWeight:600 }}>Voir →</span>
           </div>
         </div>
       </div>
@@ -801,9 +802,10 @@ function GearCard({ item, i, T }) {
         <div style={{ padding:'13px 15px 16px' }}>
           <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.09em', color:BRAND.amber, marginBottom:5 }}>{item.brand}</div>
           <div style={{ fontSize:'0.95rem', fontWeight:700, color:T.text, lineHeight:1.35, marginBottom:7, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.name}</div>
-          <div style={{ fontSize:'0.78rem', color:T.dim, lineHeight:1.55, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.description}</div>
+          <div style={{ fontSize:'0.78rem', color:T.dim, lineHeight:1.55, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.description || item.summary}</div>
           <div style={{ marginTop:10, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             {item.price && <span style={{ fontSize:'0.88rem', fontWeight:700, color:BRAND.yellow }}>{item.price}</span>}
+            {item.source && !item.price && <span style={{ fontSize:'0.68rem', color:T.faint }}>{item.source}</span>}
             <span style={{ fontSize:'0.7rem', color:BRAND.purple, fontWeight:600 }}>Voir →</span>
           </div>
         </div>
@@ -1308,7 +1310,7 @@ export default function App() {
           gear.length ? (
             <div>
               <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.15em', color:T.dim, fontWeight:600, marginBottom:16, paddingBottom:12, borderBottom:`1px solid ${T.border}` }}>
-                Ca fait du bruit - {gear.length} nouveautes · materiel, moulins, machines, accessoires
+                Ça fait du bruit · {gear.length} nouveautés · moulins, machines, tasses, drippers...
               </div>
               <GearHeroCard item={gear[0]} T={T} />
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(225px,1fr))', gap:12 }}>
