@@ -171,7 +171,7 @@ async function parseSprudgeNewsletter(url) {
     // Extract first image
     const imgMatch = body.match(/src="(https:\/\/substackcdn[^"]+)"/) ||
                      body.match(/src="(https:\/\/substack-post-media[^"]+)"/)
-    const img = imgMatch ? imgMatch[1].replace(/\/g,'') : null
+    const img = imgMatch ? imgMatch[1] : null
 
     tiles.push({
       source: 'The Sprudge Report',
