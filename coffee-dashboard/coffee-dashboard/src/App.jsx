@@ -696,28 +696,63 @@ function InstaCard({ account, i, T }) {
 
 function RedditCard({ post, i, T }) {
   const [h, setH] = useState(false)
-  const subColor = SUB_COLORS[post.sub] || BRAND.amber
+  const subColor = SUB_COLORS[post.sub] || SUB_COLORS[post.source] || BRAND.amber
+  const isArticle = !!post.summary
+
   return (
     <a href={post.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration:'none' }}>
       <div onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
-        style={{ background:T.surf, border:`1px solid ${h ? T.border2 : T.border}`, borderRadius:10, padding:'14px 16px', cursor:'pointer', transition:'all 0.18s', animation:`fadeUp 0.3s ease ${i*55}ms both`, transform:h ? 'translateX(4px)' : 'translateX(0)' }}>
-        <div style={{ display:'flex', gap:12 }}>
-          <div style={{ display:'flex', flexDirection:'column', alignItems:'center', gap:3, minWidth:38 }}>
-            <span style={{ fontSize:12, color:BRAND.orange }}>▲</span>
-            <span style={{ fontSize:'0.9rem', fontWeight:700, color:T.text }}>{post.upvotes}</span>
+        style={{
+          background:T.surf, border:`1px solid ${h ? BRAND.amber+'88' : T.border}`,
+          borderRadius:12, overflow:'hidden', cursor:'pointer',
+          transition:'all 0.18s', animation:`fadeUp 0.3s ease ${i*55}ms both`,
+          transform:h ? 'translateY(-3px)' : 'translateY(0)',
+          boxShadow:h ? `0 8px 24px rgba(0,0,0,0.15)` : 'none',
+          display:'flex', flexDirection:'column',
+        }}>
+        {/* Image */}
+        {post.img && (
+          <div style={{
+            height:140, flexShrink:0,
+            backgroundImage:`url(${post.img})`,
+            backgroundSize:'cover', backgroundPosition:'center',
+            position:'relative',
+          }}>
+            <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)' }} />
           </div>
-          <div style={{ flex:1, minWidth:0 }}>
-            <div style={{ display:'flex', alignItems:'center', gap:6, marginBottom:7, flexWrap:'wrap' }}>
-              <span style={{ fontSize:10, fontWeight:700, color:subColor, background:subColor+'22', border:`1px solid ${subColor}44`, borderRadius:4, padding:'1px 7px' }}>{post.sub}</span>
-              {post.hot && <span style={{ fontSize:9, color:BRAND.orange, fontWeight:700 }}>🔥 Hot</span>}
-              <span style={{ fontSize:9, background:T.surf3, border:`1px solid ${T.border}`, borderRadius:3, padding:'1px 6px', color:T.faint }}>{post.flair}</span>
+        )}
+        <div style={{ padding:'14px 16px 16px', flex:1, display:'flex', flexDirection:'column', gap:8 }}>
+          {/* Source badge + date */}
+          <div style={{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap' }}>
+            <span style={{ fontSize:10, fontWeight:700, color:subColor, background:subColor+'22', border:`1px solid ${subColor}44`, borderRadius:4, padding:'2px 8px' }}>
+              {post.source || post.sub}
+            </span>
+            {post.hot && <span style={{ fontSize:9, color:BRAND.orange }}>🔥</span>}
+            {post.flair && !isArticle && <span style={{ fontSize:9, background:T.surf3, border:`1px solid ${T.border}`, borderRadius:3, padding:'1px 6px', color:T.faint }}>{post.flair}</span>}
+            {post.date && <span style={{ fontSize:9, color:T.faint, marginLeft:'auto' }}>{post.date}</span>}
+          </div>
+          {/* Title */}
+          <div style={{ fontSize:'0.92rem', fontWeight:700, color:T.text, lineHeight:1.4 }}>
+            {post.title}
+          </div>
+          {/* Summary (articles RSS) */}
+          {post.summary && (
+            <div style={{ fontSize:'0.78rem', color:T.dim, lineHeight:1.6, flex:1,
+              display:'-webkit-box', WebkitLineClamp:3, WebkitBoxOrient:'vertical', overflow:'hidden' }}>
+              {post.summary}
             </div>
-            <div style={{ fontSize:'1.08rem', fontWeight:700, color:T.text, lineHeight:1.4, marginBottom:8 }}>{post.title}</div>
-            <div style={{ display:'flex', alignItems:'center', gap:12, flexWrap:'wrap' }}>
-              <span style={{ fontSize:'0.75rem', color:T.dim }}>{post.author}</span>
-              <span style={{ fontSize:'0.75rem', color:T.dim }}>💬 {post.comments}</span>
-              <span style={{ fontSize:'0.75rem', color:T.dim, marginLeft:'auto' }}>{post.date}</span>
-            </div>
+          )}
+          {/* Footer */}
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:'auto', paddingTop:4 }}>
+            {!isArticle && post.upvotes && (
+              <span style={{ fontSize:'0.7rem', color:BRAND.orange }}>▲ {post.upvotes} · 💬 {post.comments}</span>
+            )}
+            {!isArticle && post.author && (
+              <span style={{ fontSize:'0.7rem', color:T.faint }}>{post.author}</span>
+            )}
+            <span style={{ fontSize:'0.72rem', fontWeight:700, color:BRAND.amber, marginLeft:'auto' }}>
+              Lire plus →
+            </span>
           </div>
         </div>
       </div>
@@ -1059,17 +1094,17 @@ export default function App() {
 
         {/* REDDIT */}
         {tab==='reddit' && (
-          loading ? <Spinner label="Chargement des posts Reddit..." T={T} /> :
+          loading ? <Spinner label="Chargement de la communaute..." T={T} /> :
           reddit.length ? (
             <div>
               <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.15em', color:T.dim, fontWeight:600, marginBottom:16, paddingBottom:12, borderBottom:`1px solid ${T.border}` }}>
-                Reddit - hot posts · r/espresso · r/Coffee · r/barista · {dateStr}
+                Communaute · The Sprudge Report · {reddit.length} articles · {dateStr}
               </div>
-              <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:14 }}>
                 {reddit.map((post,i) => <RedditCard key={i} post={post} i={i} T={T} />)}
               </div>
             </div>
-          ) : <ErrMsg msg="Impossible de charger les posts Reddit." T={T} />
+          ) : <ErrMsg msg="Impossible de charger le contenu communautaire." T={T} />
         )}
 
         {/* SCIENCE */}
