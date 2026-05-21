@@ -905,6 +905,8 @@ export default function App() {
   const [instaFilter, setInstaFilter] = useState('Tous')
   const [community, setCommunity]     = useState([])
   const [commLoading, setCommLoading] = useState(false)
+  const [gearItems, setGearItems]     = useState([])
+  const [gearLoading, setGearLoading] = useState(false)
   const [gear, setGear]         = useState([])
 
   const T = dark ? DARK : LIGHT
@@ -956,6 +958,17 @@ export default function App() {
   }, [])
 
   useEffect(() => { fetchCommunity() }, [fetchCommunity])
+
+  const fetchGear = useCallback(async () => {
+    setGearLoading(true)
+    try {
+      const res  = await fetch('/.netlify/functions/get-gear')
+      const data = await res.json()
+      if (data.gear && data.gear.length > 0) setGearItems(data.gear)
+    } catch(e) { console.error('Gear fetch error:', e) }
+    setGearLoading(false)
+  }, [])
+  useEffect(() => { fetchGear() }, [fetchGear])
 
 
   return (
@@ -1305,20 +1318,21 @@ export default function App() {
         )}
 
         {/* CA FAIT DU BRUIT */}
-        {tab==='gear' && (
-          loading ? <Spinner label="Chargement des nouveautes materiel..." T={T} /> :
-          gear.length ? (
+        {tab==='gear' && (() => {
+          const items = gearItems.length > 0 ? gearItems : gear
+          return gearLoading ? <Spinner label="Chargement des nouveautés matériel..." T={T} /> :
+          items.length ? (
             <div>
               <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.15em', color:T.dim, fontWeight:600, marginBottom:16, paddingBottom:12, borderBottom:`1px solid ${T.border}` }}>
-                Ça fait du bruit · {gear.length} nouveautés · moulins, machines, tasses, drippers...
+                Ça fait du bruit · {items.length} nouveautés · moulins, machines, tasses, drippers...
               </div>
-              <GearHeroCard item={gear[0]} T={T} />
+              <GearHeroCard item={items[0]} T={T} />
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(225px,1fr))', gap:12 }}>
-                {gear.slice(1).map((item,i) => <GearCard key={i} item={item} i={i} T={T} />)}
+                {items.slice(1).map((item,i) => <GearCard key={i} item={item} i={i} T={T} />)}
               </div>
             </div>
-          ) : <ErrMsg msg="Impossible de charger les nouveautes." T={T} />
-        )}
+          ) : <ErrMsg msg="Impossible de charger les nouveautés." T={T} />
+        })()}
 
       </div>
     </div>
