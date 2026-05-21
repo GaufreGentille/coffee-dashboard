@@ -120,27 +120,106 @@ function parseRSS(xml, sourceName, topic, lang) {
   return items
 }
 
+// ── Fetch latest Sprudge Substack newsletter URL from RSS ──
+async function getLatestSprudgeURL() {
+  const xml = await httpsGetText('https://sprudge.substack.com/feed')
+  const link = (xml.match(/<item>[\s\S]*?<link>([\s\S]*?)<\/link>/) || [])[1] || ''
+  return link.trim()
+}
+
+// ── Fetch and parse a Sprudge newsletter page into tiles ──
+async function parseSprudgeNewsletter(url) {
+  const tiles = []
+  if (!url) return tiles
+
+  const html = await httpsGetText(url)
+
+  // Extract publish date from meta
+  const dateMatch = html.match(/"datePublished":"([^"]+)"/) || html.match(/content="([0-9]{4}-[0-9]{2}-[0-9]{2})/)
+  const pubDate = dateMatch ? new Date(dateMatch[1]).toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric' }) : ''
+
+  // Find all h3 sections — each is a news item in the newsletter
+  // Pattern: <h3>Title</h3> followed by paragraphs until next h3 or hr
+  const sectionRx = /<h3[^>]*>([\s\S]*?)<\/h3>([\s\S]*?)(?=<h3|<hr\s*\/?>|<\/div>[\s\S]{0,50}<div class="available-content)/g
+  let match
+  let count = 0
+
+  while ((match = sectionRx.exec(html)) !== null && count < 10) {
+    // Clean title
+    const title = match[1].replace(/<[^>]+>/g, '').replace(/&amp;/g,'&').replace(/&#[0-9]+;/g,'').trim()
+    const body  = match[2]
+
+    if (!title || title.length < 4) continue
+
+    // Skip pure promo sections (no real link to sprudge.com)
+    const sprudgeLink = (body.match(/href="(https:\/\/sprudge\.com\/[^"?#]+)"/) || [])[1]
+    const anyLink     = (body.match(/href="(https?:\/\/[^"]+)"/) || [])[1]
+    const articleUrl  = sprudgeLink || anyLink || url
+
+    // Skip ad-only sections (swisswater, pacificfoodservice etc)
+    if (!sprudgeLink && anyLink && !anyLink.includes('sprudge')) continue
+
+    // Extract first paragraph as summary
+    const paraRx = /<p[^>]*>([\s\S]*?)<\/p>/g
+    let summary = ''
+    let pm
+    while ((pm = paraRx.exec(body)) !== null) {
+      const txt = pm[1].replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&nbsp;/g,' ').replace(/&#[0-9]+;/g,'').trim()
+      if (txt.length > 20) { summary = txt.slice(0, 200); break }
+    }
+
+    // Extract first image
+    const imgMatch = body.match(/src="(https:\/\/substackcdn[^"]+)"/) ||
+                     body.match(/src="(https:\/\/substack-post-media[^"]+)"/)
+    const img = imgMatch ? imgMatch[1].replace(/\/g,'') : null
+
+    tiles.push({
+      source: 'The Sprudge Report',
+      title,
+      summary,
+      url: articleUrl,
+      topic: 'communaute',
+      lang: 'en',
+      date: pubDate,
+      img,
+    })
+    count++
+  }
+
+  return tiles
+}
+
 // ── Fetch all RSS sources ──────────────────────────────────
 async function fetchAllRSS() {
-  const sources = [
-    { url:'https://perfectdailygrind.com/feed/',   name:'Perfect Daily Grind', topic:'actualite', lang:'en' },
-    { url:'https://sprudge.com/feed',               name:'Sprudge',            topic:'culture',   lang:'en' },
-    { url:'https://dailycoffeenews.com/feed',       name:'Daily Coffee News',  topic:'industrie', lang:'en' },
-    { url:'https://www.baristamagazine.com/feed/',  name:'Barista Magazine',   topic:'barista',   lang:'en' },
-    { url:'https://sprudge.substack.com/feed',      name:'The Sprudge Report', topic:'communaute', lang:'en' },
+  const newsSources = [
+    { url:'https://perfectdailygrind.com/feed/',   name:'Perfect Daily Grind', topic:'actualite',  lang:'en' },
+    { url:'https://sprudge.com/feed',               name:'Sprudge',            topic:'culture',    lang:'en' },
+    { url:'https://dailycoffeenews.com/feed',       name:'Daily Coffee News',  topic:'industrie',  lang:'en' },
+    { url:'https://www.baristamagazine.com/feed/',  name:'Barista Magazine',   topic:'barista',    lang:'en' },
     { url:'https://sca.coffee/news/rss',            name:'SCA News',           topic:'association', lang:'en' },
   ]
-  const allItems = []
-  for (const src of sources) {
+  const allNews = []
+  for (const src of newsSources) {
     try {
       const xml = await httpsGetText(src.url)
-      const items = parseRSS(xml, src.name, src.topic, src.lang)
-      allItems.push(...items)
+      allNews.push(...parseRSS(xml, src.name, src.topic, src.lang))
     } catch(e) {
       console.error('RSS error:', src.name, e.message)
     }
   }
-  return allItems
+
+  // Sprudge Substack: get latest newsletter URL from RSS then fetch full HTML
+  let community = []
+  try {
+    const latestURL = await getLatestSprudgeURL()
+    if (latestURL) {
+      community = await parseSprudgeNewsletter(latestURL)
+    }
+  } catch(e) {
+    console.error('Substack error:', e.message)
+  }
+
+  return { allNews, community }
 }
 
 // ── Image pools ────────────────────────────────────────────
@@ -209,10 +288,12 @@ Return ONE valid JSON object with exactly 3 keys: science, gear, reddit. No mark
 
   try {
     // RSS for real news + Claude for science/gear/reddit in parallel
-    const [rssNews, claudeData] = await Promise.all([
+    const [rssResult, claudeData] = await Promise.all([
       fetchAllRSS(),
       claude(KEY, P_CLAUDE, 2500),
     ])
+    const rssNews = rssResult.allNews
+    const rssComm = rssResult.community
 
     const gear = Array.isArray(claudeData.gear) ? claudeData.gear.map((g, i) => ({
       ...g,
@@ -220,8 +301,8 @@ Return ONE valid JSON object with exactly 3 keys: science, gear, reddit. No mark
     })) : []
 
     // Separate community (Sprudge Substack) from main news
-    const community = rssNews.filter(n => n.topic === 'communaute' || n.source === 'The Sprudge Report')
-    const news      = rssNews.filter(n => n.topic !== 'communaute' && n.source !== 'The Sprudge Report')
+    const community = rssComm.length > 0 ? rssComm : []
+    const news      = rssNews
 
     const result = {
       news:      news.length > 0 ? news : [],
