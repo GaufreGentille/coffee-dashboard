@@ -696,68 +696,61 @@ function InstaCard({ account, i, T }) {
 
 function RedditCard({ post, i, T }) {
   const [h, setH] = useState(false)
-  const subColor = SUB_COLORS[post.sub] || SUB_COLORS[post.source] || BRAND.amber
-  const isArticle = !!post.summary
 
-  return (
-    <a href={post.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration:'none' }}>
-      <div onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
-        style={{
-          background:T.surf, border:`1px solid ${h ? BRAND.amber+'88' : T.border}`,
-          borderRadius:12, overflow:'hidden', cursor:'pointer',
-          transition:'all 0.18s', animation:`fadeUp 0.3s ease ${i*55}ms both`,
-          transform:h ? 'translateY(-3px)' : 'translateY(0)',
-          boxShadow:h ? `0 8px 24px rgba(0,0,0,0.15)` : 'none',
-          display:'flex', flexDirection:'column',
+  // Community article (Sprudge) — displayed inline, full text, no link needed
+  const isSprudge = post.source === 'The Sprudge Report'
+
+  const card = (
+    <div onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
+      style={{
+        background:T.surf, border:`1px solid ${h ? BRAND.amber+'66' : T.border}`,
+        borderRadius:12, overflow:'hidden',
+        cursor: isSprudge ? 'default' : 'pointer',
+        transition:'all 0.18s', animation:`fadeUp 0.3s ease ${i*55}ms both`,
+        transform: (!isSprudge && h) ? 'translateY(-3px)' : 'translateY(0)',
+        boxShadow: (!isSprudge && h) ? `0 8px 24px rgba(0,0,0,0.15)` : 'none',
+        display:'flex', flexDirection:'column',
+      }}>
+      {/* Image */}
+      {post.img && (
+        <div style={{
+          height:160, flexShrink:0,
+          backgroundImage:`url(${post.img})`,
+          backgroundSize:'cover', backgroundPosition:'center',
+          position:'relative',
         }}>
-        {/* Image */}
-        {post.img && (
-          <div style={{
-            height:140, flexShrink:0,
-            backgroundImage:`url(${post.img})`,
-            backgroundSize:'cover', backgroundPosition:'center',
-            position:'relative',
-          }}>
-            <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)' }} />
+          <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 60%)' }} />
+        </div>
+      )}
+      <div style={{ padding:'16px 18px 18px', flex:1, display:'flex', flexDirection:'column', gap:8 }}>
+        {/* Date only — no source badge */}
+        {post.date && (
+          <div style={{ fontSize:10, color:T.faint, letterSpacing:'0.05em' }}>{post.date}</div>
+        )}
+        {/* Title */}
+        <div style={{ fontSize:'0.95rem', fontWeight:700, color:T.text, lineHeight:1.4 }}>
+          {post.title}
+        </div>
+        {/* Full text */}
+        {post.summary && (
+          <div style={{ fontSize:'0.82rem', color:T.dim, lineHeight:1.7, flex:1 }}>
+            {post.summary}
           </div>
         )}
-        <div style={{ padding:'14px 16px 16px', flex:1, display:'flex', flexDirection:'column', gap:8 }}>
-          {/* Source badge + date */}
-          <div style={{ display:'flex', alignItems:'center', gap:6, flexWrap:'wrap' }}>
-            <span style={{ fontSize:10, fontWeight:700, color:subColor, background:subColor+'22', border:`1px solid ${subColor}44`, borderRadius:4, padding:'2px 8px' }}>
-              {post.source || post.sub}
-            </span>
-            {post.hot && <span style={{ fontSize:9, color:BRAND.orange }}>🔥</span>}
-            {post.flair && !isArticle && <span style={{ fontSize:9, background:T.surf3, border:`1px solid ${T.border}`, borderRadius:3, padding:'1px 6px', color:T.faint }}>{post.flair}</span>}
-            {post.date && <span style={{ fontSize:9, color:T.faint, marginLeft:'auto' }}>{post.date}</span>}
-          </div>
-          {/* Title */}
-          <div style={{ fontSize:'0.92rem', fontWeight:700, color:T.text, lineHeight:1.4 }}>
-            {post.title}
-          </div>
-          {/* Summary (articles RSS) */}
-          {post.summary && (
-            <div style={{ fontSize:'0.78rem', color:T.dim, lineHeight:1.6, flex:1,
-              display:'-webkit-box', WebkitLineClamp:3, WebkitBoxOrient:'vertical', overflow:'hidden' }}>
-              {post.summary}
-            </div>
-          )}
-          {/* Footer */}
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', marginTop:'auto', paddingTop:4 }}>
-            {!isArticle && post.upvotes && (
-              <span style={{ fontSize:'0.7rem', color:BRAND.orange }}>▲ {post.upvotes} · 💬 {post.comments}</span>
-            )}
-            {!isArticle && post.author && (
-              <span style={{ fontSize:'0.7rem', color:T.faint }}>{post.author}</span>
-            )}
-            <span style={{ fontSize:'0.72rem', fontWeight:700, color:BRAND.amber, marginLeft:'auto' }}>
-              Lire plus →
-            </span>
-          </div>
-        </div>
+        {/* Lire plus only for non-Sprudge (external links) */}
+        {!isSprudge && post.url && (
+          <a href={post.url} target="_blank" rel="noopener noreferrer"
+            style={{ fontSize:'0.72rem', fontWeight:700, color:BRAND.amber, textDecoration:'none', marginTop:4, alignSelf:'flex-end' }}>
+            Lire plus →
+          </a>
+        )}
       </div>
-    </a>
+    </div>
   )
+
+  return isSprudge
+    ? card
+    : <a href={post.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration:'none' }}>{card}</a>
 }
 
 
