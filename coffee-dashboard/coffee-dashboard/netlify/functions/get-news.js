@@ -9,29 +9,28 @@ let memCache = null
 let memCacheTime = 0
 const CACHE_TTL = 23 * 60 * 60 * 1000
 
-// ── HTTP helpers ──────────────────────────────────────────
-function httpsGet(url, reqHeaders) {
+// ── HTTP helpers ───────────────────────────────────────────
+function httpsGetText(url) {
   return new Promise((resolve, reject) => {
     const opts = new URL(url)
     const req = https.request({
       hostname: opts.hostname,
       path: opts.pathname + opts.search,
       method: 'GET',
-      headers: reqHeaders || { 'User-Agent': 'KissaSoko/1.0' },
+      headers: {
+        'User-Agent': 'KissaSoko/1.0 RSS Reader',
+        'Accept': 'application/rss+xml, application/xml, text/xml, */*',
+      }
     }, (res) => {
-      // Follow redirects
       if (res.statusCode === 301 || res.statusCode === 302) {
-        return httpsGet(res.headers.location, reqHeaders).then(resolve).catch(reject)
+        return httpsGetText(res.headers.location).then(resolve).catch(reject)
       }
       let data = ''
       res.on('data', chunk => data += chunk)
-      res.on('end', () => {
-        try { resolve(JSON.parse(data)) }
-        catch(e) { reject(new Error('Parse error: ' + data.slice(0, 100))) }
-      })
+      res.on('end', () => resolve(data))
     })
     req.on('error', reject)
-    req.setTimeout(15000, () => { req.destroy(); reject(new Error('Timeout')) })
+    req.setTimeout(10000, () => { req.destroy(); reject(new Error('Timeout')) })
     req.end()
   })
 }
@@ -65,7 +64,6 @@ function safeJSON(text) {
     else if (clean[i] === close && --depth === 0) { end = i; break }
   }
   if (end === -1) {
-    // Try to salvage truncated response
     let partial = clean.slice(start).replace(/,\s*$/, '')
     let opens = []
     for (let i = 0; i < partial.length; i++) {
@@ -99,114 +97,51 @@ function claude(key, prompt, tokens) {
   })
 }
 
-// ── Reddit public JSON (no auth needed, correct User-Agent) ──
-async function fetchRedditHot() {
-  const subs = [
-    { sub: 'r/espresso', limit: 4 },
-    { sub: 'r/Coffee',   limit: 3 },
-    { sub: 'r/barista',  limit: 3 },
-  ]
-  const posts = []
-  for (const { sub, limit } of subs) {
-    try {
-      const url = `https://www.reddit.com/${sub}/hot.json?limit=${limit + 2}&raw_json=1`
-      const data = await httpsGet(url, {
-        // Reddit requires this exact format or returns 429/403
-        'User-Agent': 'web:kissasoko:v1.0 (by /u/GaufreGentille)',
-        'Accept': 'application/json',
-      })
-      const items = (data?.data?.children || []).filter(c => !c.data.stickied)
-      for (const item of items.slice(0, limit)) {
-        const p = item.data
-        const score = p.score >= 1000 ? (p.score/1000).toFixed(1)+'k' : String(p.score)
-        const mins = Math.floor((Date.now()/1000 - p.created_utc) / 60)
-        const timeAgo = mins < 60 ? `il y a ${mins}min`
-          : mins < 1440 ? `il y a ${Math.floor(mins/60)}h`
-          : `il y a ${Math.floor(mins/1440)}j`
-        const flair = p.link_flair_text || 'Discussion'
-        const thumb = p.thumbnail && p.thumbnail.startsWith('http') ? p.thumbnail : null
-        posts.push({
-          sub, title: p.title,
-          author: 'u/' + p.author,
-          upvotes: score,
-          comments: p.num_comments,
-          flair, hot: p.score > 300,
-          url: 'https://reddit.com' + p.permalink,
-          date: timeAgo, thumbnail: thumb,
-        })
-      }
-    } catch(e) {
-      console.error('Reddit error', sub, e.message)
-    }
-  }
-  return posts
+// ── RSS parser ─────────────────────────────────────────────
+function stripHtml(str) {
+  return (str || '').replace(/<[^>]+>/g, '').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').replace(/&quot;/g,'"').replace(/&#039;/g,"'").replace(/&nbsp;/g,' ').trim()
 }
 
-// ── Real news via RSS ─────────────────────────────────────
-async function fetchRealNews() {
-  const sources = [
-    { url: 'https://perfectdailygrind.com/feed/', name: 'Perfect Daily Grind' },
-    { url: 'https://sprudge.com/feed', name: 'Sprudge' },
-  ]
+function parseRSS(xml, sourceName, topic, lang) {
   const items = []
-  for (const src of sources) {
-    try {
-      // Fetch as text since RSS is XML
-      const raw = await new Promise((resolve, reject) => {
-        const opts = new URL(src.url)
-        const req = https.request({
-          hostname: opts.hostname,
-          path: opts.pathname + opts.search,
-          method: 'GET',
-          headers: { 'User-Agent': 'KissaSoko/1.0' },
-        }, (res) => {
-          if (res.statusCode === 301 || res.statusCode === 302) {
-            // simple redirect: skip
-            resolve('')
-            return
-          }
-          let data = ''
-          res.on('data', chunk => data += chunk)
-          res.on('end', () => resolve(data))
-        })
-        req.on('error', reject)
-        req.setTimeout(10000, () => { req.destroy(); resolve('') })
-        req.end()
-      })
-      if (!raw) continue
-      // Parse RSS items with regex (no xml parser needed)
-      const itemMatches = raw.match(/<item>([\s\S]*?)<\/item>/g) || []
-      for (const item of itemMatches.slice(0, 3)) {
-        const title = (item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/) || item.match(/<title>(.*?)<\/title>/) || [])[1] || ''
-        const link  = (item.match(/<link>(.*?)<\/link>/) || item.match(/<guid[^>]*>(.*?)<\/guid>/) || [])[1] || ''
-        const desc  = (item.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/) || item.match(/<description>(.*?)<\/description>/) || [])[1] || ''
-        const date  = (item.match(/<pubDate>(.*?)<\/pubDate>/) || [])[1] || ''
-        // Get image from content or enclosure
-        const img   = (item.match(/url="(https:\/\/[^"]+\.(jpg|jpeg|png|webp))[^"]*"/) || [])[1] || null
-        if (title && link) {
-          // Clean HTML from desc
-          const cleanDesc = desc.replace(/<[^>]+>/g, '').replace(/&[a-z]+;/g, ' ').trim().slice(0, 200)
-          const pubDate = date ? new Date(date).toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric' }) : ''
-          items.push({
-            source: src.name,
-            title: title.trim(),
-            summary: cleanDesc,
-            url: link.trim(),
-            topic: 'actualite',
-            lang: 'en',
-            date: pubDate,
-            img: img || null,
-          })
-        }
-      }
-    } catch(e) {
-      console.error('RSS error:', src.name, e.message)
+  const rawItems = xml.match(/<item[\s\S]*?<\/item>/g) || []
+  for (const item of rawItems.slice(0, 4)) {
+    const title   = stripHtml((item.match(/<title><!\[CDATA\[([\s\S]*?)\]\]><\/title>/) || item.match(/<title>([\s\S]*?)<\/title>/) || [])[1] || '')
+    const link    = stripHtml((item.match(/<link>([\s\S]*?)<\/link>/) || item.match(/<guid isPermaLink="true">([\s\S]*?)<\/guid>/) || [])[1] || '')
+    const desc    = stripHtml((item.match(/<description><!\[CDATA\[([\s\S]*?)\]\]><\/description>/) || item.match(/<description>([\s\S]*?)<\/description>/) || [])[1] || '').slice(0, 220)
+    const pubDate = (item.match(/<pubDate>([\s\S]*?)<\/pubDate>/) || [])[1] || ''
+    const img     = (item.match(/url="(https?:\/\/[^"]+\.(jpg|jpeg|png|webp))[^"]*"/) || item.match(/<media:thumbnail[^>]+url="([^"]+)"/) || [])[1] || null
+    if (title && link) {
+      const d = pubDate ? new Date(pubDate) : new Date()
+      const dateStr = d.toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric' })
+      items.push({ source:sourceName, title, summary:desc, url:link, topic, lang, date:dateStr, img })
     }
   }
   return items
 }
 
-// ── Image pools ───────────────────────────────────────────
+// ── Fetch all RSS sources ──────────────────────────────────
+async function fetchAllRSS() {
+  const sources = [
+    { url:'https://perfectdailygrind.com/feed/',   name:'Perfect Daily Grind', topic:'actualite', lang:'en' },
+    { url:'https://sprudge.com/feed',               name:'Sprudge',            topic:'culture',   lang:'en' },
+    { url:'https://dailycoffeenews.com/feed',       name:'Daily Coffee News',  topic:'industrie', lang:'en' },
+    { url:'https://www.baristamagazine.com/feed/',  name:'Barista Magazine',   topic:'barista',   lang:'en' },
+  ]
+  const allItems = []
+  for (const src of sources) {
+    try {
+      const xml = await httpsGetText(src.url)
+      const items = parseRSS(xml, src.name, src.topic, src.lang)
+      allItems.push(...items)
+    } catch(e) {
+      console.error('RSS error:', src.name, e.message)
+    }
+  }
+  return allItems
+}
+
+// ── Image pools ────────────────────────────────────────────
 const GEAR_IMGS = [
   'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600&q=80',
   'https://images.unsplash.com/photo-1611854779393-1b2da9d400fe?w=600&q=80',
@@ -218,7 +153,7 @@ const GEAR_IMGS = [
   'https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=600&q=80',
 ]
 
-// ── Main handler ──────────────────────────────────────────
+// ── Main handler ───────────────────────────────────────────
 exports.handler = async function(event, context) {
   context.callbackWaitsForEmptyEventLoop = false
   if (event.httpMethod === 'OPTIONS') return { statusCode:200, headers, body:'ok' }
@@ -235,57 +170,57 @@ exports.handler = async function(event, context) {
 
   const today = new Date().toLocaleDateString('fr-FR', { weekday:'long', year:'numeric', month:'long', day:'numeric' })
 
-  const P_CONTENT = `You are a specialty coffee dashboard content generator. Today: ${today}.
-Return ONE valid JSON object with exactly 3 keys: news, science, gear. No markdown, no explanation.
+  // Claude only for science, gear, reddit (topics without free RSS)
+  const P_CLAUDE = `You are a specialty coffee content generator. Today: ${today}.
+Return ONE valid JSON object with exactly 3 keys: science, gear, reddit. No markdown, no explanation.
 
 {
-  "news": [
-    {"source":"Perfect Daily Grind","title":"Arabica steadies above 300c as Brazil 2026 harvest improves","summary":"Arabica futures hold near 305c after January highs of 340c. Improved rainfall in Cerrado Mineiro lifts crop forecasts.","url":"https://perfectdailygrind.com/2026/05/arabica-prices-brazil-harvest","topic":"marche","lang":"en","date":"21 mai 2026"},
-    {"source":"SCA News","title":"WRITE real WBC 2026 news in French","summary":"WRITE summary in French","url":"https://sca.coffee/blog/wbc-2026","topic":"competition","lang":"fr","date":"20 mai 2026"},
-    {"source":"Sprudge","title":"WRITE real specialty coffee producer news","summary":"WRITE summary","url":"https://sprudge.com/2026/05/WRITE-slug","topic":"producteur","lang":"en","date":"19 mai 2026"},
-    {"source":"Barista Hustle","title":"WRITE real extraction technique news in French","summary":"WRITE summary in French","url":"https://baristahustle.com/blog/WRITE-slug","topic":"technique","lang":"fr","date":"18 mai 2026"},
-    {"source":"Coffee Intelligence","title":"WRITE real market news","summary":"WRITE summary","url":"https://coffeeintelligence.com/2026/05/WRITE-slug","topic":"marche","lang":"en","date":"17 mai 2026"},
-    {"source":"Cafe Specialite FR","title":"WRITE real French coffee news","summary":"WRITE summary in French","url":"https://cafedespecialite.fr/actualites/WRITE-slug","topic":"materiel","lang":"fr","date":"16 mai 2026"}
-  ],
   "science": [
-    {"journal":"Food Chemistry","title":"WRITE real 2026 coffee science paper","abstract":"WRITE abstract","url":"https://doi.org/10.1016/j.foodchem.2026.04.042","field":"fermentation","emoji":"flask","date":"Avr 2026"},
-    {"journal":"Frontiers in Plant Science","title":"WRITE real paper","abstract":"WRITE abstract","url":"https://doi.org/10.3389/fpls.2026.1187234","field":"genomique","emoji":"leaf","date":"Mar 2026"},
-    {"journal":"Scientia Horticulturae","title":"WRITE real paper","abstract":"WRITE abstract","url":"https://doi.org/10.1016/j.scienta.2026.112891","field":"agronomie","emoji":"seedling","date":"Fev 2026"},
-    {"journal":"J. Agric. Food Chem.","title":"WRITE real paper","abstract":"WRITE abstract","url":"https://doi.org/10.1021/acs.jafc.6c01203","field":"biochimie","emoji":"atom","date":"Jan 2026"},
-    {"journal":"Agronomy","title":"WRITE real paper","abstract":"WRITE abstract","url":"https://doi.org/10.3390/agronomy15020312","field":"climatologie","emoji":"globe","date":"Jan 2026"}
+    {"journal":"Food Chemistry","title":"WRITE real 2026 coffee science paper title","abstract":"WRITE 1-2 sentence abstract","url":"https://doi.org/10.1016/j.foodchem.2026.04.042","field":"fermentation","emoji":"flask","date":"Avr 2026"},
+    {"journal":"Frontiers in Plant Science","title":"WRITE real paper","abstract":"WRITE abstract","url":"https://doi.org/10.3389/fpls.2026.001","field":"genomique","emoji":"leaf","date":"Mar 2026"},
+    {"journal":"Scientia Horticulturae","title":"WRITE real paper","abstract":"WRITE abstract","url":"https://doi.org/10.1016/j.scienta.2026.001","field":"agronomie","emoji":"seedling","date":"Fev 2026"},
+    {"journal":"J. Agric. Food Chem.","title":"WRITE real paper","abstract":"WRITE abstract","url":"https://doi.org/10.1021/acs.jafc.6c001","field":"biochimie","emoji":"atom","date":"Jan 2026"},
+    {"journal":"Agronomy","title":"WRITE real paper","abstract":"WRITE abstract","url":"https://doi.org/10.3390/agronomy2026.001","field":"climatologie","emoji":"globe","date":"Jan 2026"}
   ],
   "gear": [
-    {"brand":"Fellow","name":"WRITE real recent Fellow product","description":"WRITE description","category":"Moulin","price":"199 EUR","url":"https://fellowproducts.com/products/WRITE-slug","hot":true,"img_seed":0},
-    {"brand":"La Marzocco","name":"WRITE real recent product","description":"WRITE description","category":"Machine","price":"WRITE","url":"https://lamarzocco.com/en/WRITE-slug","hot":false,"img_seed":1},
-    {"brand":"Normcore","name":"WRITE real product","description":"WRITE description","category":"Accessories","price":"WRITE","url":"https://normcorewares.com/products/WRITE-slug","hot":true,"img_seed":2},
-    {"brand":"Loveramics","name":"WRITE real cup","description":"WRITE description","category":"Tasse","price":"WRITE","url":"https://loveramics.com/collections/WRITE-slug","hot":false,"img_seed":3},
-    {"brand":"Weber Workshops","name":"WRITE real product","description":"WRITE description","category":"Moulin","price":"WRITE","url":"https://weberworkshops.com/products/WRITE-slug","hot":true,"img_seed":4},
-    {"brand":"Sibarist","name":"WRITE real filter","description":"WRITE description","category":"Filtre","price":"WRITE","url":"https://sibaristcoffee.com/products/WRITE-slug","hot":false,"img_seed":5},
-    {"brand":"Orea","name":"WRITE real product","description":"WRITE description","category":"Accessories","price":"WRITE","url":"https://orea.uk/products/WRITE-slug","hot":true,"img_seed":6},
-    {"brand":"Kinto","name":"WRITE real product","description":"WRITE description","category":"Tasse","price":"WRITE","url":"https://kinto.co.jp/en/WRITE-slug","hot":false,"img_seed":7},
-    {"brand":"Aillio","name":"WRITE real product","description":"WRITE description","category":"Torrefacteur","price":"WRITE","url":"https://aillio.com/products/WRITE-slug","hot":true,"img_seed":0}
+    {"brand":"Fellow","name":"WRITE real Fellow product","description":"WRITE description","category":"Moulin","price":"199 EUR","url":"https://fellowproducts.com/products/WRITE-slug","hot":true,"img_seed":0},
+    {"brand":"La Marzocco","name":"WRITE real product","description":"WRITE","category":"Machine","price":"WRITE","url":"https://lamarzocco.com/en/WRITE","hot":false,"img_seed":1},
+    {"brand":"Normcore","name":"WRITE real product","description":"WRITE","category":"Accessories","price":"WRITE","url":"https://normcorewares.com/products/WRITE","hot":true,"img_seed":2},
+    {"brand":"Loveramics","name":"WRITE real cup","description":"WRITE","category":"Tasse","price":"WRITE","url":"https://loveramics.com/collections/WRITE","hot":false,"img_seed":3},
+    {"brand":"Weber Workshops","name":"WRITE real product","description":"WRITE","category":"Moulin","price":"WRITE","url":"https://weberworkshops.com/products/WRITE","hot":true,"img_seed":4},
+    {"brand":"Sibarist","name":"WRITE real filter","description":"WRITE","category":"Filtre","price":"WRITE","url":"https://sibaristcoffee.com/products/WRITE","hot":false,"img_seed":5},
+    {"brand":"Orea","name":"WRITE real product","description":"WRITE","category":"Accessories","price":"WRITE","url":"https://orea.uk/products/WRITE","hot":true,"img_seed":6},
+    {"brand":"Kinto","name":"WRITE real product","description":"WRITE","category":"Tasse","price":"WRITE","url":"https://kinto.co.jp/en/WRITE","hot":false,"img_seed":7},
+    {"brand":"Aillio","name":"WRITE real product","description":"WRITE","category":"Torrefacteur","price":"WRITE","url":"https://aillio.com/products/WRITE","hot":true,"img_seed":0}
+  ],
+  "reddit": [
+    {"sub":"r/espresso","title":"WRITE real trending espresso topic title","author":"u/realuser","upvotes":"2.1k","comments":187,"flair":"Technique","url":"https://reddit.com/r/espresso","hot":true,"date":"il y a 3h"},
+    {"sub":"r/Coffee","title":"WRITE real trending coffee topic","author":"u/coffeegeek","upvotes":"1.8k","comments":312,"flair":"Discussion","url":"https://reddit.com/r/Coffee","hot":true,"date":"il y a 5h"},
+    {"sub":"r/barista","title":"WRITE real trending barista topic","author":"u/barista_pro","upvotes":"3.1k","comments":224,"flair":"Competition","url":"https://reddit.com/r/barista","hot":true,"date":"il y a 8h"},
+    {"sub":"r/espresso","title":"WRITE real post about grinder","author":"u/espressoholic","upvotes":"1.2k","comments":98,"flair":"Materiel","url":"https://reddit.com/r/espresso","hot":false,"date":"il y a 11h"},
+    {"sub":"r/Coffee","title":"WRITE real post about origin","author":"u/origingeek","upvotes":"876","comments":143,"flair":"Origine","url":"https://reddit.com/r/Coffee","hot":false,"date":"il y a 14h"},
+    {"sub":"r/barista","title":"WRITE real post about training","author":"u/sca_student","upvotes":"654","comments":77,"flair":"Formation","url":"https://reddit.com/r/barista","hot":false,"date":"il y a 17h"},
+    {"sub":"r/espresso","title":"WRITE real post about prices","author":"u/mktwatch","upvotes":"1.5k","comments":289,"flair":"Marche","url":"https://reddit.com/r/espresso","hot":true,"date":"il y a 20h"},
+    {"sub":"r/Coffee","title":"WRITE real post about brew method","author":"u/bloombro","upvotes":"2.0k","comments":156,"flair":"Technique","url":"https://reddit.com/r/Coffee","hot":false,"date":"il y a 1j"}
   ]
 }`
 
   try {
-    // Fetch Reddit (real) + Claude for news/science/gear in parallel
-    const [redditPosts, contentRaw] = await Promise.all([
-      fetchRedditHot(),
-      claude(KEY, P_CONTENT, 3500),
+    // RSS for real news + Claude for science/gear/reddit in parallel
+    const [rssNews, claudeData] = await Promise.all([
+      fetchAllRSS(),
+      claude(KEY, P_CLAUDE, 2500),
     ])
 
-    // News from Claude (real knowledge)
-    const news = Array.isArray(contentRaw.news) ? contentRaw.news : []
-
-    const gear = Array.isArray(contentRaw.gear) ? contentRaw.gear.map((g, i) => ({
+    const gear = Array.isArray(claudeData.gear) ? claudeData.gear.map((g, i) => ({
       ...g,
       img: GEAR_IMGS[(typeof g.img_seed === 'number' ? g.img_seed : i) % GEAR_IMGS.length]
     })) : []
 
     const result = {
-      news,
-      science: Array.isArray(contentRaw.science) ? contentRaw.science : [],
-      reddit:  Array.isArray(contentRaw.reddit)  ? contentRaw.reddit  : [],
+      news:    rssNews.length > 0 ? rssNews : [],
+      science: Array.isArray(claudeData.science) ? claudeData.science : [],
+      reddit:  Array.isArray(claudeData.reddit)  ? claudeData.reddit  : [],
       gear,
       generatedAt: new Date().toISOString()
     }
