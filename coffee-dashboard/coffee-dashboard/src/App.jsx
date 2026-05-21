@@ -906,6 +906,8 @@ export default function App() {
   const [commLoading, setCommLoading] = useState(false)
   const [gearItems, setGearItems]     = useState([])
   const [gearLoading, setGearLoading] = useState(false)
+  const [sciItems, setSciItems]         = useState([])
+  const [sciLoading, setSciLoading]     = useState(false)
   const [showVitality, setShowVitality] = useState(false)
   const [gear, setGear]         = useState([])
 
@@ -969,6 +971,17 @@ export default function App() {
     setGearLoading(false)
   }, [])
   useEffect(() => { fetchGear() }, [fetchGear])
+
+  const fetchScience = useCallback(async () => {
+    setSciLoading(true)
+    try {
+      const res  = await fetch('/.netlify/functions/get-science')
+      const data = await res.json()
+      if (data.science && data.science.length > 0) setSciItems(data.science)
+    } catch(e) { console.error('Science fetch error:', e) }
+    setSciLoading(false)
+  }, [])
+  useEffect(() => { fetchScience() }, [fetchScience])
 
 
   return (
@@ -1243,14 +1256,14 @@ export default function App() {
 
         {/* SCIENCE */}
         {tab==='science' && (
-          loading ? <Spinner label="Recherche d articles scientifiques..." T={T} /> :
+          sciLoading ? <Spinner label="Recherche d articles scientifiques..." T={T} /> :
           science.length ? (
             <div>
               <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.15em', color:T.dim, fontWeight:600, marginBottom:16, paddingBottom:12, borderBottom:`1px solid ${T.border}` }}>
-                Articles scientifiques - {science.length} articles · 2025-2026
+                Articles scientifiques · {(sciItems.length > 0 ? sciItems : sci).length} articles · vrais papiers via Semantic Scholar
               </div>
               <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                {science.map((item,i) => <SciCard key={i} item={item} img={SCI_IMG[i%SCI_IMG.length]} i={i} T={T} />)}
+                {(sciItems.length > 0 ? sciItems : sci).map((item,i) => <SciCard key={i} item={item} img={SCI_IMG[i%SCI_IMG.length]} i={i} T={T} />)}
               </div>
             </div>
           ) : <ErrMsg msg="Impossible de charger les articles scientifiques." T={T} />
