@@ -136,73 +136,75 @@ function parseRSS(xml, sourceName, topic, lang) {
   return items
 }
 
-// ── Fetch latest Sprudge Substack newsletter URL from RSS ──
-async function getLatestSprudgeURL() {
+// ── Parse Sprudge Substack RSS directly (full content included) ──
+async function fetchSprudgeCommunity() {
   const xml = await httpsGetText('https://sprudge.substack.com/feed')
-  const link = (xml.match(/<item>[\s\S]*?<link>([\s\S]*?)<\/link>/) || [])[1] || ''
-  return link.trim()
-}
-
-// ── Fetch and parse a Sprudge newsletter page into tiles ──
-async function parseSprudgeNewsletter(url) {
   const tiles = []
-  if (!url) return tiles
 
-  const html = await httpsGetText(url)
+  // Get the latest newsletter item only
+  const itemMatch = xml.match(/<item>([\s\S]*?)<\/item>/)
+  if (!itemMatch) return tiles
+  const item = itemMatch[1]
 
-  // Extract publish date from meta
-  const dateMatch = html.match(/"datePublished":"([^"]+)"/) || html.match(/content="([0-9]{4}-[0-9]{2}-[0-9]{2})/)
-  const pubDate = dateMatch ? new Date(dateMatch[1]).toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric' }) : ''
+  // Get publish date
+  const pubDateRaw = (item.match(/<pubDate>([\s\S]*?)<\/pubDate>/) || [])[1] || ''
+  const pubDate = pubDateRaw
+    ? new Date(pubDateRaw).toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric' })
+    : ''
 
-  // Find all h3 sections — each is a news item in the newsletter
-  // Pattern: <h3>Title</h3> followed by paragraphs until next h3 or hr
-  const sectionRx = /<h3[^>]*>([\s\S]*?)<\/h3>([\s\S]*?)(?=<h3|<hr\s*\/?>|<\/div>[\s\S]{0,50}<div class="available-content)/g
-  let match
-  let count = 0
+  // Get full encoded content
+  const encoded = (item.match(/<content:encoded><!\[CDATA\[([\s\S]*?)\]\]><\/content:encoded>/) || [])[1] || ''
+  if (!encoded) return tiles
 
-  while ((match = sectionRx.exec(html)) !== null && count < 10) {
-    // Clean title
-    const title = match[1].replace(/<[^>]+>/g, '').replace(/&amp;/g,'&').replace(/&#[0-9]+;/g,'').trim()
-    const body  = match[2]
+  // Extract each h3 section
+  const h3regex = /<h3[^>]*>([\s\S]*?)<\/h3>([\s\S]*?)(?=<h3|<\/body>|$)/g
+  let m
+  while ((m = h3regex.exec(encoded)) !== null) {
+    const rawTitle = m[1].replace(/<[^>]+>/g, '').replace(/&amp;/g,'&').replace(/&#[0-9]+;/g,'').trim()
+    const body = m[2]
 
-    if (!title || title.length < 4) continue
+    if (!rawTitle || rawTitle.length < 4) continue
 
-    // Skip pure promo sections (no real link to sprudge.com)
-    const sprudgeLink = (body.match(/href="(https:\/\/sprudge\.com\/[^"?#]+)"/) || [])[1]
-    const anyLink     = (body.match(/href="(https?:\/\/[^"]+)"/) || [])[1]
-    const articleUrl  = sprudgeLink || anyLink || url
+    // Get first sprudge.com link
+    const sprudgeLink = (body.match(/href="(https:\/\/sprudge\.com\/[^"]+)"/) || [])[1] || null
 
-    // Skip ad-only sections (swisswater, pacificfoodservice etc)
-    if (!sprudgeLink && anyLink && !anyLink.includes('sprudge')) continue
+    // Skip pure ad sections (no sprudge link, only external ad links)
+    const hasSprudgeContent = sprudgeLink || body.includes('sprudge.com')
+    const isAdOnly = !hasSprudgeContent && (
+      body.includes('swisswater.com') ||
+      body.includes('pacificfoodservice') ||
+      body.includes('noissue.co') ||
+      body.includes('lamarzoccousa.com/about')
+    )
+    if (isAdOnly) continue
 
-    // Extract first paragraph as summary
-    const paraRx = /<p[^>]*>([\s\S]*?)<\/p>/g
-    let summary = ''
-    let pm
-    while ((pm = paraRx.exec(body)) !== null) {
-      const txt = pm[1].replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&nbsp;/g,' ').replace(/&#[0-9]+;/g,'').trim()
-      if (txt.length > 20) { summary = txt.slice(0, 200); break }
-    }
+    // Get full text from all paragraphs
+    const paras = [...body.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/g)]
+    const fullText = paras
+      .map(p => p[1].replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&nbsp;/g,' ').replace(/&#[0-9]+;/g,'').replace(/’/g,"'").replace(/“/g,'"').replace(/”/g,'"').trim())
+      .filter(t => t.length > 15)
+      .join(' ')
+      .trim()
 
-    // Extract first image
-    const imgMatch = body.match(/src="(https:\/\/substackcdn[^"]+)"/) ||
-                     body.match(/src="(https:\/\/substack-post-media[^"]+)"/)
-    const img = imgMatch ? imgMatch[1] : null
+    if (!fullText) continue
+
+    // Get image
+    const imgM = body.match(/src="(https:\/\/substackcdn[^"]+\.(jpg|jpeg|png|webp|heic)[^"]*)"/)
+    const img = imgM ? imgM[1] : null
 
     tiles.push({
       source: 'The Sprudge Report',
-      title,
-      summary,
-      url: articleUrl,
+      title: rawTitle,
+      summary: fullText.slice(0, 800),
+      url: sprudgeLink || 'https://sprudge.com',
       topic: 'communaute',
       lang: 'en',
       date: pubDate,
       img,
     })
-    count++
   }
 
-  return tiles
+  return tiles.slice(0, 10)
 }
 
 // ── Translate Sprudge tiles to French via Claude ──────────
@@ -255,16 +257,12 @@ async function fetchAllRSS() {
     }
   }
 
-  // Sprudge Substack: get latest newsletter URL from RSS then fetch full HTML
+  // Sprudge Substack: parse RSS directly then translate to French
   let community = []
   try {
-    const latestURL = await getLatestSprudgeURL()
-    if (latestURL) {
-      const rawTiles = await parseSprudgeNewsletter(latestURL)
-      if (rawTiles.length > 0) {
-        // Translate all tiles to French in one Claude call
-        community = await translateTilesToFrench(KEY, rawTiles)
-      }
+    const rawTiles = await fetchSprudgeCommunity()
+    if (rawTiles.length > 0) {
+      community = await translateTilesToFrench(KEY, rawTiles)
     }
   } catch(e) {
     console.error('Substack error:', e.message)
@@ -326,16 +324,7 @@ Return ONE valid JSON object with exactly 3 keys: science, gear, reddit. No mark
     {"brand":"Kinto","name":"WRITE real product","description":"WRITE","category":"Tasse","price":"WRITE","url":"https://kinto.co.jp/en/WRITE","hot":false,"img_seed":7},
     {"brand":"Aillio","name":"WRITE real product","description":"WRITE","category":"Torrefacteur","price":"WRITE","url":"https://aillio.com/products/WRITE","hot":true,"img_seed":0}
   ],
-  "reddit": [
-    {"sub":"r/espresso","title":"WRITE real trending espresso topic title","author":"u/realuser","upvotes":"2.1k","comments":187,"flair":"Technique","url":"https://reddit.com/r/espresso","hot":true,"date":"il y a 3h"},
-    {"sub":"r/Coffee","title":"WRITE real trending coffee topic","author":"u/coffeegeek","upvotes":"1.8k","comments":312,"flair":"Discussion","url":"https://reddit.com/r/Coffee","hot":true,"date":"il y a 5h"},
-    {"sub":"r/barista","title":"WRITE real trending barista topic","author":"u/barista_pro","upvotes":"3.1k","comments":224,"flair":"Competition","url":"https://reddit.com/r/barista","hot":true,"date":"il y a 8h"},
-    {"sub":"r/espresso","title":"WRITE real post about grinder","author":"u/espressoholic","upvotes":"1.2k","comments":98,"flair":"Materiel","url":"https://reddit.com/r/espresso","hot":false,"date":"il y a 11h"},
-    {"sub":"r/Coffee","title":"WRITE real post about origin","author":"u/origingeek","upvotes":"876","comments":143,"flair":"Origine","url":"https://reddit.com/r/Coffee","hot":false,"date":"il y a 14h"},
-    {"sub":"r/barista","title":"WRITE real post about training","author":"u/sca_student","upvotes":"654","comments":77,"flair":"Formation","url":"https://reddit.com/r/barista","hot":false,"date":"il y a 17h"},
-    {"sub":"r/espresso","title":"WRITE real post about prices","author":"u/mktwatch","upvotes":"1.5k","comments":289,"flair":"Marche","url":"https://reddit.com/r/espresso","hot":true,"date":"il y a 20h"},
-    {"sub":"r/Coffee","title":"WRITE real post about brew method","author":"u/bloombro","upvotes":"2.0k","comments":156,"flair":"Technique","url":"https://reddit.com/r/Coffee","hot":false,"date":"il y a 1j"}
-  ]
+  "reddit": []
 }`
 
   try {
@@ -359,7 +348,7 @@ Return ONE valid JSON object with exactly 3 keys: science, gear, reddit. No mark
     const result = {
       news:      news.length > 0 ? news : [],
       science:   Array.isArray(claudeData.science) ? claudeData.science : [],
-      community: community.length > 0 ? community : (Array.isArray(claudeData.reddit) ? claudeData.reddit : []),
+      community: community.length > 0 ? community : [],
       gear,
       generatedAt: new Date().toISOString()
     }
