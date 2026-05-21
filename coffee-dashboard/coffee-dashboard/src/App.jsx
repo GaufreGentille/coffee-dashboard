@@ -980,27 +980,31 @@ export default function App() {
         tiles.push({ source:'The Sprudge Report', title, summary:text, url:sprudgeLink || 'https://sprudge.com', date:pubDate, img })
       }
 
-      // Translate via Claude API
+      // Translate via Claude API POST endpoint
       if (tiles.length > 0) {
         try {
-          const prompt = `Translate these specialty coffee newsletter sections to French. Natural, fluid translation. Return ONLY valid JSON array, no markdown.
-[{"i":0,"title":"french title","summary":"full french text"}]
-
-Sections:
-${tiles.map((t,i) => `${i}|||${t.title}|||${t.summary}`).join('
-')}`
-
+          const sections = tiles.map((t,i) => i + '|||' + t.title + '|||' + t.summary).join('\n')
+          const prompt = 'Translate these specialty coffee newsletter sections to French. Natural fluid translation. Return ONLY valid JSON array, no markdown.\nEach object: {"i":0,"title":"french title","summary":"full french text"}\n\nSections:\n' + sections
           const resp = await fetch('/.netlify/functions/get-news', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ action: 'translate', prompt })
+            body: JSON.stringify({ prompt })
           })
-          // If POST not supported, just use English
-          const translated = tiles
-          setCommunity(translated)
-        } catch(e) {
-          setCommunity(tiles)
-        }
+          if (resp.ok) {
+            const text = await resp.text()
+            const clean = text.replace(/```json/g,'').replace(/```/g,'').trim()
+            try {
+              const translated = JSON.parse(clean)
+              if (Array.isArray(translated)) {
+                const final = tiles.map((t,i) => {
+                  const tr = translated.find(x => x.i === i)
+                  return tr ? { ...t, title: tr.title || t.title, summary: tr.summary || t.summary } : t
+                })
+                setCommunity(final)
+              } else { setCommunity(tiles) }
+            } catch(e) { setCommunity(tiles) }
+          } else { setCommunity(tiles) }
+        } catch(e) { setCommunity(tiles) }
       }
     } catch(e) {
       console.error('Community fetch error:', e)
