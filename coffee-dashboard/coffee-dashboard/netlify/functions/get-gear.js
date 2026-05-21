@@ -129,7 +129,7 @@ exports.handler = async function(event, context) {
 
     for (const src of sources) {
       try {
-        const items = await fetchRSSItems(src.url, 30)
+        const items = await fetchRSSItems(src.url, 50)
         for (const item of items) {
           if (seenUrls.has(item.link)) continue
           const text = (item.title + ' ' + item.summary).toLowerCase()
@@ -163,18 +163,13 @@ exports.handler = async function(event, context) {
     }
 
     // Translate and enrich with Claude
-    const itemList = allItems.slice(0, 16).map((g,i) =>
+    const itemList = allItems.slice(0, 24).map((g,i) =>
       i + '|||' + g.title + '|||' + g.summary + '|||' + g.source + '|||' + g.date + '|||' + g.link
     ).join('\n')
 
-    const prompt = `You are a specialty coffee equipment editor. Translate these English article titles and summaries to French. For each, also determine the category (Moulin, Machine, Dripper, Accessories, Tasse, Filtre, Torrefacteur, Tech) and if it's a new product release (hot:true) or just news (hot:false).
-Return ONLY valid JSON array, no markdown:
-[{"i":0,"title":"french title","summary":"french summary (2-3 sentences max)","category":"category","hot":true,"url":"original url","source":"source","date":"date"}]
+    const prompt = 'You are a specialty coffee equipment editor. For each article below: 1) translate title to French, 2) write a French summary of 3-5 sentences with good context about what the product is, why it matters, who it is for and what makes it interesting, 3) determine category (Moulin, Machine, Dripper, Accessories, Tasse, Filtre, Torrefacteur, Tech), 4) hot:true if new release/launch, hot:false if review or general news. Return ONLY valid JSON array, no markdown:\n[{"i":0,"title":"french title","summary":"3-5 sentence french summary with real context","category":"category","hot":true}]\n\nArticles:\n' + itemList
 
-Articles:
-${itemList}`
-
-    const translated = await claude(KEY, prompt, 2500)
+    const translated = await claude(KEY, prompt, 3500)
 
     if (!Array.isArray(translated) || translated.length === 0) {
       throw new Error('Translation failed')
