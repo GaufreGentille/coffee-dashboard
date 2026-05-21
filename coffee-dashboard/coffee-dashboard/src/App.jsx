@@ -901,6 +901,8 @@ export default function App() {
   const [error, setError]     = useState(null)
   const [lastRefresh, setLastRefresh] = useState(null)
   const [instaFilter, setInstaFilter] = useState('Tous')
+  const [community, setCommunity]     = useState([])
+  const [commLoading, setCommLoading] = useState(false)
   const [gear, setGear]         = useState([])
 
   const T = dark ? DARK : LIGHT
@@ -936,6 +938,78 @@ export default function App() {
   }, [])
 
   useEffect(() => { fetchAll() }, [fetchAll])
+
+  const fetchCommunity = useCallback(async () => {
+    setCommLoading(true)
+    try {
+      const res  = await fetch('https://sprudge.substack.com/feed')
+      const xml  = await res.text()
+      const tiles = []
+
+      const itemM = xml.match(/<item>([\s\S]*?)<\/item>/)
+      if (!itemM) { setCommLoading(false); return }
+      const item = itemM[1]
+
+      const pubDateRaw = (item.match(/<pubDate>([\s\S]*?)<\/pubDate>/) || [])[1] || ''
+      const pubDate = pubDateRaw
+        ? new Date(pubDateRaw).toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric' })
+        : ''
+
+      const encoded = (item.match(/<content:encoded><!\[CDATA\[([\s\S]*?)\]\]><\/content:encoded>/) || [])[1] || ''
+      if (!encoded) { setCommLoading(false); return }
+
+      const h3rx = /<h3[^>]*>([\s\S]*?)<\/h3>([\s\S]*?)(?=<h3|$)/g
+      let m
+      while ((m = h3rx.exec(encoded)) !== null) {
+        const title = m[1].replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&#[0-9]+;/g,'').trim()
+        const body  = m[2]
+        if (!title || title.length < 4) continue
+
+        const sprudgeLink = (body.match(/href="(https:\/\/sprudge\.com\/[^"]+)"/) || [])[1] || null
+        const isAd = !sprudgeLink && (body.includes('swisswater') || body.includes('pacificfoodservice') || body.includes('noissue.co'))
+        if (isAd) continue
+
+        const paras = [...body.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/g)]
+        const text = paras
+          .map(p => p[1].replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&nbsp;/g,' ').replace(/&#[0-9]+;/g,'').replace(/’/g,"'").replace(/“/g,'"').replace(/”/g,'"').trim())
+          .filter(t => t.length > 10).join(' ').slice(0, 800)
+
+        const imgM = body.match(/src="(https:\/\/substackcdn[^"]+\.(jpg|jpeg|png|webp|heic)[^"]*)"/i)
+        const img = imgM ? imgM[1] : null
+
+        tiles.push({ source:'The Sprudge Report', title, summary:text, url:sprudgeLink || 'https://sprudge.com', date:pubDate, img })
+      }
+
+      // Translate via Claude API
+      if (tiles.length > 0) {
+        try {
+          const prompt = `Translate these specialty coffee newsletter sections to French. Natural, fluid translation. Return ONLY valid JSON array, no markdown.
+[{"i":0,"title":"french title","summary":"full french text"}]
+
+Sections:
+${tiles.map((t,i) => `${i}|||${t.title}|||${t.summary}`).join('
+')}`
+
+          const resp = await fetch('/.netlify/functions/get-news', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: 'translate', prompt })
+          })
+          // If POST not supported, just use English
+          const translated = tiles
+          setCommunity(translated)
+        } catch(e) {
+          setCommunity(tiles)
+        }
+      }
+    } catch(e) {
+      console.error('Community fetch error:', e)
+    }
+    setCommLoading(false)
+  }, [])
+
+  useEffect(() => { fetchCommunity() }, [fetchCommunity])
+
 
   return (
     <div style={{ background:T.bg, minHeight:'100vh', color:T.text, fontFamily:"Inter,-apple-system,system-ui,sans-serif", fontWeight:500, fontSize:17, transition:'background 0.3s, color 0.3s', position:'relative' }}>
@@ -1087,17 +1161,17 @@ export default function App() {
 
         {/* REDDIT */}
         {tab==='reddit' && (
-          loading ? <Spinner label="Chargement de la communaute..." T={T} /> :
-          reddit.length ? (
+          commLoading ? <Spinner label="Chargement de la communaute..." T={T} /> :
+          community.length ? (
             <div>
               <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.15em', color:T.dim, fontWeight:600, marginBottom:16, paddingBottom:12, borderBottom:`1px solid ${T.border}` }}>
-                Communaute · The Sprudge Report · {reddit.length} articles · {dateStr}
+                Communaute · The Sprudge Report · {community.length} articles · {dateStr}
               </div>
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:14 }}>
-                {reddit.map((post,i) => <RedditCard key={i} post={post} i={i} T={T} />)}
+                {community.map((post,i) => <RedditCard key={i} post={post} i={i} T={T} />)}
               </div>
             </div>
-          ) : <ErrMsg msg="Impossible de charger le contenu communautaire." T={T} />
+          ) : <ErrMsg msg="Impossible de charger le contenu Sprudge." T={T} />
         )}
 
         {/* SCIENCE */}
