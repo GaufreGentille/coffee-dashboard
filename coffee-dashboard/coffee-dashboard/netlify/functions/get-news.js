@@ -127,6 +127,8 @@ async function fetchAllRSS() {
     { url:'https://sprudge.com/feed',               name:'Sprudge',            topic:'culture',   lang:'en' },
     { url:'https://dailycoffeenews.com/feed',       name:'Daily Coffee News',  topic:'industrie', lang:'en' },
     { url:'https://www.baristamagazine.com/feed/',  name:'Barista Magazine',   topic:'barista',   lang:'en' },
+    { url:'https://sprudge.substack.com/feed',      name:'The Sprudge Report', topic:'communaute', lang:'en' },
+    { url:'https://sca.coffee/news/rss',            name:'SCA News',           topic:'association', lang:'en' },
   ]
   const allItems = []
   for (const src of sources) {
@@ -217,10 +219,14 @@ Return ONE valid JSON object with exactly 3 keys: science, gear, reddit. No mark
       img: GEAR_IMGS[(typeof g.img_seed === 'number' ? g.img_seed : i) % GEAR_IMGS.length]
     })) : []
 
+    // Separate community (Sprudge Substack) from main news
+    const community = rssNews.filter(n => n.topic === 'communaute' || n.source === 'The Sprudge Report')
+    const news      = rssNews.filter(n => n.topic !== 'communaute' && n.source !== 'The Sprudge Report')
+
     const result = {
-      news:    rssNews.length > 0 ? rssNews : [],
-      science: Array.isArray(claudeData.science) ? claudeData.science : [],
-      reddit:  Array.isArray(claudeData.reddit)  ? claudeData.reddit  : [],
+      news:      news.length > 0 ? news : [],
+      science:   Array.isArray(claudeData.science) ? claudeData.science : [],
+      community: community.length > 0 ? community : (Array.isArray(claudeData.reddit) ? claudeData.reddit : []),
       gear,
       generatedAt: new Date().toISOString()
     }
