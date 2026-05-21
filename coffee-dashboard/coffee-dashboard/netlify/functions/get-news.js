@@ -99,63 +99,111 @@ function claude(key, prompt, tokens) {
   })
 }
 
-// ── Reddit — real posts ───────────────────────────────────
-async function fetchReddit() {
-  const FLAIR_MAP = {
-    'Espresso': 'Espresso', 'Brew': 'Technique', 'Equipment': 'Materiel',
-    'Coffee': 'Discussion', 'Roaster': 'Torrefaction', 'Beans': 'Origine',
-    'Help': 'Aide', 'Latte Art': 'Latte Art', 'Competition': 'Competition',
-  }
-
+// ── Reddit public JSON (no auth needed, correct User-Agent) ──
+async function fetchRedditHot() {
   const subs = [
-    { sub: 'r/espresso',   url: 'https://www.reddit.com/r/espresso/hot.json?limit=4' },
-    { sub: 'r/Coffee',     url: 'https://www.reddit.com/r/Coffee/hot.json?limit=3' },
-    { sub: 'r/barista',    url: 'https://www.reddit.com/r/barista/hot.json?limit=3' },
+    { sub: 'r/espresso', limit: 4 },
+    { sub: 'r/Coffee',   limit: 3 },
+    { sub: 'r/barista',  limit: 3 },
   ]
-
   const posts = []
-  for (const { sub, url } of subs) {
+  for (const { sub, limit } of subs) {
     try {
+      const url = `https://www.reddit.com/${sub}/hot.json?limit=${limit + 2}&raw_json=1`
       const data = await httpsGet(url, {
-        'User-Agent': 'KissaSoko:v1.0 (by /u/GaufreGentille)',
+        // Reddit requires this exact format or returns 429/403
+        'User-Agent': 'web:kissasoko:v1.0 (by /u/GaufreGentille)',
         'Accept': 'application/json',
       })
-      const items = data?.data?.children || []
-      for (const item of items) {
+      const items = (data?.data?.children || []).filter(c => !c.data.stickied)
+      for (const item of items.slice(0, limit)) {
         const p = item.data
-        if (p.stickied || p.pinned) continue
-        const score = p.score >= 1000
-          ? (p.score / 1000).toFixed(1) + 'k'
-          : String(p.score)
-        const flair = p.link_flair_text
-          ? FLAIR_MAP[p.link_flair_text] || p.link_flair_text
-          : 'Discussion'
-        // Time ago
+        const score = p.score >= 1000 ? (p.score/1000).toFixed(1)+'k' : String(p.score)
         const mins = Math.floor((Date.now()/1000 - p.created_utc) / 60)
-        const timeAgo = mins < 60
-          ? `il y a ${mins}min`
-          : mins < 1440
-          ? `il y a ${Math.floor(mins/60)}h`
+        const timeAgo = mins < 60 ? `il y a ${mins}min`
+          : mins < 1440 ? `il y a ${Math.floor(mins/60)}h`
           : `il y a ${Math.floor(mins/1440)}j`
-
+        const flair = p.link_flair_text || 'Discussion'
+        const thumb = p.thumbnail && p.thumbnail.startsWith('http') ? p.thumbnail : null
         posts.push({
-          sub,
-          title: p.title,
+          sub, title: p.title,
           author: 'u/' + p.author,
           upvotes: score,
           comments: p.num_comments,
-          flair,
+          flair, hot: p.score > 300,
           url: 'https://reddit.com' + p.permalink,
-          hot: p.score > 500,
-          date: timeAgo,
-          thumbnail: (p.thumbnail && p.thumbnail.startsWith('http')) ? p.thumbnail : null,
+          date: timeAgo, thumbnail: thumb,
         })
       }
     } catch(e) {
-      console.error('Reddit fetch error for', sub, e.message)
+      console.error('Reddit error', sub, e.message)
     }
   }
   return posts
+}
+
+// ── Real news via RSS ─────────────────────────────────────
+async function fetchRealNews() {
+  const sources = [
+    { url: 'https://perfectdailygrind.com/feed/', name: 'Perfect Daily Grind' },
+    { url: 'https://sprudge.com/feed', name: 'Sprudge' },
+  ]
+  const items = []
+  for (const src of sources) {
+    try {
+      // Fetch as text since RSS is XML
+      const raw = await new Promise((resolve, reject) => {
+        const opts = new URL(src.url)
+        const req = https.request({
+          hostname: opts.hostname,
+          path: opts.pathname + opts.search,
+          method: 'GET',
+          headers: { 'User-Agent': 'KissaSoko/1.0' },
+        }, (res) => {
+          if (res.statusCode === 301 || res.statusCode === 302) {
+            // simple redirect: skip
+            resolve('')
+            return
+          }
+          let data = ''
+          res.on('data', chunk => data += chunk)
+          res.on('end', () => resolve(data))
+        })
+        req.on('error', reject)
+        req.setTimeout(10000, () => { req.destroy(); resolve('') })
+        req.end()
+      })
+      if (!raw) continue
+      // Parse RSS items with regex (no xml parser needed)
+      const itemMatches = raw.match(/<item>([\s\S]*?)<\/item>/g) || []
+      for (const item of itemMatches.slice(0, 3)) {
+        const title = (item.match(/<title><!\[CDATA\[(.*?)\]\]><\/title>/) || item.match(/<title>(.*?)<\/title>/) || [])[1] || ''
+        const link  = (item.match(/<link>(.*?)<\/link>/) || item.match(/<guid[^>]*>(.*?)<\/guid>/) || [])[1] || ''
+        const desc  = (item.match(/<description><!\[CDATA\[(.*?)\]\]><\/description>/) || item.match(/<description>(.*?)<\/description>/) || [])[1] || ''
+        const date  = (item.match(/<pubDate>(.*?)<\/pubDate>/) || [])[1] || ''
+        // Get image from content or enclosure
+        const img   = (item.match(/url="(https:\/\/[^"]+\.(jpg|jpeg|png|webp))[^"]*"/) || [])[1] || null
+        if (title && link) {
+          // Clean HTML from desc
+          const cleanDesc = desc.replace(/<[^>]+>/g, '').replace(/&[a-z]+;/g, ' ').trim().slice(0, 200)
+          const pubDate = date ? new Date(date).toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric' }) : ''
+          items.push({
+            source: src.name,
+            title: title.trim(),
+            summary: cleanDesc,
+            url: link.trim(),
+            topic: 'actualite',
+            lang: 'en',
+            date: pubDate,
+            img: img || null,
+          })
+        }
+      }
+    } catch(e) {
+      console.error('RSS error:', src.name, e.message)
+    }
+  }
+  return items
 }
 
 // ── Image pools ───────────────────────────────────────────
@@ -220,11 +268,14 @@ Return ONE valid JSON object with exactly 3 keys: news, science, gear. No markdo
 }`
 
   try {
-    // Fetch Reddit (real) and Claude content in parallel
-    const [contentRaw, reddit] = await Promise.all([
+    // Fetch Reddit (real) + Claude for news/science/gear in parallel
+    const [redditPosts, contentRaw] = await Promise.all([
+      fetchRedditHot(),
       claude(KEY, P_CONTENT, 3500),
-      fetchReddit(),
     ])
+
+    // News from Claude (real knowledge)
+    const news = Array.isArray(contentRaw.news) ? contentRaw.news : []
 
     const gear = Array.isArray(contentRaw.gear) ? contentRaw.gear.map((g, i) => ({
       ...g,
@@ -232,9 +283,9 @@ Return ONE valid JSON object with exactly 3 keys: news, science, gear. No markdo
     })) : []
 
     const result = {
-      news:    Array.isArray(contentRaw.news)    ? contentRaw.news    : [],
+      news,
       science: Array.isArray(contentRaw.science) ? contentRaw.science : [],
-      reddit:  reddit.length > 0 ? reddit : [],
+      reddit:  Array.isArray(contentRaw.reddit)  ? contentRaw.reddit  : [],
       gear,
       generatedAt: new Date().toISOString()
     }
