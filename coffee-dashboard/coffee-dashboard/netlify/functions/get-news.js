@@ -205,6 +205,37 @@ async function parseSprudgeNewsletter(url) {
   return tiles
 }
 
+// ── Translate Sprudge tiles to French via Claude ──────────
+async function translateTilesToFrench(key, tiles) {
+  if (!tiles || tiles.length === 0) return tiles
+  // Build a compact prompt with all tiles
+  const tileList = tiles.map((t, i) => `${i}|||${t.title}|||${t.body || t.summary || ''}`).join('\n')
+  const prompt = `Translate these specialty coffee newsletter sections from English to French. 
+Keep translation natural and fluid. Return ONLY valid JSON array, no markdown.
+Each item: {"i": number, "title": "french title", "summary": "french full text"}
+Translate the full text faithfully — do not summarize or shorten.
+
+Sections to translate:
+${tileList}`
+
+  try {
+    const result = await claude(key, prompt, 2000)
+    if (!Array.isArray(result)) return tiles
+    return tiles.map((tile, i) => {
+      const translated = result.find(r => r.i === i)
+      if (!translated) return tile
+      return {
+        ...tile,
+        title:   translated.title   || tile.title,
+        summary: translated.summary || tile.summary || tile.body || '',
+      }
+    })
+  } catch(e) {
+    console.error('Translation error:', e.message)
+    return tiles // fallback to English
+  }
+}
+
 // ── Fetch all RSS sources ──────────────────────────────────
 async function fetchAllRSS() {
   const newsSources = [
@@ -229,10 +260,15 @@ async function fetchAllRSS() {
   try {
     const latestURL = await getLatestSprudgeURL()
     if (latestURL) {
-      community = await parseSprudgeNewsletter(latestURL)
+      const rawTiles = await parseSprudgeNewsletter(latestURL)
+      if (rawTiles.length > 0) {
+        // Translate all tiles to French in one Claude call
+        community = await translateTilesToFrench(KEY, rawTiles)
+      }
     }
   } catch(e) {
     console.error('Substack error:', e.message)
+    community = []
   }
 
   return { allNews, community }
