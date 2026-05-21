@@ -771,7 +771,7 @@ function GearHeroCard({ item, T }) {
           </div>
         </div>
         <div style={{ padding:'16px 18px 20px' }}>
-          <div style={{ fontSize:'0.9rem', color:T.dim, lineHeight:1.7, marginBottom:12 }}>{item.description || item.summary}</div>
+          <div style={{ fontSize:'0.9rem', color:T.dim, lineHeight:1.7, marginBottom:12, display:'-webkit-box', WebkitLineClamp:5, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.description || item.summary}</div>
           <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             {item.price && <span style={{ fontSize:'1rem', fontWeight:700, color:BRAND.yellow }}>{item.price}</span>}
             {item.source && <span style={{ fontSize:'0.7rem', color:T.faint }}>{item.source} · {item.date}</span>}
@@ -801,7 +801,7 @@ function GearCard({ item, i, T }) {
         <div style={{ padding:'13px 15px 16px' }}>
           <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.09em', color:BRAND.amber, marginBottom:5 }}>{item.brand}</div>
           <div style={{ fontSize:'0.95rem', fontWeight:700, color:T.text, lineHeight:1.35, marginBottom:7, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.name}</div>
-          <div style={{ fontSize:'0.78rem', color:T.dim, lineHeight:1.55, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.description || item.summary}</div>
+          <div style={{ fontSize:'0.78rem', color:T.dim, lineHeight:1.55, display:'-webkit-box', WebkitLineClamp:4, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.description || item.summary}</div>
           <div style={{ marginTop:10, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
             {item.price && <span style={{ fontSize:'0.88rem', fontWeight:700, color:BRAND.yellow }}>{item.price}</span>}
             {item.source && !item.price && <span style={{ fontSize:'0.68rem', color:T.faint }}>{item.source}</span>}
@@ -1164,7 +1164,7 @@ export default function App() {
                 Actualites du secteur - {news.length} articles · {dateStr}
               </div>
               <HeroCard item={news[0]} T={T} />
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(225px,1fr))', gap:12 }}>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:14 }}>
                 {news.slice(1).map((item,i) => <NewsCard key={i} item={item} img={IMG[(i+1)%IMG.length]} i={i} T={T} />)}
               </div>
             </div>
@@ -1342,7 +1342,7 @@ export default function App() {
                 Ça fait du bruit · {items.length} nouveautés · moulins, machines, tasses, drippers...
               </div>
               <GearHeroCard item={items[0]} T={T} />
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(225px,1fr))', gap:12 }}>
+              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:14 }}>
                 {items.slice(1).map((item,i) => <GearCard key={i} item={item} i={i} T={T} />)}
               </div>
             </div>
