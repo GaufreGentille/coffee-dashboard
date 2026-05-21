@@ -1033,7 +1033,7 @@ export default function App() {
             opacity: showVitality ? 1 : 0.6, transition:'all 0.2s',
             transform: showVitality ? 'scale(1.1)' : 'scale(1)',
           }} title="Team Vitality CS2">
-            <img src="/vitality-logo.webp" alt="Team Vitality" style={{ width:32, height:32, borderRadius:6, objectFit:'cover', display:'block' }} />
+            <img src="/vitality-logo.webp" alt="Team Vitality" style={{ width:52, height:52, borderRadius:8, objectFit:'cover', display:'block' }} />
           </button>
         </div>
       </div>
