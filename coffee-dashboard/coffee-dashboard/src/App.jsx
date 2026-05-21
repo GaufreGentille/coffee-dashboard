@@ -1024,7 +1024,7 @@ export default function App() {
           {label:'EUR/USD',    val:'--',unit:'',    chg:'',up:true},
           {label:'BRL/USD',   val:'--',unit:'',    chg:'',up:true},
         ]).map((m,i) => (
-          <div key={i} style={{ padding:'9px 24px 9px 0', minWidth:140, borderRight:`1px solid ${T.border}`, flexShrink:0 }}>
+          <div key={i} style={{ padding:'9px 24px 9px 20px', minWidth:140, borderRight:`1px solid ${T.border}`, flexShrink:0 }}>
             <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.1em', color:T.dim, marginBottom:5, fontWeight:600 }}>{m.label}</div>
             <div style={{ display:'flex', alignItems:'baseline', gap:7 }}>
               <span style={{ fontSize:'1.25rem', fontWeight:700, color:T.text }}>
@@ -1046,7 +1046,7 @@ export default function App() {
             opacity: showVitality ? 1 : 0.6, transition:'all 0.2s',
             transform: showVitality ? 'scale(1.1)' : 'scale(1)',
           }} title="Team Vitality CS2">
-            <img src="/vitality-logo.webp" alt="Team Vitality" style={{ width:52, height:52, borderRadius:8, objectFit:'cover', display:'block' }} />
+            <img src="/vitality-logo.webp" alt="Team Vitality" style={{ width:62, height:62, borderRadius:8, objectFit:'cover', display:'block' }} />
           </button>
         </div>
       </div>
