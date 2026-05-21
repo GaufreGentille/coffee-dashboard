@@ -556,7 +556,6 @@ const TABS = [
   { id:'reddit',    label:'Communaute' },
   { id:'science',   label:'Science'    },
   { id:'gear',      label:'Ça fait du bruit' },
-  { id:'music',     label:'Musique' },
 ]
 
 function Tag({ topic, lang, T }) {
@@ -909,6 +908,7 @@ export default function App() {
   const [sciItems, setSciItems]         = useState([])
   const [sciLoading, setSciLoading]     = useState(false)
   const [showVitality, setShowVitality] = useState(false)
+  const [showMusic, setShowMusic]       = useState(false)
   const [gear, setGear]         = useState([])
 
   const T = dark ? DARK : LIGHT
@@ -1017,34 +1017,49 @@ export default function App() {
       </div>
 
       {/* MARKETS STRIP */}
-      <div style={{ background:T.surf, borderBottom:`2px solid ${BRAND.yellow}22`, display:'flex', overflowX:'auto', padding:'0 24px', minHeight:64 }}>
-        {(markets.length ? markets : [
-          {label:'Arabica ICE',val:'--',unit:'c/lb',chg:'',up:true},
-          {label:'Robusta ICE',val:'--',unit:'$/t', chg:'',up:false},
-          {label:'EUR/USD',    val:'--',unit:'',    chg:'',up:true},
-          {label:'BRL/USD',   val:'--',unit:'',    chg:'',up:true},
-        ]).map((m,i) => (
-          <div key={i} style={{ padding:'9px 24px 9px 20px', minWidth:140, borderRight:`1px solid ${T.border}`, flexShrink:0 }}>
-            <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.1em', color:T.dim, marginBottom:5, fontWeight:600 }}>{m.label}</div>
-            <div style={{ display:'flex', alignItems:'baseline', gap:7 }}>
-              <span style={{ fontSize:'1.25rem', fontWeight:700, color:T.text }}>
-                {m.val}{m.unit && <span style={{ fontSize:9, color:T.faint, marginLeft:3 }}>{m.unit}</span>}
-              </span>
-              {m.chg && <span style={{ fontSize:'0.85rem', color:m.up ? '#7cb87c' : '#c07070', fontWeight:700 }}>{m.up ? '▲' : '▼'}{m.chg}</span>}
+      <div style={{ background:T.surf, borderBottom:`2px solid ${BRAND.yellow}22`, display:'flex', alignItems:'center', padding:'0 24px', minHeight:64 }}>
+        {/* Market data */}
+        <div style={{ display:'flex', flex:1, overflowX:'auto' }}>
+          {(markets.length ? markets : [
+            {label:'Arabica ICE',val:'--',unit:'c/lb',chg:'',up:true},
+            {label:'Robusta ICE',val:'--',unit:'$/t', chg:'',up:false},
+            {label:'EUR/USD',    val:'--',unit:'',    chg:'',up:true},
+            {label:'BRL/USD',   val:'--',unit:'',    chg:'',up:true},
+          ]).map((m,i) => (
+            <div key={i} style={{ padding:'9px 24px 9px 20px', minWidth:140, borderRight:`1px solid ${T.border}`, flexShrink:0 }}>
+              <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.1em', color:T.dim, marginBottom:5, fontWeight:600 }}>{m.label}</div>
+              <div style={{ display:'flex', alignItems:'baseline', gap:7 }}>
+                <span style={{ fontSize:'1.25rem', fontWeight:700, color:T.text }}>
+                  {m.val}{m.unit && <span style={{ fontSize:9, color:T.faint, marginLeft:3 }}>{m.unit}</span>}
+                </span>
+                {m.chg && <span style={{ fontSize:'0.85rem', color:m.up ? '#7cb87c' : '#c07070', fontWeight:700 }}>{m.up ? '▲' : '▼'}{m.chg}</span>}
+              </div>
+              {m.note && <div style={{ fontSize:8, color:T.faint, marginTop:2 }}>{m.note}</div>}
             </div>
-            {m.note && <div style={{ fontSize:8, color:T.faint, marginTop:2 }}>{m.note}</div>}
+          ))}
+          <div style={{ padding:'9px 0 9px 20px', minWidth:80, flexShrink:0 }}>
+            <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.1em', color:T.dim, marginBottom:5, fontWeight:600 }}>Mis a jour</div>
+            <div style={{ fontSize:'1.1rem', color:T.text, fontWeight:700 }}>{mktTime}</div>
           </div>
-        ))}
-        <div style={{ padding:'9px 0 9px 20px', minWidth:80, flexShrink:0 }}>
-          <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.1em', color:T.dim, marginBottom:5, fontWeight:600 }}>Mis a jour</div>
-          <div style={{ fontSize:'1.1rem', color:T.text, fontWeight:700 }}>{mktTime}</div>
         </div>
-        {/* Vitality logo button */}
-        <div style={{ padding:'9px 0 9px 16px', flexShrink:0, display:'flex', alignItems:'center' }}>
-          <button onClick={() => setShowVitality(v => !v)} style={{
+        {/* Right buttons — Music + Vitality */}
+        <div style={{ display:'flex', alignItems:'center', gap:12, paddingLeft:24, borderLeft:`1px solid ${T.border}`, flexShrink:0 }}>
+          {/* Music button */}
+          <button onClick={() => { setShowMusic(v => !v); setShowVitality(false) }} style={{
+            background: showMusic ? BRAND.purple+'22' : 'none',
+            border: `1px solid ${showMusic ? BRAND.purple+'88' : T.border}`,
+            borderRadius:10, cursor:'pointer', padding:'6px 14px',
+            display:'flex', flexDirection:'column', alignItems:'center', gap:3,
+            transition:'all 0.2s', color: showMusic ? BRAND.purple : T.dim,
+          }} title="Musique — GaufreGentille">
+            <span style={{ fontSize:'1.3rem' }}>♪</span>
+            <span style={{ fontSize:9, fontWeight:600, letterSpacing:'0.05em', textTransform:'uppercase' }}>Musique</span>
+          </button>
+          {/* Vitality button */}
+          <button onClick={() => { setShowVitality(v => !v); setShowMusic(false) }} style={{
             background:'none', border:'none', cursor:'pointer', padding:4, borderRadius:8,
-            opacity: showVitality ? 1 : 0.6, transition:'all 0.2s',
-            transform: showVitality ? 'scale(1.1)' : 'scale(1)',
+            opacity: showVitality ? 1 : 0.65, transition:'all 0.2s',
+            transform: showVitality ? 'scale(1.05)' : 'scale(1)',
           }} title="Team Vitality CS2">
             <img src="/vitality-logo.webp" alt="Team Vitality" style={{ width:62, height:62, borderRadius:8, objectFit:'cover', display:'block' }} />
           </button>
@@ -1144,6 +1159,41 @@ export default function App() {
                 </div>
               </div>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MUSIC PANEL */}
+      {showMusic && (
+        <div style={{ background:T.surf, borderBottom:`1px solid ${BRAND.purple}44`, padding:'20px', animation:'fadeUp 0.2s ease both' }}>
+          <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.15em', color:T.dim, fontWeight:600, marginBottom:20, paddingBottom:12, borderBottom:`1px solid ${T.border}` }}>
+            Musique · GaufreGentille · {PLAYLISTS.length} playlists sur Suno
+          </div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:16 }}>
+            {PLAYLISTS.map((pl, i) => (
+              <a key={i} href={pl.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration:'none' }}>
+                <div style={{
+                  background:T.surf2, border:`1px solid ${T.border}`,
+                  borderRadius:14, overflow:'hidden', cursor:'pointer', transition:'all 0.22s',
+                }}
+                  onMouseEnter={e=>{ e.currentTarget.style.borderColor=BRAND.amber+'88'; e.currentTarget.style.transform='translateY(-3px)' }}
+                  onMouseLeave={e=>{ e.currentTarget.style.borderColor=T.border; e.currentTarget.style.transform='translateY(0)' }}
+                >
+                  <div style={{ height:180, backgroundImage:`url(${pl.cover})`, backgroundSize:'cover', backgroundPosition:'center', position:'relative' }}>
+                    <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 60%)' }} />
+                    <div style={{ position:'absolute', top:10, right:10, background:'rgba(0,0,0,0.6)', backdropFilter:'blur(8px)', borderRadius:20, padding:'2px 9px', fontSize:10, color:'#fff', fontWeight:600 }}>{pl.tracks} tracks</div>
+                    <div style={{ position:'absolute', bottom:12, left:14 }}>
+                      <div style={{ fontSize:'0.6rem', color:BRAND.amber, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:3 }}>GaufreGentille</div>
+                      <div style={{ fontFamily:'Georgia,serif', fontSize:'1.1rem', fontWeight:700, color:'#fff', textShadow:'0 2px 8px rgba(0,0,0,0.8)' }}>{pl.name}</div>
+                    </div>
+                  </div>
+                  <div style={{ padding:'12px 14px 14px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+                    <div style={{ fontSize:'0.75rem', color:T.dim, fontStyle:'italic' }}>{pl.vibe}</div>
+                    <div style={{ background:BRAND.amber, color:'#000', fontSize:'0.68rem', fontWeight:700, padding:'4px 12px', borderRadius:20 }}>▶ Suno</div>
+                  </div>
+                </div>
+              </a>
+            ))}
           </div>
         </div>
       )}
@@ -1274,78 +1324,7 @@ export default function App() {
 
 
         {/* MUSIQUE */}
-        {tab==='music' && (
-          <div>
-            <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.15em', color:T.dim, fontWeight:600, marginBottom:20, paddingBottom:12, borderBottom:`1px solid ${T.border}` }}>
-              Musique · GaufreGentille · {PLAYLISTS.length} playlists sur Suno
-            </div>
-            <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(280px,1fr))', gap:16 }}>
-              {PLAYLISTS.map((pl, i) => (
-                <a key={i} href={pl.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration:'none' }}>
-                  <div style={{
-                    background:T.surf, border:`1px solid ${T.border}`,
-                    borderRadius:14, overflow:'hidden', cursor:'pointer',
-                    transition:'all 0.22s',
-                    animation:`fadeUp 0.35s ease ${i*100}ms both`,
-                  }}
-                    onMouseEnter={e=>{ e.currentTarget.style.borderColor=BRAND.amber+'88'; e.currentTarget.style.transform='translateY(-4px)'; e.currentTarget.style.boxShadow=`0 12px 32px rgba(0,0,0,0.3)` }}
-                    onMouseLeave={e=>{ e.currentTarget.style.borderColor=T.border; e.currentTarget.style.transform='translateY(0)'; e.currentTarget.style.boxShadow='none' }}
-                  >
-                    {/* Cover */}
-                    <div style={{
-                      height:220,
-                      backgroundImage:`url(${pl.cover})`,
-                      backgroundSize:'cover',
-                      backgroundPosition:'center',
-                      position:'relative',
-                    }}>
-                      <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top, rgba(0,0,0,0.75) 0%, transparent 60%)' }} />
-                      {/* Play button overlay */}
-                      <div style={{
-                        position:'absolute', inset:0,
-                        display:'flex', alignItems:'center', justifyContent:'center',
-                        opacity:0, transition:'opacity 0.2s',
-                      }}
-                        onMouseEnter={e=>e.currentTarget.style.opacity='1'}
-                        onMouseLeave={e=>e.currentTarget.style.opacity='0'}
-                      >
-                        <div style={{
-                          width:56, height:56, borderRadius:'50%',
-                          background:BRAND.amber, display:'flex', alignItems:'center', justifyContent:'center',
-                          fontSize:'1.4rem', color:'#000',
-                        }}>▶</div>
-                      </div>
-                      {/* Track count badge */}
-                      <div style={{
-                        position:'absolute', top:12, right:12,
-                        background:'rgba(0,0,0,0.6)', backdropFilter:'blur(8px)',
-                        borderRadius:20, padding:'3px 10px',
-                        fontSize:11, color:'#fff', fontWeight:600,
-                      }}>{pl.tracks} tracks</div>
-                      {/* Title overlay */}
-                      <div style={{ position:'absolute', bottom:14, left:16, right:16 }}>
-                        <div style={{ fontSize:'0.65rem', color:BRAND.amber, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', marginBottom:4 }}>GaufreGentille</div>
-                        <div style={{ fontFamily:'Georgia,serif', fontSize:'1.3rem', fontWeight:700, color:'#fff', textShadow:'0 2px 8px rgba(0,0,0,0.8)' }}>{pl.name}</div>
-                      </div>
-                    </div>
-                    {/* Footer */}
-                    <div style={{ padding:'14px 16px 16px', display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-                      <div style={{ fontSize:'0.78rem', color:T.dim, fontStyle:'italic' }}>{pl.vibe}</div>
-                      <div style={{
-                        display:'inline-flex', alignItems:'center', gap:5,
-                        background:BRAND.amber, color:'#000',
-                        fontSize:'0.7rem', fontWeight:700,
-                        padding:'5px 13px', borderRadius:20, flexShrink:0,
-                      }}>▶ Suno</div>
-                    </div>
-                  </div>
-                </a>
-              ))}
-            </div>
-          </div>
-        )}
 
-        {/* CA FAIT DU BRUIT */}
         {tab==='gear' && (() => {
           const items = gearItems.length > 0 ? gearItems : gear
           return gearLoading ? <Spinner label="Chargement des nouveautés matériel..." T={T} /> :
