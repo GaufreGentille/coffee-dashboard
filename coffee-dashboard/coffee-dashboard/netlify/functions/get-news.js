@@ -269,6 +269,14 @@ async function fetchAllRSS() {
     community = []
   }
 
+  // Gear sources (same RSS feeds, filtered by keywords)
+  const gearSources = [
+    { url:'https://dailycoffeenews.com/feed',      name:'Daily Coffee News',   lang:'en' },
+    { url:'https://perfectdailygrind.com/feed/',   name:'Perfect Daily Grind', lang:'en' },
+    { url:'https://www.baristamagazine.com/feed/', name:'Barista Magazine',    lang:'en' },
+    { url:'https://sprudge.com/feed',              name:'Sprudge',             lang:'en' },
+  ]
+
   // Fetch gear articles from RSS - filter by equipment keywords
   const gearKeywords = ['grinder','machine','dripper','kettle','scale','tamper','brewer',
     'espresso machine','roaster','equipment','gear','tool','mug','cup','carafe','filter',
