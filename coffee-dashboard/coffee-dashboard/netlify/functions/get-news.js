@@ -292,6 +292,33 @@ exports.handler = async function(event, context) {
   const KEY = process.env.ANTHROPIC_API_KEY
   if (!KEY) return { statusCode:500, headers, body: JSON.stringify({ error:'Missing key' }) }
 
+  // POST: translate community tiles to French
+  if (event.httpMethod === 'POST') {
+    try {
+      const { prompt } = JSON.parse(event.body || '{}')
+      if (!prompt) return { statusCode:400, headers, body: JSON.stringify({ error:'No prompt' }) }
+      const body = JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 2000,
+        messages: [{ role:'user', content: prompt }]
+      })
+      const data = await httpsPost({
+        hostname:'api.anthropic.com', path:'/v1/messages', method:'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'x-api-key': KEY,
+          'anthropic-version':'2023-06-01',
+          'Content-Length': Buffer.byteLength(body)
+        }
+      }, body)
+      if (data.error) return { statusCode:500, headers, body: JSON.stringify({ error: data.error.message }) }
+      const text = data.content?.[0]?.text || '[]'
+      return { statusCode:200, headers, body: text }
+    } catch(e) {
+      return { statusCode:500, headers, body: JSON.stringify({ error: e.message }) }
+    }
+  }
+
   const forceRefresh = event.queryStringParameters?.refresh === '1'
   const now = Date.now()
 
