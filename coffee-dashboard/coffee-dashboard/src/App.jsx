@@ -553,7 +553,7 @@ const INSTAGRAM = [
 const TABS = [
   { id:'news',      label:'Actualites' },
   { id:'instagram', label:'Instagram'  },
-  { id:'reddit',    label:'Reddit'     },
+  { id:'reddit',    label:'Communaute' },
   { id:'science',   label:'Science'    },
   { id:'gear',      label:'Ca fait du bruit' },
   { id:'music',     label:'Musique' },
@@ -894,7 +894,8 @@ export default function App() {
       const mkt     = await mktRes.json()
       if (content.news)    setNews(content.news)
       if (content.science) setSci(content.science)
-      if (content.reddit)  setReddit(content.reddit)
+      if (content.community) setReddit(content.community)
+      else if (content.reddit)  setReddit(content.reddit)
       if (content.gear)    setGear(content.gear)
       if (mkt.markets)     setMarkets(mkt.markets)
       if (mkt.updatedAt)   setMktTime(mkt.updatedAt)
