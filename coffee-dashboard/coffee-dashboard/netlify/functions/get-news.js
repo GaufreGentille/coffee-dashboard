@@ -269,7 +269,30 @@ async function fetchAllRSS() {
     community = []
   }
 
-  return { allNews, community }
+  // Fetch gear articles from RSS - filter by equipment keywords
+  const gearKeywords = ['grinder','machine','dripper','kettle','scale','tamper','brewer',
+    'espresso machine','roaster','equipment','gear','tool','mug','cup','carafe','filter',
+    'moulin','cafetiere','machine','torrefacteur','tasse','balance','bouilloire']
+  const allGear = []
+  const seenGearUrls = new Set()
+  for (const src of gearSources) {
+    try {
+      const xml = await httpsGetText(src.url)
+      const items = parseRSS(xml, src.name, 'gear', src.lang)
+      for (const item of items) {
+        const text = (item.title + ' ' + item.summary).toLowerCase()
+        const isGear = gearKeywords.some(k => text.includes(k))
+        if (isGear && !seenGearUrls.has(item.url)) {
+          seenGearUrls.add(item.url)
+          allGear.push({ ...item, topic:'gear' })
+        }
+      }
+    } catch(e) {
+      console.error('Gear RSS error:', src.name, e.message)
+    }
+  }
+
+  return { allNews, community, gearRSS: allGear.slice(0, 12) }
 }
 
 // ── Image pools ────────────────────────────────────────────
@@ -360,13 +383,20 @@ Return ONE valid JSON object with exactly 3 keys: science, gear, reddit. No mark
       fetchAllRSS(),
       claude(KEY, P_CLAUDE, 2500),
     ])
-    const rssNews = rssResult.allNews
-    const rssComm = rssResult.community
+    const rssNews   = rssResult.allNews
+    const rssComm   = rssResult.community
+    const gearRSS   = rssResult.gearRSS || []
 
-    const gear = Array.isArray(claudeData.gear) ? claudeData.gear.map((g, i) => ({
-      ...g,
-      img: GEAR_IMGS[(typeof g.img_seed === 'number' ? g.img_seed : i) % GEAR_IMGS.length]
-    })) : []
+    // Use real RSS gear articles if available, fall back to Claude
+    const gear = gearRSS.length >= 4
+      ? gearRSS.map((g, i) => ({
+          ...g,
+          img: GEAR_IMGS[i % GEAR_IMGS.length]
+        }))
+      : Array.isArray(claudeData.gear) ? claudeData.gear.map((g, i) => ({
+          ...g,
+          img: GEAR_IMGS[(typeof g.img_seed === 'number' ? g.img_seed : i) % GEAR_IMGS.length]
+        })) : []
 
     // Separate community (Sprudge Substack) from main news
     const community = rssComm.length > 0 ? rssComm : []
