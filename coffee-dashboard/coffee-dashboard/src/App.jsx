@@ -942,69 +942,10 @@ export default function App() {
   const fetchCommunity = useCallback(async () => {
     setCommLoading(true)
     try {
-      const res  = await fetch('https://sprudge.substack.com/feed')
-      const xml  = await res.text()
-      const tiles = []
-
-      const itemM = xml.match(/<item>([\s\S]*?)<\/item>/)
-      if (!itemM) { setCommLoading(false); return }
-      const item = itemM[1]
-
-      const pubDateRaw = (item.match(/<pubDate>([\s\S]*?)<\/pubDate>/) || [])[1] || ''
-      const pubDate = pubDateRaw
-        ? new Date(pubDateRaw).toLocaleDateString('fr-FR', { day:'numeric', month:'short', year:'numeric' })
-        : ''
-
-      const encoded = (item.match(/<content:encoded><!\[CDATA\[([\s\S]*?)\]\]><\/content:encoded>/) || [])[1] || ''
-      if (!encoded) { setCommLoading(false); return }
-
-      const h3rx = /<h3[^>]*>([\s\S]*?)<\/h3>([\s\S]*?)(?=<h3|$)/g
-      let m
-      while ((m = h3rx.exec(encoded)) !== null) {
-        const title = m[1].replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&#[0-9]+;/g,'').trim()
-        const body  = m[2]
-        if (!title || title.length < 4) continue
-
-        const sprudgeLink = (body.match(/href="(https:\/\/sprudge\.com\/[^"]+)"/) || [])[1] || null
-        const isAd = !sprudgeLink && (body.includes('swisswater') || body.includes('pacificfoodservice') || body.includes('noissue.co'))
-        if (isAd) continue
-
-        const paras = [...body.matchAll(/<p[^>]*>([\s\S]*?)<\/p>/g)]
-        const text = paras
-          .map(p => p[1].replace(/<[^>]+>/g,'').replace(/&amp;/g,'&').replace(/&nbsp;/g,' ').replace(/&#[0-9]+;/g,'').replace(/’/g,"'").replace(/“/g,'"').replace(/”/g,'"').trim())
-          .filter(t => t.length > 10).join(' ').slice(0, 800)
-
-        const imgM = body.match(/src="(https:\/\/substackcdn[^"]+\.(jpg|jpeg|png|webp|heic)[^"]*)"/i)
-        const img = imgM ? imgM[1] : null
-
-        tiles.push({ source:'The Sprudge Report', title, summary:text, url:sprudgeLink || 'https://sprudge.com', date:pubDate, img })
-      }
-
-      // Translate via Claude API POST endpoint
-      if (tiles.length > 0) {
-        try {
-          const sections = tiles.map((t,i) => i + '|||' + t.title + '|||' + t.summary).join('\n')
-          const prompt = 'Translate these specialty coffee newsletter sections to French. Natural fluid translation. Return ONLY valid JSON array, no markdown.\nEach object: {"i":0,"title":"french title","summary":"full french text"}\n\nSections:\n' + sections
-          const resp = await fetch('/.netlify/functions/get-news', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prompt })
-          })
-          if (resp.ok) {
-            const text = await resp.text()
-            const clean = text.replace(/```json/g,'').replace(/```/g,'').trim()
-            try {
-              const translated = JSON.parse(clean)
-              if (Array.isArray(translated)) {
-                const final = tiles.map((t,i) => {
-                  const tr = translated.find(x => x.i === i)
-                  return tr ? { ...t, title: tr.title || t.title, summary: tr.summary || t.summary } : t
-                })
-                setCommunity(final)
-              } else { setCommunity(tiles) }
-            } catch(e) { setCommunity(tiles) }
-          } else { setCommunity(tiles) }
-        } catch(e) { setCommunity(tiles) }
+      const res  = await fetch('/.netlify/functions/get-sprudge')
+      const data = await res.json()
+      if (data.tiles && data.tiles.length > 0) {
+        setCommunity(data.tiles)
       }
     } catch(e) {
       console.error('Community fetch error:', e)
