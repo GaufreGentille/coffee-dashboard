@@ -149,6 +149,19 @@ exports.handler = async function(event, context) {
       throw new Error('Not enough gear articles from RSS: ' + allItems.length)
     }
 
+    // Category → Unsplash image mapping
+    const CAT_IMGS = {
+      'Moulin':       'https://images.unsplash.com/photo-1485808191679-5f86510bd9d4?w=600&q=80',
+      'Machine':      'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600&q=80',
+      'Dripper':      'https://images.unsplash.com/photo-1516743619420-154b70a65fea?w=600&q=80',
+      'Accessories':  'https://images.unsplash.com/photo-1511920170033-f8396924c348?w=600&q=80',
+      'Tasse':        'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600&q=80',
+      'Filtre':       'https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=600&q=80',
+      'Torrefacteur': 'https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=600&q=80',
+      'Tech':         'https://images.unsplash.com/photo-1611854779393-1b2da9d400fe?w=600&q=80',
+      'default':      'https://images.unsplash.com/photo-1504630083234-14187a9df0f5?w=600&q=80',
+    }
+
     // Translate and enrich with Claude
     const itemList = allItems.slice(0, 16).map((g,i) =>
       i + '|||' + g.title + '|||' + g.summary + '|||' + g.source + '|||' + g.date + '|||' + g.link
@@ -172,8 +185,9 @@ ${itemList}`
       const original = allItems[t.i !== undefined ? t.i : idx]
       return {
         ...t,
-        url: original ? original.link : t.url,
+        url:    original ? original.link   : t.url,
         source: original ? original.source : t.source,
+        img:    CAT_IMGS[t.category] || CAT_IMGS['default'],
       }
     })
 
