@@ -87,12 +87,12 @@ exports.handler = async function(event, context) {
   try {
     // Multiple themed searches for variety
     const THEMES = [
-      { q: '"coffee roasting" aroma volatile compounds[Title/Abstract]',              field:'Torréfaction', emoji:'🔥' },
-      { q: '"Coffea arabica" genomics climate adaptation breeding[Title/Abstract]',   field:'Génomique',    emoji:'🍃' },
-      { q: '"specialty coffee" sensory evaluation cupping quality[Title/Abstract]',   field:'Sensoriel',    emoji:'👃' },
-      { q: '"coffee fermentation" microbial anaerobic processing[Title/Abstract]',    field:'Fermentation', emoji:'🧪' },
-      { q: '"coffee" chlorogenic acid polyphenol extraction[Title/Abstract]',         field:'Biochimie',    emoji:'⚛️' },
-      { q: '"coffee" agronomy yield soil shade cultivation[Title/Abstract]',          field:'Agronomie',    emoji:'🌱' },
+      { q: 'coffee roasting aroma volatile compounds 2024[Title/Abstract]',    field:'Torréfaction', emoji:'🔥' },
+      { q: 'Coffea arabica climate adaptation genomics 2024[Title/Abstract]',  field:'Génomique',    emoji:'🍃' },
+      { q: 'specialty coffee sensory cupping quality 2024[Title/Abstract]',    field:'Sensoriel',    emoji:'👃' },
+      { q: 'coffee fermentation microbial anaerobic 2024[Title/Abstract]',     field:'Fermentation', emoji:'🧪' },
+      { q: 'coffee chlorogenic acid polyphenol 2024[Title/Abstract]',          field:'Biochimie',    emoji:'⚛️' },
+      { q: 'coffee agronomy yield soil cultivation 2024[Title/Abstract]',      field:'Agronomie',    emoji:'🌱' },
     ]
 
     const results = []
