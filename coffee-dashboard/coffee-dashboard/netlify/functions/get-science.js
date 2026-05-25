@@ -55,6 +55,7 @@ async function searchPubMed(query, retmax) {
     + encodeURIComponent(query)
     + '&retmax=' + (retmax || 10)
     + '&sort=date&retmode=json'
+    + '&mindate=2022&maxdate=2026&datetype=pdat'
 
   const { status: s1, body: b1 } = await httpsGet(searchUrl)
   if (s1 !== 200) throw new Error('PubMed search status ' + s1)
@@ -86,13 +87,14 @@ exports.handler = async function(event, context) {
 
   try {
     // Multiple themed searches for variety
+    // PubMed date filter: mindate/maxdate added in URL, not in query
     const THEMES = [
-      { q: 'coffee roasting aroma volatile compounds 2024[Title/Abstract]',    field:'Torréfaction', emoji:'🔥' },
-      { q: 'Coffea arabica climate adaptation genomics 2024[Title/Abstract]',  field:'Génomique',    emoji:'🍃' },
-      { q: 'specialty coffee sensory cupping quality 2024[Title/Abstract]',    field:'Sensoriel',    emoji:'👃' },
-      { q: 'coffee fermentation microbial anaerobic 2024[Title/Abstract]',     field:'Fermentation', emoji:'🧪' },
-      { q: 'coffee chlorogenic acid polyphenol 2024[Title/Abstract]',          field:'Biochimie',    emoji:'⚛️' },
-      { q: 'coffee agronomy yield soil cultivation 2024[Title/Abstract]',      field:'Agronomie',    emoji:'🌱' },
+      { q: 'coffee roasting aroma volatile compounds[Title/Abstract]',   field:'Torréfaction', emoji:'🔥' },
+      { q: 'Coffea arabica climate adaptation genomics[Title/Abstract]', field:'Génomique',    emoji:'🍃' },
+      { q: 'specialty coffee sensory cupping quality[Title/Abstract]',   field:'Sensoriel',    emoji:'👃' },
+      { q: 'coffee fermentation microbial anaerobic[Title/Abstract]',    field:'Fermentation', emoji:'🧪' },
+      { q: 'coffee chlorogenic polyphenol extraction[Title/Abstract]',   field:'Biochimie',    emoji:'⚛️' },
+      { q: 'coffee agronomy yield soil shade[Title/Abstract]',           field:'Agronomie',    emoji:'🌱' },
     ]
 
     const results = []
