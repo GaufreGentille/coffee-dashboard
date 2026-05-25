@@ -9,8 +9,20 @@ jobs:
   refresh:
     runs-on: ubuntu-latest
     steps:
-      - name: Refresh content cache
+      - name: Refresh news cache
         run: curl -s "https://kissasoko.netlify.app/.netlify/functions/get-news?refresh=1"
 
       - name: Refresh markets cache
         run: curl -s "https://kissasoko.netlify.app/.netlify/functions/get-markets"
+
+      - name: Refresh Sprudge community cache
+        run: curl -s "https://kissasoko.netlify.app/.netlify/functions/get-sprudge?refresh=1"
+
+      - name: Refresh gear cache
+        run: curl -s "https://kissasoko.netlify.app/.netlify/functions/get-gear?refresh=1"
+
+      - name: Refresh science cache
+        run: curl -s "https://kissasoko.netlify.app/.netlify/functions/get-science?refresh=1"
+
+      - name: Done
+        run: echo "All caches refreshed at $(date)"
