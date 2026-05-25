@@ -1307,7 +1307,7 @@ export default function App() {
           (sciItems.length > 0 ? sciItems : sci).length ? (
             <div>
               <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.15em', color:T.dim, fontWeight:600, marginBottom:16, paddingBottom:12, borderBottom:`1px solid ${T.border}` }}>
-                Articles scientifiques · {(sciItems.length > 0 ? sciItems : sci).length} articles · vrais papiers via Semantic Scholar
+                Articles scientifiques · {(sciItems.length > 0 ? sciItems : sci).length} articles · vrais papiers via PubMed NCBI
               </div>
               <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
                 {(sciItems.length > 0 ? sciItems : sci).map((item,i) => <SciCard key={i} item={item} img={SCI_IMG[i%SCI_IMG.length]} i={i} T={T} />)}
