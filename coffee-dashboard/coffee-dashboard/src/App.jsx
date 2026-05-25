@@ -1304,7 +1304,7 @@ export default function App() {
         {/* SCIENCE */}
         {tab==='science' && (
           sciLoading ? <Spinner label="Recherche d articles scientifiques..." T={T} /> :
-          science.length ? (
+          (sciItems.length > 0 ? sciItems : sci).length ? (
             <div>
               <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.15em', color:T.dim, fontWeight:600, marginBottom:16, paddingBottom:12, borderBottom:`1px solid ${T.border}` }}>
                 Articles scientifiques · {(sciItems.length > 0 ? sciItems : sci).length} articles · vrais papiers via Semantic Scholar
