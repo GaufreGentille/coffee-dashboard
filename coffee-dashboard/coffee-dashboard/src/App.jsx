@@ -893,7 +893,7 @@ export default function App() {
   const [tab, setTab]         = useState('news')
   const [dark, setDark]       = useState(true)
   const [news, setNews]       = useState([])
-  const [science, setSci]     = useState([])
+  const [sci, setSci]         = useState([])
   const [reddit, setReddit]   = useState([])
   const [markets, setMarkets] = useState([])
   const [loading, setLoading] = useState(true)
