@@ -16,10 +16,7 @@ function httpsGet(url) {
       hostname: opts.hostname,
       path: opts.pathname + opts.search,
       method: 'GET',
-      headers: {
-        'User-Agent': 'KissaSoko/1.0',
-        'Accept': 'application/json',
-      }
+      headers: { 'User-Agent': 'KissaSoko/1.0', 'Accept': 'application/json' }
     }, (res) => {
       let data = ''
       res.on('data', c => data += c)
@@ -35,12 +32,12 @@ function httpsGet(url) {
 }
 
 const FIELD_MAP = [
-  { keywords: ['ferment','anaerob','microb','yeast','lactic','acetic'],     field:'Fermentation',  emoji:'🧪' },
+  { keywords: ['ferment','anaerob','microb','yeast','lactic','wet process'], field:'Fermentation',  emoji:'🧪' },
   { keywords: ['genomic','crispr','breed','genetic','drought','resilience'], field:'Génomique',     emoji:'🍃' },
-  { keywords: ['roast','maillard','pyrazine','melanoidin','thermal'],        field:'Torréfaction',  emoji:'🔥' },
-  { keywords: ['chlorogenic','polyphenol','antioxidant','bioavailab'],       field:'Biochimie',     emoji:'⚛️' },
+  { keywords: ['roast','maillard','pyrazine','melanoidin','thermal','roasting'], field:'Torréfaction', emoji:'🔥' },
+  { keywords: ['chlorogenic','polyphenol','antioxidant','phenolic'],         field:'Biochimie',     emoji:'⚛️' },
   { keywords: ['sensory','cupping','flavor','aroma','volatile','consumer'],  field:'Sensoriel',     emoji:'👃' },
-  { keywords: ['agronomy','yield','soil','shade','climate','production'],    field:'Agronomie',     emoji:'🌱' },
+  { keywords: ['agronomy','yield','soil','shade','climate','production','cultivation'], field:'Agronomie', emoji:'🌱' },
 ]
 
 function classifyPaper(title, abstract) {
@@ -51,34 +48,29 @@ function classifyPaper(title, abstract) {
   return { field: 'Recherche', emoji: '🔬' }
 }
 
-async function searchS2(query, limit) {
-  const fields = 'title,abstract,year,publicationDate,journal,externalIds,openAccessPdf'
-  const url = 'https://api.semanticscholar.org/graph/v1/paper/search?query='
+// PubMed NCBI E-utilities — free, no key required
+async function searchPubMed(query, retmax) {
+  // Step 1: search for IDs
+  const searchUrl = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esearch.fcgi?db=pubmed&term='
     + encodeURIComponent(query)
-    + '&fields=' + fields
-    + '&limit=' + (limit || 10)
-  const { status, body } = await httpsGet(url)
-  if (status !== 200) throw new Error('S2 status ' + status)
-  return (body.data || []).filter(p => p.title && p.abstract && p.year >= 2022)
-}
+    + '&retmax=' + (retmax || 10)
+    + '&sort=date&retmode=json'
 
-function formatPaper(p) {
-  const doi = p.externalIds?.DOI
-  const url = doi
-    ? 'https://doi.org/' + doi
-    : (p.openAccessPdf?.url || 'https://www.semanticscholar.org/paper/' + p.paperId)
-  const dateStr = p.publicationDate
-    ? new Date(p.publicationDate).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })
-    : String(p.year)
-  const { field, emoji } = classifyPaper(p.title, p.abstract)
-  return {
-    journal:  p.journal?.name || 'Semantic Scholar',
-    title:    p.title,
-    abstract: (p.abstract || '').slice(0, 400),
-    url, field, emoji,
-    date: dateStr,
-    year: p.year,
-  }
+  const { status: s1, body: b1 } = await httpsGet(searchUrl)
+  if (s1 !== 200) throw new Error('PubMed search status ' + s1)
+  const ids = (b1.esearchresult?.idlist || []).slice(0, retmax || 10)
+  if (ids.length === 0) return []
+
+  // Step 2: fetch summaries
+  const summaryUrl = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils/esummary.fcgi?db=pubmed&id='
+    + ids.join(',')
+    + '&retmode=json'
+
+  const { status: s2, body: b2 } = await httpsGet(summaryUrl)
+  if (s2 !== 200) throw new Error('PubMed summary status ' + s2)
+
+  const result = b2.result || {}
+  return ids.map(id => result[id]).filter(Boolean)
 }
 
 exports.handler = async function(event, context) {
@@ -93,36 +85,48 @@ exports.handler = async function(event, context) {
   }
 
   try {
-    const papers = await searchS2('coffee specialty arabica fermentation roasting sensory quality 2024 2025', 15)
+    // One PubMed search — free, no rate limit issues
+    const papers = await searchPubMed('coffee arabica specialty fermentation sensory roasting quality[Title/Abstract]', 20)
 
     const results = []
-    const seenIds  = new Set()
+    const seenIds = new Set()
     const seenFields = new Set()
 
     for (const p of papers) {
       if (results.length >= 6) break
-      if (!p.abstract || p.abstract.length < 80) continue
-      const id = p.externalIds?.DOI || p.paperId
-      if (seenIds.has(id)) continue
+      const id = p.uid
+      if (!id || seenIds.has(id)) continue
       seenIds.add(id)
-      const paper = formatPaper(p)
-      // Prefer variety across fields
-      if (seenFields.has(paper.field) && results.length >= 3) continue
-      seenFields.add(paper.field)
-      results.push(paper)
-    }
 
-    // Second pass if not enough results
-    if (results.length < 4) {
-      const papers2 = await searchS2('Coffea arabica climate genomics agronomy soil 2024', 10)
-      for (const p of papers2) {
-        if (results.length >= 6) break
-        if (!p.abstract || p.abstract.length < 80) continue
-        const id = p.externalIds?.DOI || p.paperId
-        if (seenIds.has(id)) continue
-        seenIds.add(id)
-        results.push(formatPaper(p))
-      }
+      const title = p.title || ''
+      if (!title) continue
+
+      // Build PubMed URL — always valid
+      const url = 'https://pubmed.ncbi.nlm.nih.gov/' + id + '/'
+
+      const journal = p.fulljournalname || p.source || 'PubMed'
+      const pubDate = p.pubdate || p.epubdate || ''
+      const dateStr = pubDate
+        ? new Date(pubDate).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })
+        : ''
+
+      // Build abstract from available fields
+      const abstract = [p.title, p.sorttitle].filter(Boolean).join(' ')
+
+      const { field, emoji } = classifyPaper(title, abstract)
+      if (seenFields.has(field) && results.length >= 3) continue
+      seenFields.add(field)
+
+      results.push({
+        journal,
+        title: title.replace(/\.$/, ''),
+        abstract: abstract.slice(0, 300),
+        url,
+        field,
+        emoji,
+        date: dateStr,
+        year: p.pubdate ? new Date(p.pubdate).getFullYear() : null,
+      })
     }
 
     if (results.length === 0) throw new Error('No papers found')
