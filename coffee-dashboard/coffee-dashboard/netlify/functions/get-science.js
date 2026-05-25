@@ -85,48 +85,42 @@ exports.handler = async function(event, context) {
   }
 
   try {
-    // One PubMed search — free, no rate limit issues
-    const papers = await searchPubMed('coffee arabica specialty fermentation sensory roasting quality[Title/Abstract]', 20)
+    // Multiple themed searches for variety
+    const THEMES = [
+      { q: '"coffee roasting" aroma volatile compounds[Title/Abstract]',              field:'Torréfaction', emoji:'🔥' },
+      { q: '"Coffea arabica" genomics climate adaptation breeding[Title/Abstract]',   field:'Génomique',    emoji:'🍃' },
+      { q: '"specialty coffee" sensory evaluation cupping quality[Title/Abstract]',   field:'Sensoriel',    emoji:'👃' },
+      { q: '"coffee fermentation" microbial anaerobic processing[Title/Abstract]',    field:'Fermentation', emoji:'🧪' },
+      { q: '"coffee" chlorogenic acid polyphenol extraction[Title/Abstract]',         field:'Biochimie',    emoji:'⚛️' },
+      { q: '"coffee" agronomy yield soil shade cultivation[Title/Abstract]',          field:'Agronomie',    emoji:'🌱' },
+    ]
 
     const results = []
     const seenIds = new Set()
-    const seenFields = new Set()
 
-    for (const p of papers) {
+    for (const { q, field, emoji } of THEMES) {
       if (results.length >= 6) break
-      const id = p.uid
-      if (!id || seenIds.has(id)) continue
-      seenIds.add(id)
+      try {
+        const papers = await searchPubMed(q, 3)
+        for (const p of papers) {
+          if (results.length >= 6) break
+          const id = p.uid
+          if (!id || seenIds.has(id)) continue
+          seenIds.add(id)
+          const title = (p.title || '').replace(/\.$/, '')
+          if (!title) continue
 
-      const title = p.title || ''
-      if (!title) continue
+          const url = 'https://pubmed.ncbi.nlm.nih.gov/' + id + '/'
+          const journal = p.fulljournalname || p.source || 'PubMed'
+          const pubDate = p.pubdate || p.epubdate || ''
+          const dateStr = pubDate ? new Date(pubDate).toLocaleDateString('fr-FR', { month:'short', year:'numeric' }) : ''
 
-      // Build PubMed URL — always valid
-      const url = 'https://pubmed.ncbi.nlm.nih.gov/' + id + '/'
-
-      const journal = p.fulljournalname || p.source || 'PubMed'
-      const pubDate = p.pubdate || p.epubdate || ''
-      const dateStr = pubDate
-        ? new Date(pubDate).toLocaleDateString('fr-FR', { month: 'short', year: 'numeric' })
-        : ''
-
-      // Build abstract from available fields
-      const abstract = [p.title, p.sorttitle].filter(Boolean).join(' ')
-
-      const { field, emoji } = classifyPaper(title, abstract)
-      if (seenFields.has(field) && results.length >= 3) continue
-      seenFields.add(field)
-
-      results.push({
-        journal,
-        title: title.replace(/\.$/, ''),
-        abstract: abstract.slice(0, 300),
-        url,
-        field,
-        emoji,
-        date: dateStr,
-        year: p.pubdate ? new Date(p.pubdate).getFullYear() : null,
-      })
+          results.push({ journal, title, abstract: title, url, field, emoji, date: dateStr, year: pubDate ? new Date(pubDate).getFullYear() : null })
+          break // one paper per theme
+        }
+      } catch(e) {
+        console.error('PubMed theme error:', field, e.message)
+      }
     }
 
     if (results.length === 0) throw new Error('No papers found')
