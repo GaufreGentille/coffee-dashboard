@@ -7,7 +7,7 @@ const headers = {
 
 function httpsGet(url) {
   return new Promise((resolve, reject) => {
-    https.get(url, (res) => {
+    https.get(url, { headers: { 'User-Agent': 'KissaSoko/1.0' } }, (res) => {
       let data = ''
       res.on('data', chunk => data += chunk)
       res.on('end', () => {
@@ -19,9 +19,7 @@ function httpsGet(url) {
 }
 
 exports.handler = async function(event, context) {
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: 'ok' }
-  }
+  if (event.httpMethod === 'OPTIONS') return { statusCode: 200, headers, body: 'ok' }
 
   const AV_KEY = process.env.ALPHA_VANTAGE_KEY
 
@@ -38,23 +36,30 @@ exports.handler = async function(event, context) {
       const pct   = (chg / bid) * 100
       return {
         val:  price.toFixed(4),
-        chg:  `${pct >= 0 ? '+' : ''}${pct.toFixed(2)}%`,
+        chg:  `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`,
         up:   pct >= 0,
-        note: 'Temps reel'
+        note: 'Temps réel'
       }
     } catch { return null }
   }
 
-  const [eurusd, brlusd] = await Promise.all([
+  async function getArabica() {
+    try {
+      const data = await httpsGet('https://kissa-soko-markets.raphimignon.workers.dev')
+      return data?.markets?.find(m => m.label === 'Arabica ICE') || null
+    } catch { return null }
+  }
+
+  const [arabica, eurusd] = await Promise.all([
+    getArabica(),
     getForex('EUR', 'USD'),
-    getForex('BRL', 'USD'),
   ])
 
   const markets = [
-    { label:'Arabica ICE', val:'305.2', unit:'c/lb', chg:'+0.9%', up:true,  note:'Indicatif' },
-    { label:'Robusta ICE', val:'5,490', unit:'$/t',  chg:'-0.3%', up:false, note:'Indicatif' },
-    { label:'EUR/USD', ...(eurusd || { val:'1.1240', chg:'+0.1%', up:true,  note:'Indicatif' }), unit:'' },
-    { label:'BRL/USD', ...(brlusd || { val:'0.1876', chg:'+0.4%', up:true,  note:'Indicatif' }), unit:'' },
+    arabica
+      ? { label:'Arabica ICE', ...arabica }
+      : { label:'Arabica ICE', val:'--', unit:'c/lb', chg:'', up:true, note:'Indisponible' },
+    { label:'EUR/USD', ...(eurusd || { val:'--', chg:'', up:true, note:'Indisponible' }), unit:'' },
   ]
 
   return {
