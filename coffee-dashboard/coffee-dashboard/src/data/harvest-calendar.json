@@ -1,0 +1,445 @@
+{
+  "_meta": {
+    "source": "Algrano Direct Sourcing Calendar 2026-27",
+    "source_url": "https://algrano.com/learn/sourcing-calendar",
+    "verified_date": "2026-06-05",
+    "version": "1.0",
+    "legend": {
+      "harvest": "Récolte et transformation à l'origine",
+      "buying_window": "Fenêtre d'achat — commande d'échantillons et contrats",
+      "shipping": "Embarquement en cours",
+      "available": "Café disponible en entrepôt Europe"
+    },
+    "months_index": {
+      "1": "Jan 2026", "2": "Fév 2026", "3": "Mar 2026", "4": "Avr 2026",
+      "5": "Mai 2026", "6": "Juin 2026", "7": "Juil 2026", "8": "Aoû 2026",
+      "9": "Sep 2026", "10": "Oct 2026", "11": "Nov 2026", "12": "Déc 2026",
+      "13": "Jan 2027", "14": "Fév 2027", "15": "Mar 2027", "16": "Avr 2027",
+      "17": "Mai 2027", "18": "Juin 2027"
+    }
+  },
+  "origins": [
+    {
+      "id": "colombia",
+      "country": "Colombie",
+      "region": "Amérique du Sud",
+      "flag": "🇨🇴",
+      "cycles": [
+        {
+          "label": "Cycle principal 2026",
+          "harvest": [1, 2, 3, 4, 5, 6],
+          "buying_window": [1, 2, 3, 4, 5],
+          "shipping": [4, 5, 6, 7],
+          "available_eu": [6, 7, 8, 9, 10, 11, 12]
+        },
+        {
+          "label": "Mitaca (cycle secondaire) 2026",
+          "harvest": [8, 9, 10, 11, 12, 13],
+          "buying_window": [8, 9, 10, 11, 12],
+          "shipping": [11, 12, 13, 14],
+          "available_eu": [13, 14, 15, 16, 17, 18]
+        }
+      ],
+      "notes": "Pays à double récolte (principal + mitaca). Diversité des process selon altitude.",
+      "typical_processes": ["washed", "honey", "natural", "anaerobic"],
+      "key_regions": ["Huila", "Nariño", "Tolima", "Cauca", "Antioquia"]
+    },
+    {
+      "id": "brazil",
+      "country": "Brésil",
+      "region": "Amérique du Sud",
+      "flag": "🇧🇷",
+      "cycles": [
+        {
+          "label": "Récolte 2026",
+          "harvest": [5, 6, 7, 8, 9, 10],
+          "buying_window": [4, 5, 6, 7, 8, 9, 10],
+          "shipping": [8, 9, 10, 11, 12],
+          "available_eu": [10, 11, 12, 13, 14]
+        }
+      ],
+      "notes": "Plus gros volume mondial. Les producteurs tendent à attendre de meilleurs prix avant de vendre. Natural dominant.",
+      "typical_processes": ["natural", "pulped natural", "washed"],
+      "key_regions": ["Minas Gerais", "São Paulo", "Bahia", "Espírito Santo"]
+    },
+    {
+      "id": "peru",
+      "country": "Pérou",
+      "region": "Amérique du Sud",
+      "flag": "🇵🇪",
+      "cycles": [
+        {
+          "label": "Récolte 2026",
+          "harvest": [4, 5, 6, 7, 8],
+          "buying_window": [3, 4, 5, 6, 7],
+          "shipping": [6, 7, 8, 9],
+          "available_eu": [8, 9, 10, 11, 12, 13]
+        }
+      ],
+      "notes": "Premier exportateur mondial de café biologique. Coopératives en demande de préfinancement.",
+      "typical_processes": ["washed"],
+      "key_regions": ["Cajamarca", "San Martín", "Junín", "Amazonas"]
+    },
+    {
+      "id": "bolivia",
+      "country": "Bolivie",
+      "region": "Amérique du Sud",
+      "flag": "🇧🇴",
+      "cycles": [
+        {
+          "label": "Récolte 2026",
+          "harvest": [3, 4, 5, 6, 7, 8],
+          "buying_window": [3, 4, 5, 6],
+          "shipping": [6, 7, 8, 9, 10],
+          "available_eu": [9, 10, 11, 12, 13]
+        }
+      ],
+      "notes": "Origines rares, hautes altitudes (1400–2000m). Volumes limités.",
+      "typical_processes": ["washed"],
+      "key_regions": ["Caranavi", "Sud Yungas", "Nord Yungas"]
+    },
+    {
+      "id": "ecuador",
+      "country": "Équateur",
+      "region": "Amérique du Sud",
+      "flag": "🇪🇨",
+      "cycles": [
+        {
+          "label": "Récolte 2026",
+          "harvest": [1, 2, 3, 4],
+          "buying_window": [2, 3, 4],
+          "shipping": [5, 6, 7, 8, 9, 10],
+          "available_eu": [7, 8, 9, 10, 11, 12]
+        }
+      ],
+      "notes": "Origines émergentes de spécialité. Diversité climatique importante.",
+      "typical_processes": ["washed", "natural", "honey"],
+      "key_regions": ["Pichincha", "Loja", "Manabí", "Zamora-Chinchipe"]
+    },
+    {
+      "id": "costa-rica",
+      "country": "Costa Rica",
+      "region": "Amérique Centrale",
+      "flag": "🇨🇷",
+      "cycles": [
+        {
+          "label": "Récolte 2025-26",
+          "harvest": [1, 2, 3, 4, 5],
+          "buying_window": [1, 2, 3],
+          "shipping": [3, 4, 5, 6],
+          "available_eu": [5, 6, 7, 8, 9, 10]
+        },
+        {
+          "label": "Récolte 2026-27",
+          "harvest": [13, 14, 15, 16, 17],
+          "buying_window": [13, 14, 15],
+          "shipping": [15, 16, 17, 18],
+          "available_eu": [17, 18]
+        }
+      ],
+      "alert": "⚠️ Récolte 2026 très faible : -50 à -70% selon les zones. Washed en pénurie. Micro-lots disponibles rapidement. Agir vite.",
+      "notes": "Micro-mills très actifs. Honeys et naturals plus nombreux cette saison. Saison terminée plus tôt que d'habitude.",
+      "typical_processes": ["honey", "washed", "natural"],
+      "key_regions": ["Tarrazú", "Tres Ríos", "West Valley", "Central Valley"]
+    },
+    {
+      "id": "honduras",
+      "country": "Honduras",
+      "region": "Amérique Centrale",
+      "flag": "🇭🇳",
+      "cycles": [
+        {
+          "label": "Récolte 2025-26",
+          "harvest": [1, 2, 3, 4, 5],
+          "buying_window": [1, 2, 3, 4],
+          "shipping": [3, 4, 5, 6],
+          "available_eu": [5, 6, 7, 8, 9, 10]
+        },
+        {
+          "label": "Récolte 2026-27",
+          "harvest": [13, 14, 15, 16],
+          "buying_window": [13, 14, 15],
+          "shipping": [15, 16, 17, 18],
+          "available_eu": [17, 18]
+        }
+      ],
+      "notes": "Volume en légère hausse ~+10%. Saison 2026 en avance de 4 à 6 semaines. Risque broca si main d'oeuvre insuffisante.",
+      "typical_processes": ["washed"],
+      "key_regions": ["Marcala", "Copán", "Comayagua", "Agalta", "Montecillos"]
+    },
+    {
+      "id": "guatemala",
+      "country": "Guatemala",
+      "region": "Amérique Centrale",
+      "flag": "🇬🇹",
+      "cycles": [
+        {
+          "label": "Récolte 2025-26",
+          "harvest": [1, 2, 3, 4, 5],
+          "buying_window": [1, 2, 3, 4],
+          "shipping": [4, 5, 6],
+          "available_eu": [5, 6, 7, 8, 9, 10]
+        },
+        {
+          "label": "Récolte 2026-27",
+          "harvest": [13, 14, 15, 16],
+          "buying_window": [13, 14],
+          "shipping": [14, 15, 16, 17],
+          "available_eu": [16, 17, 18]
+        }
+      ],
+      "notes": "Volume stable à légèrement en hausse. Saison légèrement en avance (1-2 semaines). Quelques lots à séchage allongé suite aux vagues de froid.",
+      "typical_processes": ["washed", "honey", "natural"],
+      "key_regions": ["Antigua", "Huehuetenango", "Atitlán", "Cobán", "Acatenango"]
+    },
+    {
+      "id": "nicaragua",
+      "country": "Nicaragua",
+      "region": "Amérique Centrale",
+      "flag": "🇳🇮",
+      "cycles": [
+        {
+          "label": "Récolte 2025-26",
+          "harvest": [1, 2, 3, 4],
+          "buying_window": [1, 2, 3],
+          "shipping": [3, 4, 5],
+          "available_eu": [5, 6, 7, 8]
+        },
+        {
+          "label": "Récolte 2026-27",
+          "harvest": [13, 14, 15],
+          "buying_window": [13, 14],
+          "shipping": [14, 15, 16],
+          "available_eu": [16, 17, 18]
+        }
+      ],
+      "alert": "⚠️ Très faible volume 2026 : -42,5% environ. Floraison retardée par la pluie + vague de froid. Pénurie réelle. Confirmer les volumes dès que possible.",
+      "notes": "Année difficile. Beaucoup moins de café disponible. Éviter les paris tardifs.",
+      "typical_processes": ["washed", "natural"],
+      "key_regions": ["Jinotega", "Matagalpa", "Nueva Segovia"]
+    },
+    {
+      "id": "el-salvador",
+      "country": "El Salvador",
+      "region": "Amérique Centrale",
+      "flag": "🇸🇻",
+      "cycles": [
+        {
+          "label": "Récolte 2025-26",
+          "harvest": [1, 2, 3, 4],
+          "buying_window": [1, 2, 3],
+          "shipping": [4, 5, 6],
+          "available_eu": [5, 6, 7, 8, 9, 10]
+        },
+        {
+          "label": "Récolte 2026-27",
+          "harvest": [13, 14, 15, 16],
+          "buying_window": [13, 14, 15],
+          "shipping": [15, 16, 17, 18],
+          "available_eu": [17, 18]
+        }
+      ],
+      "notes": "Rebond modeste mais encore sous les niveaux historiques dans certaines zones. Micro-lots 85+ à sécuriser rapidement.",
+      "typical_processes": ["washed", "honey", "natural"],
+      "key_regions": ["Santa Ana", "Apaneca-Ilamatepec", "Alotepec-Metapán"]
+    },
+    {
+      "id": "mexico",
+      "country": "Mexique",
+      "region": "Amérique Centrale",
+      "flag": "🇲🇽",
+      "cycles": [
+        {
+          "label": "Récolte 2025-26",
+          "harvest": [1, 2, 3, 4],
+          "buying_window": [1, 2, 3, 4],
+          "shipping": [4, 5, 6, 7],
+          "available_eu": [6, 7, 8, 9, 10]
+        },
+        {
+          "label": "Récolte 2026-27",
+          "harvest": [13, 14, 15],
+          "buying_window": [13, 14],
+          "shipping": [15, 16, 17],
+          "available_eu": [17, 18]
+        }
+      ],
+      "notes": "Volume en baisse ~-20-25%. Maturation irrégulière (intermittente). Confirmer la disponibilité lot par lot, pas en bloc.",
+      "typical_processes": ["washed", "natural"],
+      "key_regions": ["Chiapas", "Oaxaca", "Veracruz", "Puebla"]
+    },
+    {
+      "id": "ethiopia",
+      "country": "Éthiopie",
+      "region": "Afrique",
+      "flag": "🇪🇹",
+      "cycles": [
+        {
+          "label": "Récolte 2025-26",
+          "harvest": [1, 2, 3, 4, 5],
+          "buying_window": [1, 2, 3, 4],
+          "shipping": [3, 4, 5, 6, 7],
+          "available_eu": [5, 6, 7, 8, 9, 10]
+        },
+        {
+          "label": "Récolte 2026-27",
+          "harvest": [10, 11, 12, 13, 14, 15],
+          "buying_window": [10, 11, 12, 13],
+          "shipping": [13, 14, 15, 16],
+          "available_eu": [15, 16, 17, 18]
+        }
+      ],
+      "alert": "⚠️ Pénurie de washed 2026 : les producteurs font sécher les cerises à domicile (naturals). Prix cerises triplés (0,45 → 1,51 $/kg). FOB en hausse notable.",
+      "notes": "Naturals abondants, washed rares. Planification anticipée indispensable. 1er embarquement partagé Europe : fermeture mars 2026.",
+      "typical_processes": ["natural", "washed"],
+      "key_regions": ["Yirgacheffe", "Sidama", "Guji", "Jimma", "Limu", "Harrar"]
+    },
+    {
+      "id": "uganda",
+      "country": "Ouganda",
+      "region": "Afrique",
+      "flag": "🇺🇬",
+      "cycles": [
+        {
+          "label": "Récolte principale 2026",
+          "harvest": [3, 4, 5, 6, 7],
+          "buying_window": [3, 4, 5, 6],
+          "shipping": [6, 7, 8, 9],
+          "available_eu": [8, 9, 10, 11, 12]
+        },
+        {
+          "label": "Fly crop 2026",
+          "harvest": [9, 10, 11, 12],
+          "buying_window": [9, 10, 11],
+          "shipping": [11, 12, 13, 14],
+          "available_eu": [13, 14, 15, 16]
+        }
+      ],
+      "notes": "Deux récoltes. Robusta majoritaire mais des arabicas de spécialité remarquables existent au Mount Elgon et Rwenzori.",
+      "typical_processes": ["natural", "washed"],
+      "key_regions": ["Mount Elgon", "Rwenzori", "West Nile"]
+    },
+    {
+      "id": "rwanda",
+      "country": "Rwanda",
+      "region": "Afrique",
+      "flag": "🇷🇼",
+      "cycles": [
+        {
+          "label": "Récolte 2026",
+          "harvest": [3, 4, 5, 6],
+          "buying_window": [3, 4, 5],
+          "shipping": [6, 7, 8, 9, 10],
+          "available_eu": [8, 9, 10, 11, 12, 13]
+        }
+      ],
+      "notes": "Washed de très haute qualité. Profils fleuris et fruités caractéristiques. Station de lavage (washing station) modèle.",
+      "typical_processes": ["washed", "natural"],
+      "key_regions": ["Western Province", "Northern Province", "Southern Province"]
+    },
+    {
+      "id": "kenya",
+      "country": "Kenya",
+      "region": "Afrique",
+      "flag": "🇰🇪",
+      "cycles": [
+        {
+          "label": "Fly crop (petite récolte) 2026",
+          "harvest": [4, 5, 6],
+          "buying_window": [3, 4, 5],
+          "shipping": [5, 6, 7],
+          "available_eu": [7, 8]
+        },
+        {
+          "label": "Main crop 2026",
+          "harvest": [9, 10, 11, 12, 13],
+          "buying_window": [8, 9, 10, 11, 12],
+          "shipping": [12, 13, 14],
+          "available_eu": [14, 15, 16, 17, 18]
+        }
+      ],
+      "notes": "Deux récoltes. La main crop (oct-déc) est la plus importante en qualité. Système d'enchères (auction) qui complexifie le sourcing direct.",
+      "typical_processes": ["washed (double fermentation)"],
+      "key_regions": ["Nyeri", "Kirinyaga", "Murang'a", "Embu", "Kiambu"]
+    },
+    {
+      "id": "tanzania",
+      "country": "Tanzanie",
+      "region": "Afrique",
+      "flag": "🇹🇿",
+      "cycles": [
+        {
+          "label": "Récolte 2026",
+          "harvest": [1, 2, 3, 4],
+          "buying_window": [1, 2, 3, 4, 5],
+          "shipping": [5, 6, 7, 8, 9, 10],
+          "available_eu": [7, 8, 9, 10, 11, 12]
+        }
+      ],
+      "notes": "Volumes stables. Similitude de profil avec le Kenya mais plus doux. Exportations via Dar es Salaam.",
+      "typical_processes": ["washed", "natural"],
+      "key_regions": ["Kilimanjaro", "Arusha", "Mbinga", "Mbeya"]
+    },
+    {
+      "id": "india",
+      "country": "Inde",
+      "region": "Asie",
+      "flag": "🇮🇳",
+      "cycles": [
+        {
+          "label": "Récolte 2025-26",
+          "harvest": [1, 2, 3],
+          "buying_window": [1, 2, 3, 4, 5, 6],
+          "shipping": [4, 5, 6, 7, 8],
+          "available_eu": [6, 7, 8, 9, 10, 11]
+        },
+        {
+          "label": "Récolte 2026-27",
+          "harvest": [13, 14, 15],
+          "buying_window": [13, 14, 15, 16, 17, 18],
+          "shipping": [16, 17, 18],
+          "available_eu": []
+        }
+      ],
+      "notes": "Robusta et arabica. Monsoon Malabar unique. Process naturel sous mousson crée un profil radicalement différent.",
+      "typical_processes": ["washed", "natural", "monsooned"],
+      "key_regions": ["Karnataka", "Kerala", "Tamil Nadu"]
+    },
+    {
+      "id": "indonesia",
+      "country": "Indonésie",
+      "region": "Asie",
+      "flag": "🇮🇩",
+      "cycles": [
+        {
+          "label": "Récolte principale",
+          "harvest": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+          "buying_window": [3, 4, 5, 6, 7, 8, 9],
+          "shipping": [6, 7, 8, 9, 10, 11],
+          "available_eu": [9, 10, 11, 12, 13, 14, 15, 16]
+        }
+      ],
+      "notes": "Process wet-hulled (Giling Basah) caractéristique. Corps dense et profils terreux. Production continue grâce à l'équateur.",
+      "typical_processes": ["wet-hulled", "natural", "washed"],
+      "key_regions": ["Aceh (Gayo)", "Toraja", "Flores", "Java", "Bali"]
+    },
+    {
+      "id": "philippines",
+      "country": "Philippines",
+      "region": "Asie",
+      "flag": "🇵🇭",
+      "cycles": [
+        {
+          "label": "Récolte 2026",
+          "harvest": [1, 2, 3, 4],
+          "buying_window": [2, 3, 4, 5],
+          "shipping": [4, 5, 6, 7, 8],
+          "available_eu": [7, 8, 9, 10, 11, 12, 13]
+        }
+      ],
+      "notes": "Origines émergentes de spécialité. Benguet et Sagada produisent des arabicas intéressants. Robusta majoritaire en volume.",
+      "typical_processes": ["washed", "natural", "honey"],
+      "key_regions": ["Benguet", "Sagada", "Bukidnon", "Davao"]
+    }
+  ]
+}
