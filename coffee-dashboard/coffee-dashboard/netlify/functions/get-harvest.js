@@ -4,7 +4,7 @@
  */
 
 const GITHUB_RAW_URL =
-  "https://raw.githubusercontent.com/GaufreGentille/coffee-dashboard/main/src/data/harvest-calendar.json";
+  "https://raw.githubusercontent.com/GaufreGentille/coffee-dashboard/refs/heads/main/coffee-dashboard/coffee-dashboard/src/data/harvest-calendar.json";
 
 const HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -16,7 +16,7 @@ function dateToMonthIndex(date) {
   const m = date.getMonth() + 1;
   if (y === 2026) return m;
   if (y === 2027 && m <= 6) return 12 + m;
-  return 6; // fallback juin 2026
+  return 6;
 }
 
 function getOriginStatus(origin, nowIdx) {
