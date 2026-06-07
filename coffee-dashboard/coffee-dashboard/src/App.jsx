@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
+import HarvestPanel from './components/HarvestPanel'
 
 // GaufreGentille brand palette
 const BRAND = {
@@ -556,6 +557,7 @@ const TABS = [
   { id:'reddit',    label:'Communaute' },
   { id:'science',   label:'Science'    },
   { id:'gear',      label:'Ça fait du bruit' },
+  { id:'harvest',   label:'Origines' },
 ]
 
 function Tag({ topic, lang, T }) {
@@ -909,6 +911,8 @@ export default function App() {
   const [sciLoading, setSciLoading]     = useState(false)
   const [showMusic, setShowMusic]       = useState(false)
   const [gear, setGear]         = useState([])
+  const [harvestData, setHarvestData] = useState(null)
+  const [harvestLoading, setHarvestLoading] = useState(false)
 
   const T = dark ? DARK : LIGHT
 
@@ -981,7 +985,17 @@ export default function App() {
     setSciLoading(false)
   }, [])
   useEffect(() => { fetchScience() }, [fetchScience])
-
+  
+  const fetchHarvest = useCallback(async () => {
+    setHarvestLoading(true)
+    try {
+      const res  = await fetch('/.netlify/functions/get-harvest')
+      const data = await res.json()
+      if (data.origins) setHarvestData(data)
+    } catch(e) { console.error('Harvest fetch error:', e) }
+    setHarvestLoading(false)
+  }, [])
+  useEffect(() => { fetchHarvest() }, [fetchHarvest])
 
   return (
     <div style={{ background:T.bg, minHeight:'100vh', color:T.text, fontFamily:"Inter,-apple-system,system-ui,sans-serif", fontWeight:500, fontSize:17, transition:'background 0.3s, color 0.3s', position:'relative' }}>
@@ -1240,7 +1254,16 @@ export default function App() {
             </div>
           ) : <ErrMsg msg="Impossible de charger les nouveautés." T={T} />
         })()}
-
+        
+        {/* HARVEST */}
+        {tab==='harvest' && (
+          harvestLoading ? <Spinner label="Chargement du calendrier des origines..." T={T} /> :
+          harvestData ? (
+            <HarvestPanel data={harvestData} />
+          ) : (
+            <ErrMsg msg="Impossible de charger le calendrier des origines." T={T} />
+          )
+        )}
       </div>
     </div>
   )
