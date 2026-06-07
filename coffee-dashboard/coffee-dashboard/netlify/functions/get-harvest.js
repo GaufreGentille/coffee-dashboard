@@ -1,98 +1,88 @@
 /**
  * Netlify Function: get-harvest.js
- * Proxy vers le Cloudflare Worker kissa-soko-harvest
- * 
- * Endpoint: /.netlify/functions/get-harvest
+ * Lit harvest-calendar.json depuis GitHub raw + calcule les statuts live
  */
 
-const WORKER_URL = "https://kissa-soko-harvest.raphimignon.workers.dev";
+const GITHUB_RAW_URL =
+  "https://raw.githubusercontent.com/GaufreGentille/coffee-dashboard/main/src/data/harvest-calendar.json";
 
 const HEADERS = {
   "Access-Control-Allow-Origin": "*",
   "Content-Type": "application/json",
 };
 
-let cache = null;
-let cacheTime = 0;
-const CACHE_TTL = 6 * 60 * 60 * 1000; // 6h
-
-function httpsGet(url) {
-  const https = require("https");
-  return new Promise((resolve, reject) => {
-    const req = https.request(
-      url,
-      {
-        method: "GET",
-        headers: { "User-Agent": "KissaSoko-Netlify/1.0", Accept: "application/json" },
-      },
-      (res) => {
-        let data = "";
-        res.on("data", (c) => (data += c));
-        res.on("end", () => {
-          try {
-            resolve({ status: res.statusCode, body: JSON.parse(data) });
-          } catch (e) {
-            resolve({ status: res.statusCode, body: {} });
-          }
-        });
-      }
-    );
-    req.on("error", reject);
-    req.setTimeout(15000, () => {
-      req.destroy();
-      reject(new Error("Timeout"));
-    });
-    req.end();
-  });
+function dateToMonthIndex(date) {
+  const y = date.getFullYear();
+  const m = date.getMonth() + 1;
+  if (y === 2026) return m;
+  if (y === 2027 && m <= 6) return 12 + m;
+  return 6; // fallback juin 2026
 }
 
-exports.handler = async function (event, context) {
-  context.callbackWaitsForEmptyEventLoop = false;
+function getOriginStatus(origin, nowIdx) {
+  const priority = [
+    "available", "shipping", "arriving_soon",
+    "shipping_soon", "buying", "buying_soon", "harvest",
+  ];
 
+  const cycleStatuses = origin.cycles.map((cycle) => {
+    const { available_eu, shipping, buying_window, harvest } = cycle;
+    if (available_eu?.includes(nowIdx)) return "available";
+    if (shipping?.includes(nowIdx)) return "shipping";
+    if (buying_window?.includes(nowIdx)) return "buying";
+    if (harvest?.includes(nowIdx)) return "harvest";
+    const nearIn = (arr, n = 2) => arr?.some((x) => x > nowIdx && x - nowIdx <= n);
+    if (nearIn(available_eu)) return "arriving_soon";
+    if (nearIn(shipping)) return "shipping_soon";
+    if (nearIn(buying_window)) return "buying_soon";
+    return null;
+  });
+
+  const nonNull = cycleStatuses.filter(Boolean);
+  if (!nonNull.length) return "off_season";
+  for (const p of priority) {
+    if (nonNull.includes(p)) return p;
+  }
+  return nonNull[0];
+}
+
+exports.handler = async function (event) {
   if (event.httpMethod === "OPTIONS") {
     return { statusCode: 200, headers: HEADERS, body: "ok" };
   }
 
-  const forceRefresh = event.queryStringParameters?.refresh === "1";
-  const now = Date.now();
-
-  // Serve from in-memory cache if fresh
-  if (cache && !forceRefresh && now - cacheTime < CACHE_TTL) {
-    return {
-      statusCode: 200,
-      headers: { ...HEADERS, "X-Cache": "HIT" },
-      body: JSON.stringify(cache),
-    };
-  }
-
   try {
-    const workerUrl =
-      WORKER_URL + (forceRefresh ? "?refresh=1" : "");
-    const { status, body } = await httpsGet(workerUrl);
+    const response = await fetch(GITHUB_RAW_URL);
 
-    if (status !== 200 || !body.origins) {
-      throw new Error(`Worker responded with status ${status}`);
+    if (!response.ok) {
+      throw new Error(`GitHub fetch failed: ${response.status}`);
     }
 
-    cache = body;
-    cacheTime = now;
+    const data = await response.json();
+
+    const now = new Date();
+    const nowIdx = dateToMonthIndex(now);
+
+    const enriched = {
+      ...data,
+      _live: {
+        today: now.toISOString().split("T")[0],
+        month_index: nowIdx,
+        computed_at: new Date().toISOString(),
+      },
+      origins: data.origins.map((origin) => ({
+        ...origin,
+        _status: getOriginStatus(origin, nowIdx),
+      })),
+    };
 
     return {
       statusCode: 200,
-      headers: { ...HEADERS, "X-Cache": "MISS" },
-      body: JSON.stringify(body),
+      headers: HEADERS,
+      body: JSON.stringify(enriched),
     };
   } catch (err) {
     console.error("get-harvest error:", err.message);
-
-    if (cache) {
-      return {
-        statusCode: 200,
-        headers: { ...HEADERS, "X-Cache": "STALE" },
-        body: JSON.stringify(cache),
-      };
-    }
-
     return {
       statusCode: 500,
       headers: HEADERS,
