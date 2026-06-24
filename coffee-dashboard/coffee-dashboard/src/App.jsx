@@ -1073,6 +1073,14 @@ export default function App() {
             title="Team Vitality CS2 — bo3.gg">
             <img src="/vitality-logo.webp" alt="Team Vitality" style={{ width:62, height:62, borderRadius:8, objectFit:'cover', display:'block' }} />
           </a>
+          {/* Cupping button — lien externe vers l'outil de dégustation */}
+          <a href="https://cupping-secure.netlify.app" target="_blank" rel="noopener noreferrer"
+            style={{ display:'block', padding:4, borderRadius:8, opacity:0.65, transition:'all 0.2s' }}
+            onMouseEnter={e => e.currentTarget.style.opacity='1'}
+            onMouseLeave={e => e.currentTarget.style.opacity='0.65'}
+            title="Cupping — Fiches de dégustation">
+            <img src="/cupping-logo.png" alt="Cupping" style={{ width:62, height:62, borderRadius:8, objectFit:'cover', display:'block' }} />
+          </a>
         </div>
       </div>
 
