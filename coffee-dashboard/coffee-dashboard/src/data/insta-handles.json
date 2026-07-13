@@ -1,0 +1,2262 @@
+[
+ {
+  "handle": "hario_asia_official",
+  "name": "Hario Asia Official",
+  "category": "Materiel"
+ },
+ {
+  "handle": "hariotaiwan",
+  "name": "Hario Taiwan",
+  "category": "Materiel"
+ },
+ {
+  "handle": "hario_shanghai",
+  "name": "Hario Shanghai",
+  "category": "Materiel"
+ },
+ {
+  "handle": "hariokorea",
+  "name": "Hario Korea",
+  "category": "Materiel"
+ },
+ {
+  "handle": "hariousa",
+  "name": "Hario USA",
+  "category": "Materiel"
+ },
+ {
+  "handle": "hariouk",
+  "name": "Hario UK",
+  "category": "Materiel"
+ },
+ {
+  "handle": "hario_official",
+  "name": "Hario Official",
+  "category": "Materiel"
+ },
+ {
+  "handle": "hario_global",
+  "name": "Hario Global",
+  "category": "Materiel"
+ },
+ {
+  "handle": "fellowproducts",
+  "name": "Fellow Products",
+  "category": "Materiel"
+ },
+ {
+  "handle": "lamarzocco",
+  "name": "La Marzocco",
+  "category": "Materiel"
+ },
+ {
+  "handle": "slayerespresso",
+  "name": "Slayer Espresso",
+  "category": "Materiel"
+ },
+ {
+  "handle": "saintanthonyindustries",
+  "name": "Saint Anthony Industries",
+  "category": "Materiel"
+ },
+ {
+  "handle": "mahlkonig",
+  "name": "Mahlkonig",
+  "category": "Materiel"
+ },
+ {
+  "handle": "mahlkonighome",
+  "name": "Mahlkonig Home",
+  "category": "Materiel"
+ },
+ {
+  "handle": "timemoreproducts",
+  "name": "Timemore",
+  "category": "Materiel"
+ },
+ {
+  "handle": "timemore_europe",
+  "name": "Timemore Europe",
+  "category": "Materiel"
+ },
+ {
+  "handle": "1zpresso",
+  "name": "1Zpresso",
+  "category": "Materiel"
+ },
+ {
+  "handle": "1zpresso_tw",
+  "name": "1Zpresso TW",
+  "category": "Materiel"
+ },
+ {
+  "handle": "wug2grinder",
+  "name": "WUG2 Grinder",
+  "category": "Materiel"
+ },
+ {
+  "handle": "option_o.brewlab",
+  "name": "Option-O Brewlab",
+  "category": "Materiel"
+ },
+ {
+  "handle": "option_o.coffee",
+  "name": "Option-O Coffee",
+  "category": "Materiel"
+ },
+ {
+  "handle": "kafatek",
+  "name": "Kafatek",
+  "category": "Materiel"
+ },
+ {
+  "handle": "compakgrinders",
+  "name": "Compak Grinders",
+  "category": "Materiel"
+ },
+ {
+  "handle": "eureka__grinders",
+  "name": "Eureka Grinders",
+  "category": "Materiel"
+ },
+ {
+  "handle": "normcorewares",
+  "name": "Normcore Wares",
+  "category": "Materiel"
+ },
+ {
+  "handle": "bosetamper",
+  "name": "Bose Tamper",
+  "category": "Materiel"
+ },
+ {
+  "handle": "bosetamperjr",
+  "name": "Bose Tamper Jr",
+  "category": "Materiel"
+ },
+ {
+  "handle": "happy_tamper",
+  "name": "Happy Tamper",
+  "category": "Materiel"
+ },
+ {
+  "handle": "mhw_3bomber",
+  "name": "MHW-3Bomber",
+  "category": "Materiel"
+ },
+ {
+  "handle": "puq.coffee",
+  "name": "PUQ Coffee",
+  "category": "Materiel"
+ },
+ {
+  "handle": "ikawahome",
+  "name": "Ikawa Home",
+  "category": "Materiel"
+ },
+ {
+  "handle": "aillio",
+  "name": "Aillio",
+  "category": "Materiel"
+ },
+ {
+  "handle": "probatusa",
+  "name": "Probat USA",
+  "category": "Materiel"
+ },
+ {
+  "handle": "probatgroup",
+  "name": "Probat Group",
+  "category": "Materiel"
+ },
+ {
+  "handle": "giesenroastingsolutions",
+  "name": "Giesen Roasters",
+  "category": "Materiel"
+ },
+ {
+  "handle": "decentespressomachines",
+  "name": "Decent Espresso",
+  "category": "Materiel"
+ },
+ {
+  "handle": "weberworkshops",
+  "name": "Weber Workshops",
+  "category": "Materiel"
+ },
+ {
+  "handle": "versalab_grinder",
+  "name": "Versalab Grinder",
+  "category": "Materiel"
+ },
+ {
+  "handle": "cafflano.official",
+  "name": "Cafflano",
+  "category": "Materiel"
+ },
+ {
+  "handle": "2waycup",
+  "name": "2WayCup",
+  "category": "Materiel"
+ },
+ {
+  "handle": "osmo_global",
+  "name": "Osmo Global",
+  "category": "Materiel"
+ },
+ {
+  "handle": "perfectcoffeewater",
+  "name": "Perfect Coffee Water",
+  "category": "Materiel"
+ },
+ {
+  "handle": "thirdwavewater",
+  "name": "Third Wave Water",
+  "category": "Materiel"
+ },
+ {
+  "handle": "orea.uk",
+  "name": "Orea Brewer",
+  "category": "Materiel"
+ },
+ {
+  "handle": "pourx.lab",
+  "name": "Pourx Lab",
+  "category": "Materiel"
+ },
+ {
+  "handle": "bellezza_espresso_australia",
+  "name": "Bellezza Espresso",
+  "category": "Materiel"
+ },
+ {
+  "handle": "sanremocoffeemachines",
+  "name": "San Remo Coffee",
+  "category": "Materiel"
+ },
+ {
+  "handle": "sanremofrance",
+  "name": "San Remo France",
+  "category": "Materiel"
+ },
+ {
+  "handle": "nuovasimonellihome",
+  "name": "Nuova Simonelli Home",
+  "category": "Materiel"
+ },
+ {
+  "handle": "nuovasimonelli_fr",
+  "name": "Nuova Simonelli FR",
+  "category": "Materiel"
+ },
+ {
+  "handle": "nuovasimonelliofficial",
+  "name": "Nuova Simonelli Official",
+  "category": "Materiel"
+ },
+ {
+  "handle": "cimbali_group_france",
+  "name": "Cimbali Group France",
+  "category": "Materiel"
+ },
+ {
+  "handle": "elektra_coffeemachines",
+  "name": "Elektra Coffee Machines",
+  "category": "Materiel"
+ },
+ {
+  "handle": "lapavoni1905",
+  "name": "La Pavoni 1905",
+  "category": "Materiel"
+ },
+ {
+  "handle": "victoriaarduino_fr",
+  "name": "Victoria Arduino FR",
+  "category": "Materiel"
+ },
+ {
+  "handle": "victoriaarduinoofficial",
+  "name": "Victoria Arduino Official",
+  "category": "Materiel"
+ },
+ {
+  "handle": "rocketespresso",
+  "name": "Rocket Espresso",
+  "category": "Materiel"
+ },
+ {
+  "handle": "lelit_official",
+  "name": "Lelit Official",
+  "category": "Materiel"
+ },
+ {
+  "handle": "rattleware",
+  "name": "Rattleware",
+  "category": "Materiel"
+ },
+ {
+  "handle": "baratza",
+  "name": "Baratza",
+  "category": "Materiel"
+ },
+ {
+  "handle": "ceado",
+  "name": "Ceado",
+  "category": "Materiel"
+ },
+ {
+  "handle": "macapgrinders",
+  "name": "Macap Grinders",
+  "category": "Materiel"
+ },
+ {
+  "handle": "etzingergrinders",
+  "name": "Etzinger Grinders",
+  "category": "Materiel"
+ },
+ {
+  "handle": "kinugrinders",
+  "name": "Kinu Grinders",
+  "category": "Materiel"
+ },
+ {
+  "handle": "comandantegrinder",
+  "name": "Comandante Grinder",
+  "category": "Materiel"
+ },
+ {
+  "handle": "specht_design",
+  "name": "Specht Design",
+  "category": "Materiel"
+ },
+ {
+  "handle": "perfectwerks",
+  "name": "Perfectwerks",
+  "category": "Materiel"
+ },
+ {
+  "handle": "ssp_grinding",
+  "name": "SSP Grinding",
+  "category": "Materiel"
+ },
+ {
+  "handle": "knobgrinder",
+  "name": "Knob Grinder",
+  "category": "Materiel"
+ },
+ {
+  "handle": "nichecreate",
+  "name": "Niche Coffee",
+  "category": "Materiel"
+ },
+ {
+  "handle": "brewista.co",
+  "name": "Brewista",
+  "category": "Materiel"
+ },
+ {
+  "handle": "ikawacoffee",
+  "name": "Ikawa Coffee",
+  "category": "Materiel"
+ },
+ {
+  "handle": "bellwethercoffee",
+  "name": "Bellwether Coffee",
+  "category": "Materiel"
+ },
+ {
+  "handle": "giacomovannelli_",
+  "name": "Giacomo Vannelli",
+  "category": "Materiel"
+ },
+ {
+  "handle": "bookoocoffeetools",
+  "name": "Bookoo Coffee Tools",
+  "category": "Materiel"
+ },
+ {
+  "handle": "pbrewster79",
+  "name": "P. Brewster",
+  "category": "Materiel"
+ },
+ {
+  "handle": "lotus.coffee.products",
+  "name": "Lotus Coffee Products",
+  "category": "Materiel"
+ },
+ {
+  "handle": "precisioncoffeetools",
+  "name": "Precision Coffee Tools",
+  "category": "Materiel"
+ },
+ {
+  "handle": "pullmanespresso",
+  "name": "Pullman Espresso",
+  "category": "Materiel"
+ },
+ {
+  "handle": "variabrewing",
+  "name": "Varia Brewing",
+  "category": "Materiel"
+ },
+ {
+  "handle": "belco.equipment",
+  "name": "Belco Equipment",
+  "category": "Materiel"
+ },
+ {
+  "handle": "belco.coffee",
+  "name": "Belco Coffee",
+  "category": "Materiel"
+ },
+ {
+  "handle": "calita_mocca_equipment_france",
+  "name": "Calita Mocca FR",
+  "category": "Materiel"
+ },
+ {
+  "handle": "baristaequipaustralia",
+  "name": "Barista Equipment AU",
+  "category": "Materiel"
+ },
+ {
+  "handle": "stronghold_roasters",
+  "name": "Stronghold Roasters",
+  "category": "Materiel"
+ },
+ {
+  "handle": "aeropress",
+  "name": "Aeropress Official",
+  "category": "Materiel"
+ },
+ {
+  "handle": "aero.press",
+  "name": "Aero Press",
+  "category": "Materiel"
+ },
+ {
+  "handle": "origami_coffee.jp",
+  "name": "Origami Coffee JP",
+  "category": "Materiel"
+ },
+ {
+  "handle": "cofil.hasami",
+  "name": "Cofil Hasami",
+  "category": "Materiel"
+ },
+ {
+  "handle": "kintojapan",
+  "name": "Kinto Japan",
+  "category": "Materiel"
+ },
+ {
+  "handle": "kintoeurope",
+  "name": "Kinto Europe",
+  "category": "Materiel"
+ },
+ {
+  "handle": "melodripco",
+  "name": "Melodrip Co",
+  "category": "Materiel"
+ },
+ {
+  "handle": "cafec_japan",
+  "name": "Cafec Japan",
+  "category": "Materiel"
+ },
+ {
+  "handle": "notneutral",
+  "name": "Not Neutral",
+  "category": "Materiel"
+ },
+ {
+  "handle": "loveramics",
+  "name": "Loveramics",
+  "category": "Materiel"
+ },
+ {
+  "handle": "peugeot_saveurs",
+  "name": "Peugeot Saveurs",
+  "category": "Materiel"
+ },
+ {
+  "handle": "ims_filtri",
+  "name": "IMS Filtri",
+  "category": "Materiel"
+ },
+ {
+  "handle": "toddycafe",
+  "name": "Toddy Cafe",
+  "category": "Materiel"
+ },
+ {
+  "handle": "goat_story",
+  "name": "Goat Story",
+  "category": "Materiel"
+ },
+ {
+  "handle": "sibaristcoffee",
+  "name": "Sibarist Coffee",
+  "category": "Materiel"
+ },
+ {
+  "handle": "the_chemex",
+  "name": "The Chemex",
+  "category": "Materiel"
+ },
+ {
+  "handle": "loringroasters",
+  "name": "Loring Roasters",
+  "category": "Materiel"
+ },
+ {
+  "handle": "cuprima",
+  "name": "Cuprima",
+  "category": "Materiel"
+ },
+ {
+  "handle": "ratiocoffee",
+  "name": "Ratio Coffee",
+  "category": "Materiel"
+ },
+ {
+  "handle": "oscalla_coffee",
+  "name": "Oscalla Coffee",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "ozonecoffeeuk",
+  "name": "Ozone Coffee UK",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "rayanaroast",
+  "name": "Rayana Roast",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "koppi_roasters",
+  "name": "Koppi Roasters",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "cafeslugat",
+  "name": "Cafes Lugat",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "squaremilecoffee",
+  "name": "Square Mile Coffee",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "thebarnberlin",
+  "name": "The Barn Berlin",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "fiveelephant",
+  "name": "Five Elephant",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "bonanzacoffee",
+  "name": "Bonanza Coffee",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "onacoffee",
+  "name": "ONA Coffee",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "heartroasters",
+  "name": "Heart Roasters",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "bluebottle",
+  "name": "Blue Bottle Coffee",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "vervecoffee",
+  "name": "Verve Coffee",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "proudmaryusa",
+  "name": "Proud Mary USA",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "proudmarycoffee",
+  "name": "Proud Mary Coffee",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "kissthehippo",
+  "name": "Kiss the Hippo",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "substancecafe",
+  "name": "Substance Cafe",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "aprilcoffeecph",
+  "name": "April Coffee CPH",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "morgoncoffeeroasters",
+  "name": "Morgon Coffee",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "timwendelboe",
+  "name": "Tim Wendelboe",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "norangecoffee.cph",
+  "name": "No Range Coffee CPH",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "leuchtfeuercoffee",
+  "name": "Leuchtfeuer Coffee",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "blackmassroasters",
+  "name": "Black Mass Roasters",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "redemptionroasters",
+  "name": "Redemption Roasters",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "grumpy_mule",
+  "name": "Grumpy Mule",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "montista_torrefaction",
+  "name": "Montista Torrefaction",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "adrien.torrefacteur",
+  "name": "Adrien Torrefacteur",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "parcel_torrefaction",
+  "name": "Parcel Torrefaction",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "loutsatorrefacteur",
+  "name": "Loutsas Torrefacteur",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "voltcafebrulerie",
+  "name": "Volt Cafe Brulerie",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "azeria.torrefaction",
+  "name": "Azeria Torrefaction",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "brezicoffee",
+  "name": "Brezi Coffee",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "casaroasters",
+  "name": "Casa Roasters",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "capsuleroaster",
+  "name": "Capsule Roaster",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "roasterkat",
+  "name": "Roaster Kat",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "roastertom",
+  "name": "Roaster Tom",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "roastroycecoffee",
+  "name": "Roast Royce Coffee",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "ghostbirdcoffee",
+  "name": "Ghost Bird Coffee",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "darkartscoffee",
+  "name": "Dark Arts Coffee",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "onyxcoffeelab",
+  "name": "Onyx Coffee Lab",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "klekacoffee",
+  "name": "Kleka Coffee",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "typhoon.roasters",
+  "name": "Typhoon Roasters",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "fabrica_coffee_roasters",
+  "name": "Fabrica Coffee Roasters",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "artisangreenbean",
+  "name": "Artisan Green Bean",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "kbcoffeeroastersparis",
+  "name": "KB Coffee Roasters Paris",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "cafesrichard",
+  "name": "Cafes Richard",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "bruleriedesgobelins",
+  "name": "Brulerie des Gobelins",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "brulerie_du_cantin_leonidas",
+  "name": "Brulerie du Cantin",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "terresdecafe",
+  "name": "Terres de Cafe",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "hippolyte_courty_larbre_a_cafe",
+  "name": "L Arbre a Cafe",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "alba.coffeeroasters.paris",
+  "name": "Alba Coffee Roasters",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "aromescoffee",
+  "name": "Aromes Coffee",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "cafict",
+  "name": "Cafict",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "besca_roasters",
+  "name": "Besca Roasters",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "cafevisionnaire",
+  "name": "Cafe Visionnaire",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "pxlroasters",
+  "name": "PXL Roasters",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "dakcoffeeroasters",
+  "name": "DAK Coffee Roasters",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "trunkcoffeelab",
+  "name": "Trunk Coffee Lab",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "trunkcoffee",
+  "name": "Trunk Coffee",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "aokka_coffee",
+  "name": "Aokka Coffee",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "cafelomi",
+  "name": "Cafe Lomi",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "cafune.ca",
+  "name": "Cafune",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "mame.meansbeans",
+  "name": "Mame Means Beans",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "mamespecialtycoffee",
+  "name": "Mame Specialty Coffee",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "0566roaster",
+  "name": "0566 Roaster",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "rostoc.co",
+  "name": "Rostoc",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "ansaroaster",
+  "name": "Ansa Roaster",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "lotroasters",
+  "name": "Lot Roasters",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "slingshot.coffee",
+  "name": "Slingshot Coffee",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "philocoffea",
+  "name": "Philocoffea",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "coffeemakerslille",
+  "name": "Coffee Makers Lille",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "pacamaracoffee",
+  "name": "Pacamara Coffee",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "5sensescoffee",
+  "name": "5 Senses Coffee",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "lohasbeans",
+  "name": "Lohas Beans",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "boccacoffee",
+  "name": "Bocca Coffee",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "green.lion.coffee",
+  "name": "Green Lion Coffee",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "forestgreencoffee",
+  "name": "Forest Green Coffee",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "bentwoodcoffee",
+  "name": "Bentwood Coffee",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "corvuscoffee",
+  "name": "Corvus Coffee",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "equatorcoffees",
+  "name": "Equator Coffees",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "cafeswindara",
+  "name": "Cafes Windara",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "johjohannsonkaffe",
+  "name": "Joh. Johannson Kaffe",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "nordic_coffee",
+  "name": "Nordic Coffee",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "supremokaffee",
+  "name": "Supremo Kaffee",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "gringonordic",
+  "name": "Gringo Nordic",
+  "category": "Torrefacteur"
+ },
+ {
+  "handle": "cafuneparis",
+  "name": "Cafune Paris",
+  "category": "Cafe"
+ },
+ {
+  "handle": "koar_cafe",
+  "name": "Koar Cafe",
+  "category": "Cafe"
+ },
+ {
+  "handle": "mame.geneve",
+  "name": "Mame Geneve",
+  "category": "Cafe"
+ },
+ {
+  "handle": "mameocoffee",
+  "name": "Mameo Coffee",
+  "category": "Cafe"
+ },
+ {
+  "handle": "mamepolepole",
+  "name": "Mame Pole Pole",
+  "category": "Cafe"
+ },
+ {
+  "handle": "kuro_mame_tokyo",
+  "name": "Kuro Mame Tokyo",
+  "category": "Cafe"
+ },
+ {
+  "handle": "polygone.coffeeclub",
+  "name": "Polygone Coffee Club",
+  "category": "Cafe"
+ },
+ {
+  "handle": "pagacoffeebkk",
+  "name": "Paga Coffee BKK",
+  "category": "Cafe"
+ },
+ {
+  "handle": "motorscoffeebkk",
+  "name": "Motors Coffee BKK",
+  "category": "Cafe"
+ },
+ {
+  "handle": "motorscoffee",
+  "name": "Motors Coffee",
+  "category": "Cafe"
+ },
+ {
+  "handle": "hexagonecafe",
+  "name": "Hexagone Cafe",
+  "category": "Cafe"
+ },
+ {
+  "handle": "acousticcoffee",
+  "name": "Acoustic Coffee",
+  "category": "Cafe"
+ },
+ {
+  "handle": "drip_annecy",
+  "name": "Drip Annecy",
+  "category": "Cafe"
+ },
+ {
+  "handle": "hard_geek_cafe",
+  "name": "Hard Geek Cafe",
+  "category": "Cafe"
+ },
+ {
+  "handle": "tambour.cafe",
+  "name": "Tambour Cafe",
+  "category": "Cafe"
+ },
+ {
+  "handle": "cold_perk",
+  "name": "Cold Perk",
+  "category": "Cafe"
+ },
+ {
+  "handle": "hona_cafecantine",
+  "name": "Hona Cafe Cantine",
+  "category": "Cafe"
+ },
+ {
+  "handle": "hachi.coffee",
+  "name": "Hachi Coffee",
+  "category": "Cafe"
+ },
+ {
+  "handle": "glitch_coffee",
+  "name": "Glitch Coffee",
+  "category": "Cafe"
+ },
+ {
+  "handle": "glitch_coffee_osaka",
+  "name": "Glitch Coffee Osaka",
+  "category": "Cafe"
+ },
+ {
+  "handle": "pcup.coffee",
+  "name": "PCup Coffee",
+  "category": "Cafe"
+ },
+ {
+  "handle": "tanat.coffee",
+  "name": "Tanat Coffee",
+  "category": "Cafe"
+ },
+ {
+  "handle": "old_lanterns_cafe",
+  "name": "Old Lanterns Cafe",
+  "category": "Cafe"
+ },
+ {
+  "handle": "beberrycoffee",
+  "name": "Beberry Coffee",
+  "category": "Cafe"
+ },
+ {
+  "handle": "mr.cafe_china",
+  "name": "Mr. Cafe China",
+  "category": "Cafe"
+ },
+ {
+  "handle": "takaoriginal",
+  "name": "Taka Original",
+  "category": "Cafe"
+ },
+ {
+  "handle": "raku__tea.coffeebar",
+  "name": "Raku Tea Coffee Bar",
+  "category": "Cafe"
+ },
+ {
+  "handle": "cafe1959",
+  "name": "Cafe 1959",
+  "category": "Cafe"
+ },
+ {
+  "handle": "manner_coffee",
+  "name": "Manner Coffee",
+  "category": "Cafe"
+ },
+ {
+  "handle": "cafeination",
+  "name": "Cafeination",
+  "category": "Cafe"
+ },
+ {
+  "handle": "dose.cafe",
+  "name": "Dose Cafe",
+  "category": "Cafe"
+ },
+ {
+  "handle": "solobrewinglisboa",
+  "name": "Solo Brewing Lisboa",
+  "category": "Cafe"
+ },
+ {
+  "handle": "noumincofe",
+  "name": "Noumin Cofe",
+  "category": "Cafe"
+ },
+ {
+  "handle": "drinksolocoffee",
+  "name": "Solo Coffee",
+  "category": "Cafe"
+ },
+ {
+  "handle": "kurasu.kyoto",
+  "name": "Kurasu Kyoto",
+  "category": "Cafe"
+ },
+ {
+  "handle": "epeios_jp",
+  "name": "Epeios JP",
+  "category": "Cafe"
+ },
+ {
+  "handle": "feve_coffee",
+  "name": "Feve Coffee",
+  "category": "Cafe"
+ },
+ {
+  "handle": "bevarabia",
+  "name": "Bev Arabia",
+  "category": "Cafe"
+ },
+ {
+  "handle": "arabica.kuwait",
+  "name": "Arabica Kuwait",
+  "category": "Cafe"
+ },
+ {
+  "handle": "nightjar.coffee",
+  "name": "Nightjar Coffee",
+  "category": "Cafe"
+ },
+ {
+  "handle": "apulinlicoffee",
+  "name": "Apulinli Coffee",
+  "category": "Cafe"
+ },
+ {
+  "handle": "booncoffee",
+  "name": "Boon Coffee",
+  "category": "Cafe"
+ },
+ {
+  "handle": "siquemcoffeeco",
+  "name": "Siquem Coffee",
+  "category": "Cafe"
+ },
+ {
+  "handle": "daterracoffee",
+  "name": "Da Terra Coffee",
+  "category": "Cafe"
+ },
+ {
+  "handle": "cocolocoffee",
+  "name": "Cocolo Coffee",
+  "category": "Cafe"
+ },
+ {
+  "handle": "cocinarecoffee",
+  "name": "Cocinare Coffee",
+  "category": "Cafe"
+ },
+ {
+  "handle": "patiobonito.coffee",
+  "name": "Patio Bonito Coffee",
+  "category": "Cafe"
+ },
+ {
+  "handle": "ceri.coffee",
+  "name": "Ceri Coffee",
+  "category": "Cafe"
+ },
+ {
+  "handle": "alt_t_coffee",
+  "name": "Alt T Coffee",
+  "category": "Cafe"
+ },
+ {
+  "handle": "anak.kopi",
+  "name": "Anak Kopi",
+  "category": "Cafe"
+ },
+ {
+  "handle": "socialhourcoffee",
+  "name": "Social Hour Coffee",
+  "category": "Cafe"
+ },
+ {
+  "handle": "fieldworkcoffee",
+  "name": "Fieldwork Coffee",
+  "category": "Cafe"
+ },
+ {
+  "handle": "maxims_coffee",
+  "name": "Maxims Coffee",
+  "category": "Cafe"
+ },
+ {
+  "handle": "barburista",
+  "name": "Barburista",
+  "category": "Cafe"
+ },
+ {
+  "handle": "coffeemuxu",
+  "name": "Coffee Muxu",
+  "category": "Cafe"
+ },
+ {
+  "handle": "groundcontrl",
+  "name": "Ground Control",
+  "category": "Cafe"
+ },
+ {
+  "handle": "sip_coffeebar",
+  "name": "Sip Coffee Bar",
+  "category": "Cafe"
+ },
+ {
+  "handle": "geogene.cafe",
+  "name": "Geogene Cafe",
+  "category": "Cafe"
+ },
+ {
+  "handle": "wild_beans_paris",
+  "name": "Wild Beans Paris",
+  "category": "Cafe"
+ },
+ {
+  "handle": "kadou_coffee",
+  "name": "Kadou Coffee",
+  "category": "Cafe"
+ },
+ {
+  "handle": "cafepiha_bordeaux",
+  "name": "Cafe Piha Bordeaux",
+  "category": "Cafe"
+ },
+ {
+  "handle": "univert_cafe",
+  "name": "Univert Cafe",
+  "category": "Cafe"
+ },
+ {
+  "handle": "haciendalaesmeralda",
+  "name": "Hacienda La Esmeralda",
+  "category": "Producteur"
+ },
+ {
+  "handle": "ninetypluscoffee",
+  "name": "Ninety Plus Coffee",
+  "category": "Producteur"
+ },
+ {
+  "handle": "geshavillage",
+  "name": "Gesha Village",
+  "category": "Producteur"
+ },
+ {
+  "handle": "fincalasenda",
+  "name": "Finca La Senda",
+  "category": "Producteur"
+ },
+ {
+  "handle": "lapalmayeltucan",
+  "name": "La Palma y El Tucan",
+  "category": "Producteur"
+ },
+ {
+  "handle": "fincadiviso",
+  "name": "Finca El Diviso",
+  "category": "Producteur"
+ },
+ {
+  "handle": "fincaelparaisocoffee",
+  "name": "Finca El Paraiso",
+  "category": "Producteur"
+ },
+ {
+  "handle": "eldiviso_coffeefarm",
+  "name": "El Diviso Coffee Farm",
+  "category": "Producteur"
+ },
+ {
+  "handle": "fincadonaelsa",
+  "name": "Finca Dona Elsa",
+  "category": "Producteur"
+ },
+ {
+  "handle": "finca_deborah",
+  "name": "Finca Deborah",
+  "category": "Producteur"
+ },
+ {
+  "handle": "lamastusfamilyestates",
+  "name": "Lamastas Family Estates",
+  "category": "Producteur"
+ },
+ {
+  "handle": "vergelestate",
+  "name": "Vergel Estate",
+  "category": "Producteur"
+ },
+ {
+  "handle": "wandhe_family_estate",
+  "name": "Wandhe Family Estate",
+  "category": "Producteur"
+ },
+ {
+  "handle": "la_divina_coffee_farm",
+  "name": "La Divina Coffee Farm",
+  "category": "Producteur"
+ },
+ {
+  "handle": "fincasophia",
+  "name": "Finca Sophia",
+  "category": "Producteur"
+ },
+ {
+  "handle": "fincasoledadintag",
+  "name": "Finca Soledad Intag",
+  "category": "Producteur"
+ },
+ {
+  "handle": "fincaelpuentecoffee",
+  "name": "Finca El Puente",
+  "category": "Producteur"
+ },
+ {
+  "handle": "fincagascon",
+  "name": "Finca Gascon",
+  "category": "Producteur"
+ },
+ {
+  "handle": "cafegranjalaesperanza",
+  "name": "Cafe Gran La Esperanza",
+  "category": "Producteur"
+ },
+ {
+  "handle": "inmaculadacoffeefarms",
+  "name": "Inmaculada Coffee Farms",
+  "category": "Producteur"
+ },
+ {
+  "handle": "coopetarrazu",
+  "name": "Coopetarrazu",
+  "category": "Producteur"
+ },
+ {
+  "handle": "guatemalancoffees",
+  "name": "Guatemalan Coffees",
+  "category": "Producteur"
+ },
+ {
+  "handle": "proyectococuyo",
+  "name": "Proyecto Cocuyo",
+  "category": "Producteur"
+ },
+ {
+  "handle": "zaomaxkenya",
+  "name": "Zaomax Kenya",
+  "category": "Producteur"
+ },
+ {
+  "handle": "ratnagiri_estate",
+  "name": "Ratnagiri Estate",
+  "category": "Producteur"
+ },
+ {
+  "handle": "kilimanjaro_specialty_coffees",
+  "name": "Kilimanjaro Specialty",
+  "category": "Producteur"
+ },
+ {
+  "handle": "kilimanjaro_specialty_home",
+  "name": "Kilimanjaro Home",
+  "category": "Producteur"
+ },
+ {
+  "handle": "scott.origin",
+  "name": "Scott Origin",
+  "category": "Producteur"
+ },
+ {
+  "handle": "jaguaracoffee",
+  "name": "Jaguara Coffee",
+  "category": "Producteur"
+ },
+ {
+  "handle": "brazilspecialtycoffee",
+  "name": "Brazil Specialty Coffee",
+  "category": "Producteur"
+ },
+ {
+  "handle": "mujeresdelcafe",
+  "name": "Mujeres del Cafe",
+  "category": "Producteur"
+ },
+ {
+  "handle": "volcan.azul",
+  "name": "Volcan Azul",
+  "category": "Producteur"
+ },
+ {
+  "handle": "michaeltrung.coffee",
+  "name": "Michael Trung Coffee",
+  "category": "Barista"
+ },
+ {
+  "handle": "sasasestic",
+  "name": "Sasa Sestic",
+  "category": "Barista"
+ },
+ {
+  "handle": "dritanalsela",
+  "name": "Dritan Alsela",
+  "category": "Barista"
+ },
+ {
+  "handle": "hide_izaki",
+  "name": "Hide Izaki",
+  "category": "Barista"
+ },
+ {
+  "handle": "daiki_hatakeyama_coffee",
+  "name": "Daiki Hatakeyama",
+  "category": "Barista"
+ },
+ {
+  "handle": "taka_ishitani",
+  "name": "Taka Ishitani",
+  "category": "Barista"
+ },
+ {
+  "handle": "mikitakamasa",
+  "name": "Miki Takamasa",
+  "category": "Barista"
+ },
+ {
+  "handle": "tetsukasuya",
+  "name": "Tetsu Kasuya",
+  "category": "Barista"
+ },
+ {
+  "handle": "jimseven",
+  "name": "James Hoffmann",
+  "category": "Barista"
+ },
+ {
+  "handle": "whereisscottrao",
+  "name": "Scott Rao",
+  "category": "Barista"
+ },
+ {
+  "handle": "samosmrke",
+  "name": "Samo Smrke",
+  "category": "Barista"
+ },
+ {
+  "handle": "lukmasterbrewing",
+  "name": "Luk Master Brewing",
+  "category": "Barista"
+ },
+ {
+  "handle": "zachhammer.co",
+  "name": "Zach Hammer",
+  "category": "Barista"
+ },
+ {
+  "handle": "tannercolsoncoffee",
+  "name": "Tanner Colson Coffee",
+  "category": "Barista"
+ },
+ {
+  "handle": "genkappler",
+  "name": "Gen Kappler",
+  "category": "Barista"
+ },
+ {
+  "handle": "shoma_coffeetaster",
+  "name": "Shoma Coffee Taster",
+  "category": "Barista"
+ },
+ {
+  "handle": "ishimax_coffee_japan",
+  "name": "Ishimax Coffee Japan",
+  "category": "Barista"
+ },
+ {
+  "handle": "platinumbaristaa",
+  "name": "Platinum Barista",
+  "category": "Barista"
+ },
+ {
+  "handle": "barista.ft",
+  "name": "Barista FT",
+  "category": "Barista"
+ },
+ {
+  "handle": "dr.barista",
+  "name": "Dr. Barista",
+  "category": "Barista"
+ },
+ {
+  "handle": "natdanai.t",
+  "name": "Natdanai T.",
+  "category": "Barista"
+ },
+ {
+  "handle": "felipe_herrerago",
+  "name": "Felipe Herrera",
+  "category": "Barista"
+ },
+ {
+  "handle": "laurids.gallee",
+  "name": "Laurids Gallee",
+  "category": "Barista"
+ },
+ {
+  "handle": "xenia_espresso",
+  "name": "Xenia Espresso",
+  "category": "Barista"
+ },
+ {
+  "handle": "hiro.hashiguchi",
+  "name": "Hiro Hashiguchi",
+  "category": "Barista"
+ },
+ {
+  "handle": "niko.kaffa",
+  "name": "Niko Kaffa",
+  "category": "Barista"
+ },
+ {
+  "handle": "ichi_hatano",
+  "name": "Ichi Hatano",
+  "category": "Barista"
+ },
+ {
+  "handle": "rodriguesanterre_phoenixfrench",
+  "name": "Rodrigue Santerre",
+  "category": "Barista"
+ },
+ {
+  "handle": "md.brews",
+  "name": "MD Brews",
+  "category": "Barista"
+ },
+ {
+  "handle": "kenxman",
+  "name": "Kenxman",
+  "category": "Barista"
+ },
+ {
+  "handle": "diegocampos_27",
+  "name": "Diego Campos",
+  "category": "Barista"
+ },
+ {
+  "handle": "kyoto_obubu",
+  "name": "Kyoto Obubu",
+  "category": "The"
+ },
+ {
+  "handle": "obubuteafarms",
+  "name": "Obubu Tea Farms",
+  "category": "The"
+ },
+ {
+  "handle": "moychay.nl",
+  "name": "Moychay NL",
+  "category": "The"
+ },
+ {
+  "handle": "gorkov.chay",
+  "name": "Gorkov Chay",
+  "category": "The"
+ },
+ {
+  "handle": "maisontheerie",
+  "name": "Maison Theerie",
+  "category": "The"
+ },
+ {
+  "handle": "moyamatcha",
+  "name": "Moya Matcha",
+  "category": "The"
+ },
+ {
+  "handle": "yamashita_shinjuen",
+  "name": "Yamashita Shinjuen",
+  "category": "The"
+ },
+ {
+  "handle": "yoshida_chaen",
+  "name": "Yoshida Chaen",
+  "category": "The"
+ },
+ {
+  "handle": "furukawaseicha",
+  "name": "Furukawa Seicha",
+  "category": "The"
+ },
+ {
+  "handle": "japanese.tea_fr",
+  "name": "Japanese Tea FR",
+  "category": "The"
+ },
+ {
+  "handle": "nagamine.tea",
+  "name": "Nagamine Tea",
+  "category": "The"
+ },
+ {
+  "handle": "farmerchinatea",
+  "name": "Farmer China Tea",
+  "category": "The"
+ },
+ {
+  "handle": "jin_yu_tea",
+  "name": "Jin Yu Tea",
+  "category": "The"
+ },
+ {
+  "handle": "linfamilytea",
+  "name": "Lin Family Tea",
+  "category": "The"
+ },
+ {
+  "handle": "rishitea",
+  "name": "Rishi Tea",
+  "category": "The"
+ },
+ {
+  "handle": "teafarmerlin",
+  "name": "Tea Farmer Lin",
+  "category": "The"
+ },
+ {
+  "handle": "hugotea.space",
+  "name": "Hugo Tea Space",
+  "category": "The"
+ },
+ {
+  "handle": "hugoteaco",
+  "name": "Hugo Tea Co.",
+  "category": "The"
+ },
+ {
+  "handle": "yunnan_sourcing",
+  "name": "Yunnan Sourcing",
+  "category": "The"
+ },
+ {
+  "handle": "nio_japanese_green_tea",
+  "name": "Nio Japanese Green Tea",
+  "category": "The"
+ },
+ {
+  "handle": "moheitea",
+  "name": "Mohei Tea",
+  "category": "The"
+ },
+ {
+  "handle": "tea_tsy_official",
+  "name": "Tea TSY Official",
+  "category": "The"
+ },
+ {
+  "handle": "_pressea",
+  "name": "Pressea",
+  "category": "The"
+ },
+ {
+  "handle": "aubepine_et_bergamote",
+  "name": "Aubepine et Bergamote",
+  "category": "The"
+ },
+ {
+  "handle": "perfectdailygrind",
+  "name": "Perfect Daily Grind",
+  "category": "Media"
+ },
+ {
+  "handle": "sprudge",
+  "name": "Sprudge",
+  "category": "Media"
+ },
+ {
+  "handle": "baristamagazine",
+  "name": "Barista Magazine",
+  "category": "Media"
+ },
+ {
+  "handle": "coffeegeek",
+  "name": "Coffee Geek",
+  "category": "Media"
+ },
+ {
+  "handle": "dailycoffeenews",
+  "name": "Daily Coffee News",
+  "category": "Media"
+ },
+ {
+  "handle": "roastmagazine",
+  "name": "Roast Magazine",
+  "category": "Media"
+ },
+ {
+  "handle": "roasterdaily",
+  "name": "Roaster Daily",
+  "category": "Media"
+ },
+ {
+  "handle": "cafemagfr",
+  "name": "Cafe Mag FR",
+  "category": "Media"
+ },
+ {
+  "handle": "gourmetcup_mag",
+  "name": "Gourmet Cup Mag",
+  "category": "Media"
+ },
+ {
+  "handle": "europeancoffeetrip",
+  "name": "European Coffee Trip",
+  "category": "Media"
+ },
+ {
+  "handle": "coffeedeskpl",
+  "name": "Coffee Desk PL",
+  "category": "Media"
+ },
+ {
+  "handle": "coffeedeskcom",
+  "name": "Coffee Desk Com",
+  "category": "Media"
+ },
+ {
+  "handle": "baristahustle",
+  "name": "Barista Hustle",
+  "category": "Education"
+ },
+ {
+  "handle": "baristaguild",
+  "name": "Barista Guild",
+  "category": "Education"
+ },
+ {
+  "handle": "lecoledessens",
+  "name": "L Ecole des Sens",
+  "category": "Education"
+ },
+ {
+  "handle": "aero.press.fr",
+  "name": "Aeropress FR",
+  "category": "Education"
+ },
+ {
+  "handle": "aeropress_recipe",
+  "name": "Aeropress Recipe",
+  "category": "Education"
+ },
+ {
+  "handle": "alwaysdialingin",
+  "name": "Always Dialing In",
+  "category": "Education"
+ },
+ {
+  "handle": "manualbrewonly",
+  "name": "Manual Brew Only",
+  "category": "Education"
+ },
+ {
+  "handle": "brewmethods",
+  "name": "Brew Methods",
+  "category": "Education"
+ },
+ {
+  "handle": "lenezducafe_official",
+  "name": "Le Nez du Cafe",
+  "category": "Education"
+ },
+ {
+  "handle": "coffeegearlab",
+  "name": "Coffee Gear Lab",
+  "category": "Education"
+ },
+ {
+  "handle": "cuisinebarista",
+  "name": "Cuisine Barista",
+  "category": "Education"
+ },
+ {
+  "handle": "le_coffee_geek",
+  "name": "Le Coffee Geek",
+  "category": "Education"
+ },
+ {
+  "handle": "espressologie",
+  "name": "Espressologie",
+  "category": "Education"
+ },
+ {
+  "handle": "collectif_cafe",
+  "name": "Collectif Cafe",
+  "category": "Communaute"
+ },
+ {
+  "handle": "iamnotabarista",
+  "name": "I Am Not A Barista",
+  "category": "Communaute"
+ },
+ {
+  "handle": "reseaubaristasfrance",
+  "name": "Reseau Baristas France",
+  "category": "Communaute"
+ },
+ {
+  "handle": "thebaristaleague",
+  "name": "The Barista League",
+  "category": "Communaute"
+ },
+ {
+  "handle": "coffeemates.green",
+  "name": "Coffee Mates Green",
+  "category": "Communaute"
+ },
+ {
+  "handle": "humansofcoffee",
+  "name": "Humans of Coffee",
+  "category": "Communaute"
+ },
+ {
+  "handle": "thehappycoffeenetwork",
+  "name": "Happy Coffee Network",
+  "category": "Communaute"
+ },
+ {
+  "handle": "producerroasterforum",
+  "name": "Producer Roaster Forum",
+  "category": "Communaute"
+ },
+ {
+  "handle": "coffeeshopgoals",
+  "name": "Coffee Shop Goals",
+  "category": "Communaute"
+ },
+ {
+  "handle": "everywhere.aeropress",
+  "name": "Everywhere Aeropress",
+  "category": "Communaute"
+ },
+ {
+  "handle": "japan.aero.press.info",
+  "name": "Japan Aeropress Info",
+  "category": "Communaute"
+ },
+ {
+  "handle": "aeropressonly",
+  "name": "Aeropress Only",
+  "category": "Communaute"
+ },
+ {
+  "handle": "coffee_yapper",
+  "name": "Coffee Yapper",
+  "category": "Communaute"
+ },
+ {
+  "handle": "wankultcg",
+  "name": "Wankult CG",
+  "category": "Communaute"
+ },
+ {
+  "handle": "cxffeeblack",
+  "name": "Cxffee Black",
+  "category": "Communaute"
+ },
+ {
+  "handle": "coffeeclub.ca",
+  "name": "Coffee Club Canada",
+  "category": "Communaute"
+ },
+ {
+  "handle": "coffeeandtales",
+  "name": "Coffee and Tales",
+  "category": "Communaute"
+ },
+ {
+  "handle": "humanwithattitude",
+  "name": "Human With Attitude",
+  "category": "Communaute"
+ },
+ {
+  "handle": "roast.cup.repeat",
+  "name": "Roast Cup Repeat",
+  "category": "Communaute"
+ },
+ {
+  "handle": "roast.brew.repeat",
+  "name": "Roast Brew Repeat",
+  "category": "Communaute"
+ },
+ {
+  "handle": "fits_and_coffee",
+  "name": "Fits and Coffee",
+  "category": "Communaute"
+ },
+ {
+  "handle": "coffee.sad.sad",
+  "name": "Coffee Sad Sad",
+  "category": "Communaute"
+ },
+ {
+  "handle": "haroldandcoffee",
+  "name": "Harold and Coffee",
+  "category": "Communaute"
+ },
+ {
+  "handle": "piratesofcoffee",
+  "name": "Pirates of Coffee",
+  "category": "Communaute"
+ },
+ {
+  "handle": "bravo.brewer",
+  "name": "Bravo Brewer",
+  "category": "Communaute"
+ },
+ {
+  "handle": "broken.gooseneck",
+  "name": "Broken Gooseneck",
+  "category": "Communaute"
+ },
+ {
+  "handle": "pullandpourcoffee",
+  "name": "Pull and Pour Coffee",
+  "category": "Communaute"
+ },
+ {
+  "handle": "cafeanywhere_",
+  "name": "Cafe Anywhere",
+  "category": "Communaute"
+ },
+ {
+  "handle": "trabocca",
+  "name": "Trabocca",
+  "category": "Importateur"
+ },
+ {
+  "handle": "cafeimports",
+  "name": "Cafe Imports",
+  "category": "Importateur"
+ },
+ {
+  "handle": "cafeimportseurope",
+  "name": "Cafe Imports Europe",
+  "category": "Importateur"
+ },
+ {
+  "handle": "nordicapproach",
+  "name": "Nordic Approach",
+  "category": "Importateur"
+ },
+ {
+  "handle": "covoya.coffee",
+  "name": "Covoya Coffee",
+  "category": "Importateur"
+ },
+ {
+  "handle": "algrano",
+  "name": "Algrano",
+  "category": "Importateur"
+ },
+ {
+  "handle": "fairfieldtrading",
+  "name": "Fairfield Trading",
+  "category": "Importateur"
+ },
+ {
+  "handle": "inc.greencoffee",
+  "name": "Inc Green Coffee",
+  "category": "Importateur"
+ },
+ {
+  "handle": "berlincoffeefestival",
+  "name": "Berlin Coffee Festival",
+  "category": "Evenement"
+ },
+ {
+  "handle": "milancoffeefestival",
+  "name": "Milan Coffee Festival",
+  "category": "Evenement"
+ },
+ {
+  "handle": "londoncoffeefestival",
+  "name": "London Coffee Festival",
+  "category": "Evenement"
+ },
+ {
+  "handle": "amsterdamcoffeefestival",
+  "name": "Amsterdam Coffee Festival",
+  "category": "Evenement"
+ },
+ {
+  "handle": "pariscafefestival",
+  "name": "Paris Cafe Festival",
+  "category": "Evenement"
+ },
+ {
+  "handle": "coffeeshowfrance",
+  "name": "Coffee Show France",
+  "category": "Evenement"
+ },
+ {
+  "handle": "polygone.formations",
+  "name": "Polygone Formations",
+  "category": "Formation"
+ },
+ {
+  "handle": "steam_coffee_consulting",
+  "name": "Steam Coffee Consulting",
+  "category": "Formation"
+ },
+ {
+  "handle": "laclaque.cafeecole",
+  "name": "La Claque Cafe Ecole",
+  "category": "Formation"
+ },
+ {
+  "handle": "laclaque.cafenomade",
+  "name": "La Claque Cafe Nomade",
+  "category": "Formation"
+ },
+ {
+  "handle": "coffeemindacademy",
+  "name": "Coffee Mind Academy",
+  "category": "Formation"
+ },
+ {
+  "handle": "wcoffeeresearch",
+  "name": "W Coffee Research",
+  "category": "Science"
+ },
+ {
+  "handle": "curious.about.coffee.science",
+  "name": "Curious About Coffee",
+  "category": "Science"
+ },
+ {
+  "handle": "coffee.chemistry",
+  "name": "Coffee Chemistry",
+  "category": "Science"
+ },
+ {
+  "handle": "flavonomics",
+  "name": "Flavonomics",
+  "category": "Science"
+ },
+ {
+  "handle": "coffeeos.app",
+  "name": "CoffeeOS App",
+  "category": "Tech"
+ },
+ {
+  "handle": "tastifyapp",
+  "name": "Tastify App",
+  "category": "Tech"
+ },
+ {
+  "handle": "cropster",
+  "name": "Cropster",
+  "category": "Tech"
+ },
+ {
+  "handle": "syncfo",
+  "name": "Syncfo",
+  "category": "Tech"
+ },
+ {
+  "handle": "cuppy.coffee.app",
+  "name": "Cuppy Coffee App",
+  "category": "Tech"
+ },
+ {
+  "handle": "kurasu.store.jp",
+  "name": "Kurasu Store JP",
+  "category": "Boutique"
+ },
+ {
+  "handle": "glyphsupplyco",
+  "name": "Glyph Supply Co",
+  "category": "Boutique"
+ },
+ {
+  "handle": "maxicoffee_uk",
+  "name": "Maxicoffee UK",
+  "category": "Boutique"
+ },
+ {
+  "handle": "maxicoffee",
+  "name": "Maxicoffee",
+  "category": "Boutique"
+ },
+ {
+  "handle": "maxicoffeelateste",
+  "name": "Maxicoffee La Teste",
+  "category": "Boutique"
+ },
+ {
+  "handle": "maxicoffeeplandecampagne",
+  "name": "Maxicoffee Plan",
+  "category": "Boutique"
+ },
+ {
+  "handle": "wholelattelove",
+  "name": "Whole Latte Love",
+  "category": "Boutique"
+ },
+ {
+  "handle": "alternativebrewing",
+  "name": "Alternative Brewing",
+  "category": "Boutique"
+ },
+ {
+  "handle": "idrinkcoffeecanada",
+  "name": "I Drink Coffee Canada",
+  "category": "Boutique"
+ },
+ {
+  "handle": "kaffebox",
+  "name": "Kaffebox",
+  "category": "Boutique"
+ },
+ {
+  "handle": "thecoffeevine",
+  "name": "The Coffee Vine",
+  "category": "Boutique"
+ },
+ {
+  "handle": "hbroastermkt",
+  "name": "HB Roaster Market",
+  "category": "Boutique"
+ },
+ {
+  "handle": "sca_france",
+  "name": "SCA France",
+  "category": "Association"
+ },
+ {
+  "handle": "thecqi",
+  "name": "The CQI",
+  "category": "Certification"
+ },
+ {
+  "handle": "sustainable_coffee_institute",
+  "name": "Sustainable Coffee Institute",
+  "category": "Durabilite"
+ },
+ {
+  "handle": "worldcoffeechampionships",
+  "name": "World Coffee Champ.",
+  "category": "Competition"
+ },
+ {
+  "handle": "allianceforcoffeeexcellence",
+  "name": "Alliance Coffee Excellence",
+  "category": "Competition"
+ },
+ {
+  "handle": "cupofexcellence",
+  "name": "Cup of Excellence",
+  "category": "Competition"
+ },
+ {
+  "handle": "specialtyturkishcoffee",
+  "name": "Specialty Turkish Coffee",
+  "category": "Culture"
+ },
+ {
+  "handle": "fermentnation.pa",
+  "name": "Ferment Nation",
+  "category": "Processing"
+ },
+ {
+  "handle": "nadonado.co",
+  "name": "Nado Nado",
+  "category": "Processing"
+ },
+ {
+  "handle": "swisswater",
+  "name": "Swiss Water",
+  "category": "Industrie"
+ },
+ {
+  "handle": "lavazzafr",
+  "name": "Lavazza FR",
+  "category": "Industrie"
+ },
+ {
+  "handle": "mtpak_coffee",
+  "name": "MTPak Coffee",
+  "category": "Packaging"
+ },
+ {
+  "handle": "ypakcoffeepouch",
+  "name": "YPak Coffee Pouch",
+  "category": "Packaging"
+ },
+ {
+  "handle": "noissueco",
+  "name": "Noissue Co",
+  "category": "Packaging"
+ },
+ {
+  "handle": "sipicoffeetours",
+  "name": "Sipi Coffee Tours",
+  "category": "Tourisme"
+ },
+ {
+  "handle": "bordeaux_coffee_map",
+  "name": "Bordeaux Coffee Map",
+  "category": "Guide"
+ },
+ {
+  "handle": "the.coffee.bill",
+  "name": "The Coffee Bill",
+  "category": "Politique"
+ },
+ {
+  "handle": "ciaokombucha",
+  "name": "Ciao Kombucha",
+  "category": "Boisson"
+ },
+ {
+  "handle": "drinkmorning",
+  "name": "Drink Morning",
+  "category": "Boisson"
+ },
+ {
+  "handle": "mitsuba_bordeaux",
+  "name": "Mitsuba Bordeaux",
+  "category": "Restaurant"
+ },
+ {
+  "handle": "epoq_restaurant",
+  "name": "Epoq Restaurant",
+  "category": "Restaurant"
+ }
+]
