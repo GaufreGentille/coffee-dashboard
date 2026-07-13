@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
-import HarvestPanel from './components/HarvestPanel'
-import InstaVeillePanel from "./components/InstaVeillePanel.jsx";
+import HarvestPanel from './components/HarvestPanel';
+import InstaVeillePanel from './components/InstaVeillePanel'
 
 // GaufreGentille brand palette
 const BRAND = {
@@ -1158,59 +1158,9 @@ export default function App() {
         )}
 
         {/* INSTAGRAM */}
-        {tab==='instagram' && (() => {
-          const INSTA_GROUPS = [
-            {label:'Tous',        cats:null},
-            {label:'Materiel',    cats:['Materiel']},
-            {label:'Cafes',       cats:['Cafe']},
-            {label:'Torrefacteurs', cats:['Torrefacteur']},
-            {label:'Producteurs', cats:['Producteur']},
-            {label:'Baristas',    cats:['Barista']},
-            {label:'The',         cats:['The']},
-            {label:'Communaute',  cats:['Communaute','Association','Evenement','Competition','Culture']},
-            {label:'Media',       cats:['Media','Education','Formation','Science','Tech']},
-            {label:'Boutiques',   cats:['Boutique','Importateur','Packaging','Industrie']},
-          ]
-          const filtered = instaFilter === 'Tous'
-            ? INSTAGRAM
-            : INSTAGRAM.filter(a => {
-                const grp = INSTA_GROUPS.find(g => g.label === instaFilter)
-                return grp && grp.cats && grp.cats.includes(a.category)
-              })
-          return (
-            <div>
-              {/* Sub-filter bar */}
-              <div style={{ display:'flex', gap:6, flexWrap:'wrap', marginBottom:16, paddingBottom:14, borderBottom:`1px solid ${T.border}` }}>
-                {INSTA_GROUPS.map(g => {
-                  const count = g.cats === null ? INSTAGRAM.length : INSTAGRAM.filter(a => g.cats.includes(a.category)).length
-                  const active = instaFilter === g.label
-                  return (
-                    <button key={g.label} onClick={() => setInstaFilter(g.label)} style={{
-                      background: active ? BRAND.amber : T.surf2,
-                      border: `1px solid ${active ? BRAND.amber : T.border2}`,
-                      color: active ? '#000' : T.dim,
-                      fontSize:'0.75rem', fontWeight: active ? 700 : 400,
-                      padding:'5px 13px', borderRadius:20,
-                      cursor:'pointer', fontFamily:'inherit', transition:'all 0.15s',
-                      display:'flex', alignItems:'center', gap:5,
-                    }}>
-                      {g.label}
-                      <span style={{ fontSize:'0.65rem', opacity:0.7 }}>{count}</span>
-                    </button>
-                  )
-                })}
-              </div>
-              {/* Count */}
-              <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.12em', color:T.dim, fontWeight:600, marginBottom:14 }}>
-                {filtered.length} compte{filtered.length > 1 ? 's' : ''} · {instaFilter}
-              </div>
-              {/* Grid */}
-              <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(255px,1fr))', gap:12 }}>
-                {filtered.map((acc,i) => <InstaCard key={acc.handle} account={acc} i={i} T={T} />)}
-              </div>
-            </div>
-          )
-        })()}
+        {tab==='instagram' && (
+          <InstaVeillePanel />
+        )}
 
         {/* REDDIT */}
         {tab==='reddit' && (
