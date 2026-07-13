@@ -1,0 +1,27 @@
+name: Veille Instagram
+
+on:
+  schedule:
+    - cron: '30 3 * * *'   # tous les jours à 03:30 UTC (~2h30 de run, fini avant le daily-refresh de 06:00)
+  workflow_dispatch:        # lancement manuel possible depuis l'onglet Actions
+
+jobs:
+  fetch-instagram:
+    runs-on: ubuntu-latest
+    timeout-minutes: 320
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Fetch Instagram feed (Business Discovery)
+        env:
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          VEILLE_SECRET: ${{ secrets.VEILLE_SECRET }}
+        run: node scripts/fetch-instagram.mjs
