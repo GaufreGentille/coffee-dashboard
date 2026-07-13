@@ -7,7 +7,7 @@ import { useState, useEffect, useMemo } from "react";
 const FEED_URL = "/.netlify/functions/get-insta";
 const CACHE_KEY = "insta-veille-cache";
 const CACHE_TTL = 30 * 60 * 1000; // 30 min
-const NEW_THRESHOLD = 48 * 3600 * 1000; // badge "nouveau" si post < 48h
+const NEW_THRESHOLD = 7 * 24 * 3600 * 1000; // badge "nouveau" si post < 7 jours (rythme hebdo)
 const PAGE_SIZE = 48;
 
 const CATEGORY_COLORS = {
