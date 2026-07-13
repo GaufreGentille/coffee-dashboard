@@ -2,7 +2,7 @@ name: Veille Instagram
 
 on:
   schedule:
-    - cron: '30 3 * * *'   # tous les jours à 03:30 UTC (~2h30 de run, fini avant le daily-refresh de 06:00)
+    - cron: '30 3 * * 2'   # chaque mardi à 03:30 UTC (nuit du lundi au mardi, ~2h30 de run)
   workflow_dispatch:        # lancement manuel possible depuis l'onglet Actions
 
 jobs:
