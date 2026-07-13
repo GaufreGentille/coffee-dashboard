@@ -93,7 +93,9 @@ async function main() {
     console.log("ℹ️  Pas d'état précédent (premier run ?)");
   }
 
-  const isSunday = new Date().getUTCDay() === 0; // le dimanche on retente tout
+  // Rythme hebdomadaire : on retente les comptes en skip-list une fois par mois
+  // (lors du run tombant dans les 7 premiers jours du mois = 1er mardi)
+  const isRetryRun = new Date().getUTCDate() <= 7;
   const accounts = [];
   let ok = 0, failed = 0, skipped = 0;
 
@@ -101,7 +103,7 @@ async function main() {
     const { handle, name, category } = handles[i];
     const prevFailCount = prevFails.get(handle) || 0;
 
-    if (prevFailCount >= MAX_FAILS && !isSunday) {
+    if (prevFailCount >= MAX_FAILS && !isRetryRun) {
       accounts.push({ handle, name, category, failCount: prevFailCount, skipped: true });
       skipped++;
       continue; // pas d'appel API → pas de throttle
