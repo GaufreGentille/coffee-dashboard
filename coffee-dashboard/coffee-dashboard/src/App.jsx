@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import HarvestPanel from './components/HarvestPanel'
+import InstaVeillePanel from "./components/InstaVeillePanel.jsx";
 
 // GaufreGentille brand palette
 const BRAND = {
