@@ -10,6 +10,7 @@ const VOTE_URL = "/.netlify/functions/vote";
 const CACHE_KEY = "insta-veille-cache";
 const CACHE_TTL = 30 * 60 * 1000; // 30 min
 const NEW_THRESHOLD = 7 * 24 * 3600 * 1000; // badge "nouveau" si post < 7 jours (rythme hebdo)
+const MAX_POST_AGE = 14 * 24 * 3600 * 1000; // le feed n'affiche que les posts < 2 semaines
 const PAGE_SIZE = 48;
 
 const CATEGORY_COLORS = {
@@ -253,6 +254,7 @@ export default function InstaVeillePanel() {
       if (!a.posts) continue;
       for (const p of a.posts) {
         if (!p.timestamp) continue;
+        if (Date.now() - new Date(p.timestamp).getTime() > MAX_POST_AGE) continue;
         items.push({ ...p, account: a });
       }
     }
