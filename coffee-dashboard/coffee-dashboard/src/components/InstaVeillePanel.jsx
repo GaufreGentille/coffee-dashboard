@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from "react";
 import VeilleAdmin from "./VeilleAdmin.jsx";
 
-// ─── Kissa Soko — Panneau Veille Instagram ────────────────────────────────────
-// Données servies par /.netlify/functions/get-insta (Netlify Blobs),
-// alimentées quotidiennement par GitHub Actions via Business Discovery.
+// ─── Kissa Soko — Panneau Veille Instagram (v2 : votes communautaires) ───────
+// Feed : /.netlify/functions/get-insta (Blobs, rempli chaque mardi par GitHub Actions)
+// Votes : /.netlify/functions/vote — identité légère (pseudo + id localStorage)
 
 const FEED_URL = "/.netlify/functions/get-insta";
+const VOTE_URL = "/.netlify/functions/vote";
 const CACHE_KEY = "insta-veille-cache";
 const CACHE_TTL = 30 * 60 * 1000; // 30 min
 const NEW_THRESHOLD = 7 * 24 * 3600 * 1000; // badge "nouveau" si post < 7 jours (rythme hebdo)
@@ -35,11 +36,127 @@ function timeAgo(ts) {
   return new Date(ts).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
 }
 
-function fmtFollowers(n) {
+function fmtCount(n) {
   if (n == null) return "";
   if (n >= 1e6) return (n / 1e6).toFixed(1).replace(".0", "") + "M";
   if (n >= 1e3) return (n / 1e3).toFixed(1).replace(".0", "") + "k";
   return String(n);
+}
+
+// ─── Identité légère ─────────────────────────────────────────────────────────
+function loadIdentity() {
+  try {
+    const raw = localStorage.getItem("ks-user");
+    if (raw) {
+      const u = JSON.parse(raw);
+      if (u?.id && u?.pseudo) return u;
+    }
+  } catch { /* localStorage indisponible ou corrompu */ }
+  return null;
+}
+
+function saveIdentity(pseudo) {
+  const user = {
+    id: (crypto.randomUUID ? crypto.randomUUID() : `u-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`),
+    pseudo: pseudo.trim().slice(0, 20),
+  };
+  try { localStorage.setItem("ks-user", JSON.stringify(user)); } catch { /* tant pis */ }
+  return user;
+}
+
+// ─── Tri "Hot" façon Reddit : score log + fraîcheur ─────────────────────────
+const HOT_EPOCH = 1750000000; // origine arbitraire (juin 2025)
+function hotScore(timestamp, counts) {
+  const s = (counts?.u || 0) - (counts?.d || 0);
+  const order = Math.log10(Math.max(Math.abs(s), 1));
+  const sign = s > 0 ? 1 : s < 0 ? -1 : 0;
+  const seconds = new Date(timestamp).getTime() / 1000 - HOT_EPOCH;
+  return sign * order + seconds / 45000;
+}
+
+// ─── Modal de choix du pseudo ────────────────────────────────────────────────
+function PseudoModal({ onConfirm, onCancel }) {
+  const [pseudo, setPseudo] = useState("");
+  const valid = pseudo.trim().length >= 2;
+  return (
+    <div
+      onClick={onCancel}
+      style={{
+        position: "fixed", inset: 0, zIndex: 1000,
+        background: "rgba(0,0,0,0.7)", display: "flex",
+        alignItems: "center", justifyContent: "center",
+      }}
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          background: "#1a1a1a", border: "1px solid rgba(254,210,56,0.3)",
+          borderRadius: 14, padding: 24, width: 300, maxWidth: "88vw",
+        }}
+      >
+        <div style={{ fontSize: 14, fontWeight: 700, color: "#f0f0f0", marginBottom: 6 }}>
+          Choisis un pseudo pour voter
+        </div>
+        <div style={{ fontSize: 10, color: "#888", lineHeight: 1.5, marginBottom: 14 }}>
+          Pas de compte, pas de mot de passe — ton pseudo est lié à ce navigateur.
+        </div>
+        <input
+          autoFocus
+          value={pseudo}
+          onChange={(e) => setPseudo(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && valid && onConfirm(pseudo)}
+          placeholder="Ton pseudo (2-20 caractères)"
+          maxLength={20}
+          style={{
+            width: "100%", boxSizing: "border-box",
+            background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)",
+            borderRadius: 8, color: "#eee", fontSize: 13, padding: "8px 12px", outline: "none",
+          }}
+        />
+        <div style={{ display: "flex", gap: 8, marginTop: 14, justifyContent: "flex-end" }}>
+          <button onClick={onCancel} style={{
+            cursor: "pointer", fontSize: 11, borderRadius: 8, padding: "6px 14px",
+            border: "1px solid rgba(255,255,255,0.15)", background: "none", color: "#999",
+          }}>Annuler</button>
+          <button
+            onClick={() => valid && onConfirm(pseudo)}
+            disabled={!valid}
+            style={{
+              cursor: valid ? "pointer" : "default", fontSize: 11, fontWeight: 700,
+              borderRadius: 8, padding: "6px 16px", border: "none",
+              background: valid ? "#fed238" : "rgba(254,210,56,0.25)", color: "#1a1a1a",
+            }}
+          >C'est parti !</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Boutons de vote 🔥/❄️ ───────────────────────────────────────────────────
+function VoteButtons({ postId, counts, mine, onVote }) {
+  const btn = (dir, emoji, count, active, activeColor) => (
+    <button
+      onClick={(e) => { e.preventDefault(); e.stopPropagation(); onVote(postId, mine === dir ? 0 : dir); }}
+      title={dir === 1 ? "Hot — à ne pas rater" : "Cold — sans intérêt"}
+      style={{
+        cursor: "pointer", display: "flex", alignItems: "center", gap: 4,
+        fontSize: 11, borderRadius: 8, padding: "2px 8px",
+        border: `1px solid ${active ? activeColor : "rgba(255,255,255,0.1)"}`,
+        background: active ? `${activeColor}1f` : "rgba(255,255,255,0.03)",
+        color: active ? activeColor : "#888",
+      }}
+    >
+      <span>{emoji}</span>
+      <span style={{ fontSize: 10, fontWeight: active ? 700 : 400 }}>{fmtCount(count) || 0}</span>
+    </button>
+  );
+  return (
+    <div style={{ display: "flex", gap: 6 }}>
+      {btn(1, "🔥", counts?.u || 0, mine === 1, "#ea9524")}
+      {btn(-1, "❄️", counts?.d || 0, mine === -1, "#60a5fa")}
+    </div>
+  );
 }
 
 export default function InstaVeillePanel() {
@@ -47,8 +164,14 @@ export default function InstaVeillePanel() {
   const [error, setError] = useState(null);
   const [category, setCategory] = useState("Tous");
   const [search, setSearch] = useState("");
+  const [sort, setSort] = useState("recent"); // "recent" | "hot"
   const [limit, setLimit] = useState(PAGE_SIZE);
 
+  const [user, setUser] = useState(loadIdentity);
+  const [votes, setVotes] = useState({ counts: {}, mine: {} });
+  const [pendingVote, setPendingVote] = useState(null); // vote en attente du pseudo
+
+  // ── Chargement du feed ──
   useEffect(() => {
     const cached = sessionStorage.getItem(CACHE_KEY);
     if (cached) {
@@ -63,12 +186,66 @@ export default function InstaVeillePanel() {
         setData(payload);
         try {
           sessionStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), payload }));
-        } catch { /* quota sessionStorage dépassé → tant pis pour le cache */ }
+        } catch { /* quota dépassé */ }
       })
       .catch((e) => setError(String(e)));
   }, []);
 
-  // Feed aplati : un item par post, trié du plus récent au plus ancien
+  // ── Chargement des votes (jamais mis en cache : toujours frais) ──
+  useEffect(() => {
+    const qs = user ? `?user=${encodeURIComponent(user.id)}` : "";
+    fetch(VOTE_URL + qs)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((v) => { if (v) setVotes({ counts: v.counts || {}, mine: v.mine || {} }); })
+      .catch(() => { /* les votes sont optionnels, le feed reste utilisable */ });
+  }, [user]);
+
+  // ── Envoi d'un vote (optimiste) ──
+  const sendVote = async (postId, dir, identity) => {
+    const u = identity || user;
+    if (!u) { setPendingVote({ postId, dir }); return; }
+
+    setVotes((prev) => {
+      const counts = { ...prev.counts };
+      const mine = { ...prev.mine };
+      const c = { ...(counts[postId] || { u: 0, d: 0 }) };
+      const old = mine[postId] || 0;
+      if (old === 1) c.u = Math.max(0, c.u - 1);
+      if (old === -1) c.d = Math.max(0, c.d - 1);
+      if (dir === 1) c.u += 1;
+      if (dir === -1) c.d += 1;
+      counts[postId] = c;
+      if (dir === 0) delete mine[postId]; else mine[postId] = dir;
+      return { counts, mine };
+    });
+
+    try {
+      const r = await fetch(VOTE_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ postId, dir, userId: u.id, pseudo: u.pseudo }),
+      });
+      const res = await r.json();
+      if (r.ok) {
+        // recale sur les compteurs officiels du serveur
+        setVotes((prev) => ({
+          ...prev,
+          counts: { ...prev.counts, [postId]: { u: res.u, d: res.d } },
+        }));
+      }
+    } catch { /* le recalage au prochain chargement corrigera */ }
+  };
+
+  const confirmPseudo = (pseudo) => {
+    const u = saveIdentity(pseudo);
+    setUser(u);
+    if (pendingVote) {
+      sendVote(pendingVote.postId, pendingVote.dir, u);
+      setPendingVote(null);
+    }
+  };
+
+  // ── Feed aplati ──
   const feed = useMemo(() => {
     if (!data?.accounts) return [];
     const items = [];
@@ -79,7 +256,6 @@ export default function InstaVeillePanel() {
         items.push({ ...p, account: a });
       }
     }
-    items.sort((x, y) => new Date(y.timestamp) - new Date(x.timestamp));
     return items;
   }, [data]);
 
@@ -94,14 +270,20 @@ export default function InstaVeillePanel() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return feed.filter((it) => {
+    const items = feed.filter((it) => {
       if (category !== "Tous" && it.account.category !== category) return false;
       if (q && !it.account.handle.toLowerCase().includes(q) &&
           !(it.account.name || "").toLowerCase().includes(q) &&
           !(it.caption || "").toLowerCase().includes(q)) return false;
       return true;
     });
-  }, [feed, category, search]);
+    if (sort === "hot") {
+      items.sort((x, y) => hotScore(y.timestamp, votes.counts[y.id]) - hotScore(x.timestamp, votes.counts[x.id]));
+    } else {
+      items.sort((x, y) => new Date(y.timestamp) - new Date(x.timestamp));
+    }
+    return items;
+  }, [feed, category, search, sort, votes.counts]);
 
   const newCount = useMemo(
     () => feed.filter((it) => Date.now() - new Date(it.timestamp) < NEW_THRESHOLD).length,
@@ -127,6 +309,10 @@ export default function InstaVeillePanel() {
 
   return (
     <div>
+      {pendingVote && (
+        <PseudoModal onConfirm={confirmPseudo} onCancel={() => setPendingVote(null)} />
+      )}
+
       {/* ─── Header ─── */}
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap", marginBottom: 10 }}>
         <span style={{ fontWeight: 700, fontSize: 15, color: "#f0f0f0" }}>Veille Instagram</span>
@@ -141,6 +327,9 @@ export default function InstaVeillePanel() {
             {newCount} nouveau{newCount > 1 ? "x" : ""}
           </span>
         )}
+        {user && (
+          <span style={{ fontSize: 9, color: "#666" }}>· connecté : <span style={{ color: "#fed238" }}>{user.pseudo}</span></span>
+        )}
         {data.fetchedAt && (
           <span style={{ fontSize: 9, color: "#555", marginLeft: "auto" }}>
             màj {timeAgo(data.fetchedAt)}
@@ -148,15 +337,31 @@ export default function InstaVeillePanel() {
         )}
       </div>
 
-      {/* ─── Filtres ─── */}
+      {/* ─── Tri + Filtres ─── */}
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
+        {/* Tri */}
+        <div style={{ display: "flex", borderRadius: 8, overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)" }}>
+          {[["recent", "Récents"], ["hot", "🔥 Hot"]].map(([key, label]) => (
+            <button
+              key={key}
+              onClick={() => { setSort(key); setLimit(PAGE_SIZE); }}
+              style={{
+                cursor: "pointer", fontSize: 10, padding: "4px 11px", border: "none",
+                background: sort === key ? "rgba(234,149,36,0.2)" : "rgba(255,255,255,0.03)",
+                color: sort === key ? "#ea9524" : "#888",
+                fontWeight: sort === key ? 700 : 400,
+              }}
+            >{label}</button>
+          ))}
+        </div>
+
         <input
           value={search}
           onChange={(e) => { setSearch(e.target.value); setLimit(PAGE_SIZE); }}
           placeholder="Rechercher…"
           style={{
             background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
-            borderRadius: 8, color: "#eee", fontSize: 11, padding: "4px 10px", outline: "none", width: 150,
+            borderRadius: 8, color: "#eee", fontSize: 11, padding: "4px 10px", outline: "none", width: 130,
           }}
         />
         {[["Tous", feed.length], ...categories.slice(0, 8)].map(([cat, count]) => (
@@ -251,7 +456,7 @@ export default function InstaVeillePanel() {
                 </div>
                 <div style={{ fontSize: 9, color: "#666", marginTop: 2 }}>
                   @{it.account.handle}
-                  {it.account.followers != null && ` · ${fmtFollowers(it.account.followers)} abonnés`}
+                  {it.account.followers != null && ` · ${fmtCount(it.account.followers)} abonnés`}
                 </div>
                 {it.caption && (
                   <div style={{
@@ -261,10 +466,14 @@ export default function InstaVeillePanel() {
                     {it.caption}
                   </div>
                 )}
-                <div style={{ display: "flex", gap: 10, marginTop: 6, fontSize: 9, color: "#666" }}>
-                  <span>{timeAgo(it.timestamp)}</span>
-                  {it.likes != null && <span>♥ {fmtFollowers(it.likes)}</span>}
-                  {it.comments != null && <span>💬 {it.comments}</span>}
+                <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 7 }}>
+                  <VoteButtons
+                    postId={it.id}
+                    counts={votes.counts[it.id]}
+                    mine={votes.mine[it.id] || 0}
+                    onVote={sendVote}
+                  />
+                  <span style={{ fontSize: 9, color: "#666", marginLeft: "auto" }}>{timeAgo(it.timestamp)}</span>
                 </div>
               </div>
             </a>
