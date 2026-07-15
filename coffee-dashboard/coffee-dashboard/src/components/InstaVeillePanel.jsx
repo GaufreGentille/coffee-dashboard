@@ -65,14 +65,10 @@ function saveIdentity(pseudo) {
   return user;
 }
 
-// ─── Tri "Hot" façon Reddit : score log + fraîcheur ─────────────────────────
-const HOT_EPOCH = 1750000000; // origine arbitraire (juin 2025)
-function hotScore(timestamp, counts) {
-  const s = (counts?.u || 0) - (counts?.d || 0);
-  const order = Math.log10(Math.max(Math.abs(s), 1));
-  const sign = s > 0 ? 1 : s < 0 ? -1 : 0;
-  const seconds = new Date(timestamp).getTime() / 1000 - HOT_EPOCH;
-  return sign * order + seconds / 45000;
+// ─── Tri "Hot" : score net (🔥−❄️) décroissant, plus récent d'abord à égalité ──
+// (le feed étant déjà limité aux posts < 2 semaines, pas besoin de pondérer la fraîcheur)
+function netScore(counts) {
+  return (counts?.u || 0) - (counts?.d || 0);
 }
 
 // ─── Modal de choix du pseudo ────────────────────────────────────────────────
@@ -280,7 +276,11 @@ export default function InstaVeillePanel() {
       return true;
     });
     if (sort === "hot") {
-      items.sort((x, y) => hotScore(y.timestamp, votes.counts[y.id]) - hotScore(x.timestamp, votes.counts[x.id]));
+      items.sort((x, y) => {
+        const diff = netScore(votes.counts[y.id]) - netScore(votes.counts[x.id]);
+        if (diff !== 0) return diff;
+        return new Date(y.timestamp) - new Date(x.timestamp);
+      });
     } else {
       items.sort((x, y) => new Date(y.timestamp) - new Date(x.timestamp));
     }
