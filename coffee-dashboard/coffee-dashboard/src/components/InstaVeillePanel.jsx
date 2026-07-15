@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
+import VeilleAdmin from "./VeilleAdmin.jsx";
 
 // ─── Kissa Soko — Panneau Veille Instagram ────────────────────────────────────
 // Données servies par /.netlify/functions/get-insta (Netlify Blobs),
@@ -116,8 +117,11 @@ export default function InstaVeillePanel() {
     return <div style={{ padding: 20, color: "#888", fontSize: 12 }}>Chargement de la veille…</div>;
   }
   if (!feed.length) {
-    return <div style={{ padding: 20, color: "#888", fontSize: 12 }}>
-      Aucune donnée pour l'instant — le premier passage de la veille n'a pas encore eu lieu.
+    return <div style={{ padding: 20 }}>
+      <div style={{ color: "#888", fontSize: 12 }}>
+        Aucune donnée pour l'instant — le premier passage de la veille n'a pas encore eu lieu.
+      </div>
+      <VeilleAdmin />
     </div>;
   }
 
@@ -282,6 +286,9 @@ export default function InstaVeillePanel() {
           </button>
         </div>
       )}
+
+      {/* ─── Admin (discret, mot de passe requis) ─── */}
+      <VeilleAdmin />
     </div>
   );
 }
