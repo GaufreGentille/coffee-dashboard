@@ -55,6 +55,8 @@ const { useState, useEffect, useRef } = React;
 // n'existe pas encore, le jeu retombe sans bruit sur la piste principale.
 const MUSIC = {
   main: "https://kissasoko.netlify.app/music/Beanroom%20Loop.mp3",
+  era2: "https://kissasoko.netlify.app/music/era2-industriel.mp3",
+  era3: "https://kissasoko.netlify.app/music/era3-cosmique.mp3",
   boss: {
     inspecteur: "https://kissasoko.netlify.app/music/boss-inspecteur.mp3",
     baron: "https://kissasoko.netlify.app/music/boss-baron.mp3",
@@ -2864,7 +2866,12 @@ function MameMameSaisons() {
 
   const inBossContext = screen === "bossIntro" || (screen === "game" && boss);
   const bossTrack = boss ? MUSIC.boss[boss.type] : null;
-  const musicUrl = inBossContext && bossTrack && !deadTracks[bossTrack] ? bossTrack : MUSIC.main;
+  // Priorité : thème du boss > thème de l'ère > piste principale (repli auto si un fichier manque)
+  const trackWanted = inBossContext && bossTrack ? [bossTrack] : [];
+  if (era === 3) trackWanted.push(MUSIC.era3);
+  else if (era === 2) trackWanted.push(MUSIC.era2);
+  trackWanted.push(MUSIC.main);
+  const musicUrl = trackWanted.find((u) => u && !deadTracks[u]) || MUSIC.main;
 
   // Déverrouillage audio : play() doit être appelé DANS le geste utilisateur
   const unlockMusic = () => {
