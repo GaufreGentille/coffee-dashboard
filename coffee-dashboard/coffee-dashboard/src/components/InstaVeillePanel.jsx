@@ -1,15 +1,18 @@
 import { useState, useEffect, useMemo } from "react";
 import VeilleAdmin from "./VeilleAdmin.jsx";
 
-// ─── Kissa Soko — Panneau Veille Instagram (v2 : votes communautaires) ───────
-// Feed : /.netlify/functions/get-insta (Blobs, rempli chaque mardi par GitHub Actions)
+// ─── Kissa Soko — Panneau Veille Instagram (v3 : épingles admin) ─────────────
+// Feed : /.netlify/functions/get-insta — rempli chaque mardi par GitHub Actions
 // Votes : /.netlify/functions/vote — identité légère (pseudo + id localStorage)
+// Épingles : /.netlify/functions/pins — posts mis en avant par l'admin, sans
+//            limite de durée, images rafraîchies chaque semaine par le script.
 
 const FEED_URL = "/.netlify/functions/get-insta";
 const VOTE_URL = "/.netlify/functions/vote";
+const PINS_URL = "/.netlify/functions/pins";
 const CACHE_KEY = "insta-veille-cache";
 const CACHE_TTL = 30 * 60 * 1000; // 30 min
-const NEW_THRESHOLD = 7 * 24 * 3600 * 1000; // badge "nouveau" si post < 7 jours (rythme hebdo)
+const NEW_THRESHOLD = 7 * 24 * 3600 * 1000; // badge "nouveau" si post < 7 jours
 const MAX_POST_AGE = 14 * 24 * 3600 * 1000; // le feed n'affiche que les posts < 2 semaines
 const PAGE_SIZE = 48;
 
@@ -52,7 +55,7 @@ function loadIdentity() {
       const u = JSON.parse(raw);
       if (u?.id && u?.pseudo) return u;
     }
-  } catch { /* localStorage indisponible ou corrompu */ }
+  } catch { /* localStorage indisponible */ }
   return null;
 }
 
@@ -65,11 +68,7 @@ function saveIdentity(pseudo) {
   return user;
 }
 
-// ─── Tri "Hot" : score net (🔥−❄️) décroissant, plus récent d'abord à égalité ──
-// (le feed étant déjà limité aux posts < 2 semaines, pas besoin de pondérer la fraîcheur)
-function netScore(counts) {
-  return (counts?.u || 0) - (counts?.d || 0);
-}
+const netScore = (counts) => (counts?.u || 0) - (counts?.d || 0);
 
 // ─── Modal de choix du pseudo ────────────────────────────────────────────────
 function PseudoModal({ onConfirm, onCancel }) {
@@ -156,6 +155,124 @@ function VoteButtons({ postId, counts, mine, onVote }) {
   );
 }
 
+// ─── Carte de post (feed et épingles) ────────────────────────────────────────
+function PostCard({ it, isNew, pinned, isAdmin, votes, onVote, onPin, onUnpin }) {
+  const borderColor = pinned
+    ? "rgba(234,149,36,0.55)"
+    : isNew ? "rgba(254,210,56,0.4)" : "rgba(255,255,255,0.07)";
+  return (
+    <a
+      href={it.permalink}
+      target="_blank"
+      rel="noopener noreferrer"
+      style={{
+        display: "block", textDecoration: "none",
+        background: pinned ? "rgba(234,149,36,0.05)" : "rgba(255,255,255,0.03)",
+        border: `1px solid ${borderColor}`,
+        borderRadius: 12, overflow: "hidden",
+      }}
+    >
+      <div style={{ position: "relative", aspectRatio: "1/1", background: "#111" }}>
+        {it.image && (
+          <img
+            src={it.image}
+            alt=""
+            loading="lazy"
+            style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+            onError={(e) => { e.currentTarget.style.display = "none"; }}
+          />
+        )}
+        {it.type === "VIDEO" && (
+          <span style={{
+            position: "absolute", top: 8, right: 8, fontSize: 11,
+            background: "rgba(0,0,0,0.6)", borderRadius: 6, padding: "1px 6px", color: "#fff",
+          }}>▶</span>
+        )}
+        {it.type === "CAROUSEL_ALBUM" && (
+          <span style={{
+            position: "absolute", top: 8, right: 8, fontSize: 11,
+            background: "rgba(0,0,0,0.6)", borderRadius: 6, padding: "1px 6px", color: "#fff",
+          }}>⧉</span>
+        )}
+        {pinned ? (
+          <span style={{
+            position: "absolute", top: 8, left: 8, fontSize: 9, fontWeight: 700,
+            background: "#ea9524", color: "#1a1a1a", borderRadius: 6, padding: "1px 7px",
+          }}>📌 ÉPINGLÉ</span>
+        ) : isNew && (
+          <span style={{
+            position: "absolute", top: 8, left: 8, fontSize: 9, fontWeight: 700,
+            background: "#fed238", color: "#1a1a1a", borderRadius: 6, padding: "1px 7px",
+          }}>NOUVEAU</span>
+        )}
+        {/* Contrôles admin : épingler / désépingler */}
+        {isAdmin && (
+          <button
+            onClick={(e) => {
+              e.preventDefault(); e.stopPropagation();
+              pinned ? onUnpin(it.id) : onPin(it);
+            }}
+            title={pinned ? "Retirer l'épingle" : "Épingler en haut du feed"}
+            style={{
+              position: "absolute", bottom: 8, right: 8, cursor: "pointer",
+              fontSize: 12, borderRadius: 8, padding: "3px 8px",
+              border: `1px solid ${pinned ? "#ea9524" : "rgba(255,255,255,0.3)"}`,
+              background: pinned ? "rgba(234,149,36,0.85)" : "rgba(0,0,0,0.6)",
+              color: pinned ? "#1a1a1a" : "#fff",
+            }}
+          >
+            {pinned ? "📌 ✕" : "📌"}
+          </button>
+        )}
+      </div>
+
+      <div style={{ padding: "8px 10px 10px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          {it.account.profilePic && (
+            <img
+              src={it.account.profilePic}
+              alt=""
+              loading="lazy"
+              style={{ width: 18, height: 18, borderRadius: "50%", objectFit: "cover" }}
+              onError={(e) => { e.currentTarget.style.display = "none"; }}
+            />
+          )}
+          <span style={{
+            fontSize: 11, fontWeight: 700, color: "#f0f0f0",
+            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
+          }}>
+            {it.account.name || it.account.handle}
+          </span>
+          <span style={{ fontSize: 9, color: catColor(it.account.category), marginLeft: "auto", flexShrink: 0 }}>
+            {it.account.category}
+          </span>
+        </div>
+        <div style={{ fontSize: 9, color: "#666", marginTop: 2 }}>
+          @{it.account.handle}
+          {it.account.followers != null && ` · ${fmtCount(it.account.followers)} abonnés`}
+        </div>
+        {it.caption && (
+          <div style={{
+            fontSize: 10, color: "#aaa", marginTop: 5, lineHeight: 1.4,
+            display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
+          }}>
+            {it.caption}
+          </div>
+        )}
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 7 }}>
+          <VoteButtons
+            postId={it.id}
+            counts={votes.counts[it.id]}
+            mine={votes.mine[it.id] || 0}
+            onVote={onVote}
+          />
+          <span style={{ fontSize: 9, color: "#666", marginLeft: "auto" }}>{timeAgo(it.timestamp)}</span>
+        </div>
+      </div>
+    </a>
+  );
+}
+
 export default function InstaVeillePanel() {
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
@@ -166,7 +283,17 @@ export default function InstaVeillePanel() {
 
   const [user, setUser] = useState(loadIdentity);
   const [votes, setVotes] = useState({ counts: {}, mine: {} });
-  const [pendingVote, setPendingVote] = useState(null); // vote en attente du pseudo
+  const [pendingVote, setPendingVote] = useState(null);
+
+  const [pins, setPins] = useState({});
+  const [adminKey, setAdminKey] = useState(() => sessionStorage.getItem("veille-admin-key") || "");
+
+  // ── Détection de la connexion admin (événement émis par VeilleAdmin) ──
+  useEffect(() => {
+    const onAuth = () => setAdminKey(sessionStorage.getItem("veille-admin-key") || "");
+    window.addEventListener("veille-admin-auth", onAuth);
+    return () => window.removeEventListener("veille-admin-auth", onAuth);
+  }, []);
 
   // ── Chargement du feed ──
   useEffect(() => {
@@ -175,7 +302,7 @@ export default function InstaVeillePanel() {
       try {
         const { at, payload } = JSON.parse(cached);
         if (Date.now() - at < CACHE_TTL) { setData(payload); return; }
-      } catch { /* cache corrompu → refetch */ }
+      } catch { /* cache corrompu */ }
     }
     fetch(FEED_URL)
       .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
@@ -183,18 +310,26 @@ export default function InstaVeillePanel() {
         setData(payload);
         try {
           sessionStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), payload }));
-        } catch { /* quota dépassé */ }
+        } catch { /* quota */ }
       })
       .catch((e) => setError(String(e)));
   }, []);
 
-  // ── Chargement des votes (jamais mis en cache : toujours frais) ──
+  // ── Chargement des épingles (jamais en cache) ──
+  useEffect(() => {
+    fetch(PINS_URL)
+      .then((r) => (r.ok ? r.json() : null))
+      .then((p) => { if (p && typeof p === "object") setPins(p); })
+      .catch(() => { /* épingles optionnelles */ });
+  }, []);
+
+  // ── Chargement des votes (jamais en cache) ──
   useEffect(() => {
     const qs = user ? `?user=${encodeURIComponent(user.id)}` : "";
     fetch(VOTE_URL + qs)
       .then((r) => (r.ok ? r.json() : null))
       .then((v) => { if (v) setVotes({ counts: v.counts || {}, mine: v.mine || {} }); })
-      .catch(() => { /* les votes sont optionnels, le feed reste utilisable */ });
+      .catch(() => { /* votes optionnels */ });
   }, [user]);
 
   // ── Envoi d'un vote (optimiste) ──
@@ -224,13 +359,12 @@ export default function InstaVeillePanel() {
       });
       const res = await r.json();
       if (r.ok) {
-        // recale sur les compteurs officiels du serveur
         setVotes((prev) => ({
           ...prev,
           counts: { ...prev.counts, [postId]: { u: res.u, d: res.d } },
         }));
       }
-    } catch { /* le recalage au prochain chargement corrigera */ }
+    } catch { /* recalé au prochain chargement */ }
   };
 
   const confirmPseudo = (pseudo) => {
@@ -242,7 +376,55 @@ export default function InstaVeillePanel() {
     }
   };
 
-  // ── Feed aplati ──
+  // ── Épingler / désépingler (admin) ──
+  const pinPost = async (it) => {
+    const item = {
+      id: it.id, caption: it.caption, image: it.image, type: it.type,
+      permalink: it.permalink, timestamp: it.timestamp,
+      account: {
+        handle: it.account.handle, name: it.account.name,
+        category: it.account.category, profilePic: it.account.profilePic || null,
+        followers: it.account.followers ?? null,
+      },
+    };
+    setPins((prev) => ({ ...prev, [it.id]: { ...item, pinnedAt: new Date().toISOString() } }));
+    try {
+      const r = await fetch(PINS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-key": adminKey },
+        body: JSON.stringify({ action: "pin", item }),
+      });
+      if (!r.ok) throw new Error();
+    } catch {
+      setPins((prev) => { const p = { ...prev }; delete p[it.id]; return p; });
+      alert("Échec de l'épinglage (session admin expirée ?)");
+    }
+  };
+
+  const unpinPost = async (postId) => {
+    if (!confirm("Retirer cette épingle ?")) return;
+    const backup = pins[postId];
+    setPins((prev) => { const p = { ...prev }; delete p[postId]; return p; });
+    try {
+      const r = await fetch(PINS_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-admin-key": adminKey },
+        body: JSON.stringify({ action: "unpin", postId }),
+      });
+      if (!r.ok) throw new Error();
+    } catch {
+      setPins((prev) => ({ ...prev, [postId]: backup }));
+      alert("Échec du retrait (session admin expirée ?)");
+    }
+  };
+
+  // ── Épingles triées (les plus récemment épinglées d'abord) ──
+  const pinnedItems = useMemo(
+    () => Object.values(pins).sort((a, b) => new Date(b.pinnedAt) - new Date(a.pinnedAt)),
+    [pins]
+  );
+
+  // ── Feed aplati : posts < 2 semaines, hors épingles (affichées à part) ──
   const feed = useMemo(() => {
     if (!data?.accounts) return [];
     const items = [];
@@ -251,11 +433,12 @@ export default function InstaVeillePanel() {
       for (const p of a.posts) {
         if (!p.timestamp) continue;
         if (Date.now() - new Date(p.timestamp).getTime() > MAX_POST_AGE) continue;
+        if (pins[p.id]) continue; // déjà dans la section épinglée
         items.push({ ...p, account: a });
       }
     }
     return items;
-  }, [data]);
+  }, [data, pins]);
 
   const categories = useMemo(() => {
     const counts = {};
@@ -292,6 +475,8 @@ export default function InstaVeillePanel() {
     [feed]
   );
 
+  const isAdmin = !!adminKey;
+
   if (error) {
     return <div style={{ padding: 20, color: "#f87171", fontSize: 12 }}>
       Erreur de chargement de la veille Instagram : {error}
@@ -300,7 +485,7 @@ export default function InstaVeillePanel() {
   if (!data) {
     return <div style={{ padding: 20, color: "#888", fontSize: 12 }}>Chargement de la veille…</div>;
   }
-  if (!feed.length) {
+  if (!feed.length && !pinnedItems.length) {
     return <div style={{ padding: 20 }}>
       <div style={{ color: "#888", fontSize: 12 }}>
         Aucune donnée pour l'instant — le premier passage de la veille n'a pas encore eu lieu.
@@ -339,9 +524,42 @@ export default function InstaVeillePanel() {
         )}
       </div>
 
+      {/* ─── Section épinglée ─── */}
+      {pinnedItems.length > 0 && (
+        <div style={{ marginBottom: 18 }}>
+          <div style={{
+            fontSize: 11, fontWeight: 700, color: "#ea9524", marginBottom: 8,
+            display: "flex", alignItems: "center", gap: 6,
+          }}>
+            📌 À la une
+            <span style={{ fontWeight: 400, color: "#666", fontSize: 9 }}>
+              — sélection de la maison
+            </span>
+          </div>
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(210px, 1fr))",
+            gap: 12,
+          }}>
+            {pinnedItems.map((it) => (
+              <PostCard
+                key={it.id}
+                it={it}
+                isNew={false}
+                pinned
+                isAdmin={isAdmin}
+                votes={votes}
+                onVote={sendVote}
+                onPin={pinPost}
+                onUnpin={unpinPost}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* ─── Tri + Filtres ─── */}
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
-        {/* Tri */}
         <div style={{ display: "flex", borderRadius: 8, overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)" }}>
           {[["recent", "Récents"], ["hot", "🔥 Hot"]].map(([key, label]) => (
             <button
@@ -388,99 +606,19 @@ export default function InstaVeillePanel() {
         gridTemplateColumns: "repeat(auto-fill, minmax(210px, 1fr))",
         gap: 12,
       }}>
-        {filtered.slice(0, limit).map((it) => {
-          const isNew = Date.now() - new Date(it.timestamp) < NEW_THRESHOLD;
-          return (
-            <a
-              key={it.id}
-              href={it.permalink}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{
-                display: "block", textDecoration: "none",
-                background: "rgba(255,255,255,0.03)",
-                border: `1px solid ${isNew ? "rgba(254,210,56,0.4)" : "rgba(255,255,255,0.07)"}`,
-                borderRadius: 12, overflow: "hidden",
-              }}
-            >
-              {/* Image */}
-              <div style={{ position: "relative", aspectRatio: "1/1", background: "#111" }}>
-                {it.image && (
-                  <img
-                    src={it.image}
-                    alt=""
-                    loading="lazy"
-                    style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
-                    onError={(e) => { e.currentTarget.style.display = "none"; }}
-                  />
-                )}
-                {it.type === "VIDEO" && (
-                  <span style={{
-                    position: "absolute", top: 8, right: 8, fontSize: 11,
-                    background: "rgba(0,0,0,0.6)", borderRadius: 6, padding: "1px 6px", color: "#fff",
-                  }}>▶</span>
-                )}
-                {it.type === "CAROUSEL_ALBUM" && (
-                  <span style={{
-                    position: "absolute", top: 8, right: 8, fontSize: 11,
-                    background: "rgba(0,0,0,0.6)", borderRadius: 6, padding: "1px 6px", color: "#fff",
-                  }}>⧉</span>
-                )}
-                {isNew && (
-                  <span style={{
-                    position: "absolute", top: 8, left: 8, fontSize: 9, fontWeight: 700,
-                    background: "#fed238", color: "#1a1a1a", borderRadius: 6, padding: "1px 7px",
-                  }}>NOUVEAU</span>
-                )}
-              </div>
-
-              {/* Infos compte */}
-              <div style={{ padding: "8px 10px 10px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                  {it.account.profilePic && (
-                    <img
-                      src={it.account.profilePic}
-                      alt=""
-                      loading="lazy"
-                      style={{ width: 18, height: 18, borderRadius: "50%", objectFit: "cover" }}
-                      onError={(e) => { e.currentTarget.style.display = "none"; }}
-                    />
-                  )}
-                  <span style={{
-                    fontSize: 11, fontWeight: 700, color: "#f0f0f0",
-                    overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
-                  }}>
-                    {it.account.name || it.account.handle}
-                  </span>
-                  <span style={{ fontSize: 9, color: catColor(it.account.category), marginLeft: "auto", flexShrink: 0 }}>
-                    {it.account.category}
-                  </span>
-                </div>
-                <div style={{ fontSize: 9, color: "#666", marginTop: 2 }}>
-                  @{it.account.handle}
-                  {it.account.followers != null && ` · ${fmtCount(it.account.followers)} abonnés`}
-                </div>
-                {it.caption && (
-                  <div style={{
-                    fontSize: 10, color: "#aaa", marginTop: 5, lineHeight: 1.4,
-                    display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
-                  }}>
-                    {it.caption}
-                  </div>
-                )}
-                <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 7 }}>
-                  <VoteButtons
-                    postId={it.id}
-                    counts={votes.counts[it.id]}
-                    mine={votes.mine[it.id] || 0}
-                    onVote={sendVote}
-                  />
-                  <span style={{ fontSize: 9, color: "#666", marginLeft: "auto" }}>{timeAgo(it.timestamp)}</span>
-                </div>
-              </div>
-            </a>
-          );
-        })}
+        {filtered.slice(0, limit).map((it) => (
+          <PostCard
+            key={it.id}
+            it={it}
+            isNew={Date.now() - new Date(it.timestamp) < NEW_THRESHOLD}
+            pinned={false}
+            isAdmin={isAdmin}
+            votes={votes}
+            onVote={sendVote}
+            onPin={pinPost}
+            onUnpin={unpinPost}
+          />
+        ))}
       </div>
 
       {/* ─── Voir plus ─── */}
