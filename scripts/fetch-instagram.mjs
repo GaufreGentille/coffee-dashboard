@@ -34,10 +34,31 @@ const MAX_POSTS = 4;
 const MAX_CAPTION = 350;
 const MAX_FAILS = 3; // au-delà, le compte est skippé (retenté le dimanche)
 
+const HANDLES_URL =
+  process.env.VEILLE_HANDLES_URL ||
+  "https://kissasoko.netlify.app/.netlify/functions/handles";
+
 const HANDLES_PATH = new URL(
   "../coffee-dashboard/coffee-dashboard/src/data/insta-handles.json",
   import.meta.url
 );
+
+// La liste vit dans Netlify Blobs (éditable depuis le panneau admin du dashboard).
+// Le fichier JSON du repo ne sert que de secours si le Blob est vide/injoignable.
+async function loadHandles() {
+  try {
+    const r = await fetch(HANDLES_URL);
+    if (r.ok) {
+      const list = await r.json();
+      if (Array.isArray(list) && list.length > 0) {
+        console.log(`📋 Liste chargée depuis Netlify (${list.length} comptes)`);
+        return list;
+      }
+    }
+  } catch { /* réseau KO → fallback */ }
+  console.log("📋 Liste Netlify vide/injoignable — fallback sur le fichier du repo");
+  return JSON.parse(readFileSync(HANDLES_PATH, "utf8"));
+}
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -63,6 +84,10 @@ function isRateLimit(err) {
   return [4, 17, 32, 613].includes(err?.code);
 }
 
+const PINS_URL =
+  process.env.VEILLE_PINS_URL ||
+  "https://kissasoko.netlify.app/.netlify/functions/pins";
+
 async function fetchAccount(handle) {
   const fields =
     `business_discovery.username(${handle})` +
@@ -75,8 +100,61 @@ async function fetchAccount(handle) {
   return json.business_discovery;
 }
 
+// Fetch "profond" pour les épingles : remonte plus loin dans l'historique du compte
+async function fetchAccountDeep(handle) {
+  const fields =
+    `business_discovery.username(${handle})` +
+    `{media.limit(25){media_url,thumbnail_url,media_type,timestamp,like_count,comments_count}}`;
+  const url = `${GRAPH}/${IG_USER_ID}?fields=${encodeURIComponent(fields)}&access_token=${IG_ACCESS_TOKEN}`;
+  const res = await fetch(url);
+  const json = await res.json();
+  if (json.error) throw json.error;
+  return json.business_discovery;
+}
+
+// Les URLs d'images CDN Instagram expirent en ~9 jours : les épingles vivent
+// plusieurs semaines, donc on rafraîchit leurs images à chaque passage.
+async function refreshPins() {
+  let pins;
+  try {
+    pins = await fetch(PINS_URL).then((r) => (r.ok ? r.json() : null));
+  } catch { return; }
+  if (!pins || typeof pins !== "object") return;
+  const ids = Object.keys(pins);
+  if (!ids.length) return;
+
+  console.log(`\n📌 Rafraîchissement de ${ids.length} épingle(s)…`);
+  const byAccount = {};
+  for (const id of ids) {
+    const h = pins[id]?.account?.handle;
+    if (h) (byAccount[h] ||= []).push(id);
+  }
+
+  for (const handle of Object.keys(byAccount)) {
+    try {
+      const bd = await fetchAccountDeep(handle);
+      for (const m of bd.media?.data || []) {
+        if (pins[m.id]) {
+          pins[m.id].image =
+            m.media_type === "VIDEO" ? (m.thumbnail_url || m.media_url) : m.media_url;
+          if (m.like_count != null) pins[m.id].likes = m.like_count;
+          if (m.comments_count != null) pins[m.id].comments = m.comments_count;
+        }
+      }
+    } catch { /* compte injoignable → l'épingle garde ses données actuelles */ }
+    await sleep(THROTTLE_MS);
+  }
+
+  const push = await fetch(PINS_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "x-veille-secret": VEILLE_SECRET },
+    body: JSON.stringify({ action: "refresh", pins }),
+  });
+  console.log(push.ok ? "📌 Épingles rafraîchies ✓" : `📌 Échec refresh épingles: ${push.status}`);
+}
+
 async function main() {
-  const handles = JSON.parse(readFileSync(HANDLES_PATH, "utf8"));
+  const handles = await loadHandles();
   console.log(`📋 ${handles.length} comptes dans la liste de veille`);
 
   // État précédent → skip-list des comptes en échec répété
@@ -176,6 +254,8 @@ async function main() {
     process.exit(1);
   }
   console.log("✅ Données poussées vers Netlify Blobs");
+
+  await refreshPins();
 }
 
 main().catch((e) => {
