@@ -49,6 +49,7 @@ export default function VeilleAdmin() {
       await api({ action: "ping" });
       sessionStorage.setItem("veille-admin-key", key);
       setAuthed(true);
+      window.dispatchEvent(new CustomEvent("veille-admin-auth"));
       flash("Connecté ✓");
     } catch (e) {
       flash(e.message === "non autorisé" ? "Mot de passe incorrect" : e.message, false);
@@ -138,6 +139,20 @@ export default function VeilleAdmin() {
             </div>
           ) : (
             <div>
+              {/* Avertissement liste vide : le collecteur retomberait sur la liste de base */}
+              {list.length === 0 && (
+                <div style={{
+                  fontSize: 11, lineHeight: 1.5, marginBottom: 12, padding: "8px 12px",
+                  borderRadius: 8, border: "1px solid rgba(234,149,36,0.4)",
+                  background: "rgba(234,149,36,0.08)", color: "#ea9524",
+                }}>
+                  ⚠️ <b>La liste gérée est vide.</b> Tant qu'elle l'est, le collecteur du mardi
+                  utilise la liste de base du repo : tes ajouts et retraits ne sont pas pris en
+                  compte. Clique sur « Importer la liste de base » ci-dessous pour l'initialiser,
+                  puis vérifie que le compteur affiche bien {SEED.length} comptes.
+                </div>
+              )}
+
               {/* Ajout */}
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
                 <input
