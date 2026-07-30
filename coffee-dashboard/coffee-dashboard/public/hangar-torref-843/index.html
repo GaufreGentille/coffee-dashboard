@@ -75,26 +75,30 @@ const BOSSES = [
   {
     type: "inspecteur", name: "L'Inspecteur Q-Grader",
     intro: "Il arrive avec sa mallette de cuillères à cupping. Il ne goûte que l'excellence.",
-    makeReq: (c) => ({ kg: 1 + c, q: 72 + c * 3, pay: 140 + c * 80 }),
+    makeReq: (c) => ({ kg: 2 + c * 2, q: 74 + c * 5, pay: 140 + c * 90 }),
     desc: (r) => `Présente aujourd'hui un lot d'au moins ${r.kg} kg avec une qualité de ${r.q} ou plus. Récompense : ${r.pay} € et de la réputation.`,
+    winMsg: "Il repose sa cuillère, hoche la tête une fois. « Voilà, enfin, une tasse qui mérite qu'on en parle. »",
   },
   {
     type: "baron", name: "Le Baron du Vert",
     intro: "Il a mis la main sur tous les conteneurs du port. Aujourd'hui, le vert coûte le triple… et il exige son tribut.",
-    makeReq: (c) => ({ ransom: 110 + c * 90 }),
+    makeReq: (c) => ({ ransom: 160 + c * 160 }),
     desc: (r) => `Le café vert coûte ×3 aujourd'hui. Ce soir, il faudra lui verser ${r.ransom} € de tribut, sinon il ferme ta boutique.`,
+    winMsg: "Le tribut versé, il ajuste son chapeau. « Tu paies rubis sur l'ongle. J'aime ça. On se reverra. »",
   },
   {
     type: "monstre", name: "Mochi, le Kaiju Gourmand",
     intro: "Un client de trente mètres de haut frappe doucement à ta porte. Il veut goûter TOUTE ta gamme.",
-    makeReq: (c) => ({ kgEach: 1 + Math.floor(c / 2), q: 62 + c * 3, pay: 220 + c * 120 }),
+    makeReq: (c) => ({ kgEach: 2 + Math.floor(c * 0.8), q: 64 + c * 5, pay: 240 + c * 140 }),
     desc: (r) => `Fournis ce soir un lot de CHAQUE niveau (Claire, Medium, Foncée), chacun d'au moins ${r.kgEach} kg et de qualité ${r.q}+. Récompense : ${r.pay} €.`,
+    winMsg: "Mochi engloutit les trois lots, pousse un rugissement ravi qui fait trembler les vitres, et s'en va content.",
   },
   {
     type: "rival", name: "Louis, le Torréfacteur Rival",
     intro: "Il gare son food-truck juste en face et te défie en duel de torréfaction, devant tout le quartier.",
-    makeReq: (c) => ({ score: 70 + c * 4, pay: 130 + c * 70 }),
+    makeReq: (c) => ({ score: 74 + c * 5, pay: 140 + c * 85 }),
     desc: (r) => `Réalise aujourd'hui une torréfaction MANUELLE de qualité ${r.score} ou plus pour le battre. Récompense : ${r.pay} € et de la réputation.`,
+    winMsg: "Louis contemple ta courbe, ferme son food-truck en silence. « … Apprends-moi. » Le quartier explose en acclamations.",
   },
 ];
 
@@ -121,17 +125,19 @@ const C = {
 };
 
 const BASE_ORIGINS = [
-  { id: "bresil", name: "Brésil", base: 8, notes: "noisette, chocolat" },
-  { id: "colombie", name: "Colombie", base: 10, notes: "caramel, fruits rouges" },
-  { id: "guatemala", name: "Guatemala", base: 11, notes: "cacao, épices" },
-  { id: "ethiopie", name: "Éthiopie", base: 14, notes: "floral, agrumes" },
-  { id: "kenya", name: "Kenya", base: 15, notes: "cassis, acidité vive" },
+  { id: "bresil", name: "Brésil", base: 8, notes: "noisette, chocolat", raw: "#8fae5d" },
+  { id: "colombie", name: "Colombie", base: 10, notes: "caramel, fruits rouges", raw: "#a7bd5a" },
+  { id: "guatemala", name: "Guatemala", base: 11, notes: "cacao, épices", raw: "#7fa663" },
+  { id: "ethiopie", name: "Éthiopie", base: 14, notes: "floral, agrumes", raw: "#b6c96a" },
+  { id: "kenya", name: "Kenya", base: 15, notes: "cassis, acidité vive", raw: "#6f9e55" },
 ];
-const GEISHA = { id: "geisha", name: "Geisha (Panama)", base: 25, notes: "jasmin, bergamote" };
+// Le Geisha est d'un vert franc et pur ; les autres origines varient autour du vert.
+const GEISHA = { id: "geisha", name: "Geisha (Panama)", base: 25, notes: "jasmin, bergamote", raw: "#4caf50" };
 const SPACE_ORIGINS = [
-  { id: "lune", name: "Mare Tranquillitatis (Lune)", base: 40, notes: "silex, jasmin froid, poussière d'étoile" },
-  { id: "mars", name: "Serre d'Olympus Mons (Mars)", base: 55, notes: "fruits rouges oxydés, minéral, fer doux" },
+  { id: "lune", name: "Mare Tranquillitatis (Lune)", base: 40, notes: "silex, jasmin froid, poussière d'étoile", raw: "#9fb8c9" },
+  { id: "mars", name: "Serre d'Olympus Mons (Mars)", base: 55, notes: "fruits rouges oxydés, minéral, fer doux", raw: "#c97b5a" },
 ];
+const EXO_COLORS = ["#c98fd0", "#d0708f", "#70a8d0", "#8fd0b0", "#d0c070", "#b090d0", "#70d0c0"];
 
 // Exo-grains procéduraux : chaque run découvre les siens au télescope
 const EXO_SYL = ["Kep", "Tau", "Vel", "Zar", "Nyx", "Ori", "Cass", "Lyr", "Alt", "Sag"];
@@ -139,12 +145,14 @@ const EXO_END = ["ora IV", "ion IX", "ette b", "una Prime", "os VII", "ari 12", 
 const EXO_NOTES = ["nébuleuse sucrée", "ozone et miel", "fruit inconnu n°7", "pluie de méthane", "caramel d'antimatière", "fleur cryogénique", "umami stellaire", "sève de comète", "brume violette", "sucre d'aurore"];
 function makeExo() {
   const name = pick(EXO_SYL) + pick(EXO_END);
-  const qBonus = 2 + Math.floor(Math.random() * 9); // +2 à +10 de qualité
+  const shiny = Math.random() < 0.03; // 3% : exo-grain shiny arc-en-ciel
+  const qBonus = (shiny ? 12 : 0) + 2 + Math.floor(Math.random() * 9);
   return {
     id: "exo_" + Math.random().toString(36).slice(2, 8),
-    name, exo: true, qBonus,
-    base: 60 + Math.floor(Math.random() * 61),
-    notes: `${pick(EXO_NOTES)}, ${pick(EXO_NOTES)} · +${qBonus} qualité`,
+    name: shiny ? "✦ " + name + " ✦" : name, exo: true, qBonus, shiny,
+    raw: shiny ? "rainbow" : pick(EXO_COLORS),
+    base: (shiny ? 140 : 60) + Math.floor(Math.random() * 61),
+    notes: `${pick(EXO_NOTES)}, ${pick(EXO_NOTES)}${shiny ? ", éclat impossible" : ""} · +${qBonus} qualité`,
   };
 }
 
@@ -205,10 +213,13 @@ const GRID_COLS = 5, GRID_ROWS = 7;
 const MACHINES = {
   silo: { name: "Silo à vert", short: "Silo", cost: 60, color: "#5a9e3d", desc: "Puise dans ton stock de café vert. Point de départ de toute chaîne." },
   belt: { name: "Tapis roulant", short: "Tapis", cost: 15, color: "#8a6f55", desc: "Relie les machines entre elles." },
-  roaster: { name: "Torréfacteur auto", short: "Torréf", cost: 220, color: "#da5d16", desc: "Torréfie 3 kg de vert par jour s'il est relié à un silo." },
+  roaster: { name: "Torréfacteur auto", short: "Torréf", cost: 180, color: "#da5d16", roast: 4, desc: "Torréfie 4 kg de vert par jour s'il est relié à un silo." },
   bagger: { name: "Ensacheuse", short: "Ensach", cost: 180, color: "#a06dd0", desc: "Ensache et vend 4 kg par jour si reliée à un torréfacteur alimenté." },
-  mixer: { name: "Mélangeur", short: "Mélang", cost: 200, color: "#4a7fb5", desc: "Transforme la production reliée en blends maison (+4 qualité)." },
-  mega: { name: "Mégatorréfacteur", short: "Méga", cost: 600, color: "#b3452e", desc: "Torréfie 12 kg de vert par jour. L'échelle industrielle.", era: 2 },
+  mixer: { name: "Mélangeur", short: "Mélang", cost: 200, color: "#4a7fb5", desc: "Relié après plusieurs torréfacteurs, il fond leurs cafés en un blend maison : qualité = moyenne + bonus d'harmonie, vendu plus cher aux amateurs de blends." },
+  mega: { name: "Mégatorréfacteur", short: "Méga", cost: 550, color: "#b3452e", roast: 12, era: 2, desc: "Torréfie 12 kg de vert par jour. L'échelle industrielle." },
+  giga: { name: "Gigatorréfacteur", short: "Giga", cost: 1600, color: "#8a2f1e", roast: 30, era: 2, desc: "Torréfie 30 kg de vert par jour. La cathédrale du café." },
+  orbital: { name: "Tambour orbital", short: "Orbite", cost: 4200, color: "#5a4a9e", roast: 60, era: 3, desc: "Torréfie 60 kg de vert par jour dans le vide. Sans scorch, qualité bonifiée." },
+  dyson: { name: "Nœud de Dyson", short: "Dyson", cost: 12000, color: "#c9761f", roast: 300, era: 3, desc: "Torréfie 300 kg de vert par jour en captant une fraction d'étoile." },
 };
 
 const CORP_CLIENTS = ["Kuma Corp", "Usagi Holdings", "Neko Industries", "Panda Global", "Tanuki & Fils", "Kitsune Trading"];
@@ -229,13 +240,12 @@ function computeFlow(grid) {
     }
     return seen;
   };
+  const isRoaster = (t) => MACHINES[t] && MACHINES[t].roast > 0;
   const fromSilo = reach(["silo"]);
-  const fedRoasters = new Set(keys.filter((k) => grid[k].type === "roaster" && fromSilo.has(k)));
-  const fedMegas = new Set(keys.filter((k) => grid[k].type === "mega" && fromSilo.has(k)));
-  const allFed = new Set([...fedRoasters, ...fedMegas]);
-  const fromFed = allFed.size
+  const fedRoasters = new Set(keys.filter((k) => isRoaster(grid[k].type) && fromSilo.has(k)));
+  const fromFed = fedRoasters.size
     ? (() => {
-        const seen = new Set(allFed);
+        const seen = new Set(fedRoasters);
         const queue = [...seen];
         while (queue.length) {
           const k = queue.shift();
@@ -246,18 +256,25 @@ function computeFlow(grid) {
     : new Set();
   const fedBaggers = new Set(keys.filter((k) => grid[k].type === "bagger" && fromFed.has(k)));
   const fedMixers = new Set(keys.filter((k) => grid[k].type === "mixer" && fromFed.has(k)));
-  return { fromSilo, fedRoasters, fedMegas, fedBaggers, fedMixers };
+  // capacité d'entrée totale = somme des débits des torréfacteurs alimentés
+  let roastCap = 0;
+  fedRoasters.forEach((k) => { roastCap += MACHINES[grid[k].type].roast; });
+  return { fromSilo, fedRoasters, roastCap, fedBaggers, fedMixers };
 }
 
 // ————— Caféine Pure : monnaie de Transcendance, ne débloque que des MÉCANIQUES —————
 const CP_SHOP = [
-  { id: "melangeur", name: "Mélangeur d'usine", cost: 10, desc: "Nouvelle machine posable : transforme la production de l'usine en blends maison (+4 qualité, vendables aux amateurs de blends)." },
-  { id: "contrats", name: "Contrats grossistes", cost: 16, desc: "Tous les 4 jours, un contrat en gros arrive : gros tonnage, niveau libre, très bien payé." },
-  { id: "legendaires", name: "Reliques légendaires", cost: 24, desc: "Au matin d'une victoire sur un boss, une relique légendaire (volontairement cassée) s'invite dans le draft." },
-  { id: "gaufromatic", name: "Gaufromatic", cost: 35, desc: "Un assistant IA s'installe dans la boutique et fait des « suggestions ». Il apprend. Il optimise. Il insiste." },
-  { id: "ere2", name: "Ère 2 — L'Industriel", cost: 60, desc: "Vaincs un deuxième boss dans un run : la boutique deviendra autre chose. L'échelle change. Tout change." },
-  { id: "ere3", name: "Ère 3 — Le Cosmique", cost: 100, desc: "Vaincs un quatrième boss en Ère 2 : la Terre devient trop petite. Grains lunaires, torréfaction du vide, cuisson par étoile." },
+  { id: "melangeur", name: "Mélangeur d'usine", cost: 6, desc: "Débloque la machine Mélangeur : fusionne plusieurs cafés torréfiés reliés en un blend maison (qualité = moyenne + bonus d'harmonie), vendable aux clients qui réclament un blend." },
+  { id: "auto_batch", name: "Pilote de fournée", cost: 8, desc: "Gaufromatic peut lancer et piloter les torréfactions manuelles à ta place, sur ton meilleur profil enregistré." },
+  { id: "auto_orders", name: "Standard automatique", cost: 12, desc: "Une fois tous les outils réunis, les commandes des clients sont honorées automatiquement depuis ton stock." },
+  { id: "legendaires", name: "Reliques légendaires", cost: 14, desc: "Au matin d'une victoire sur un boss, une relique légendaire (volontairement cassée) s'invite dans le draft." },
+  { id: "mastery", name: "Maîtrise I — Grand Cru", cost: 16, desc: "Le plafond de qualité passe de 100 à 130. Les cafés d'exception existent enfin." },
+  { id: "mastery2", name: "Maîtrise II — Perfection", cost: 30, desc: "Le plafond de qualité monte à 170. De quoi affronter les exigences les plus folles des boss cosmiques." },
+  { id: "gaufromatic", name: "Gaufromatic — Éveil", cost: 10, desc: "L'assistant IA s'installe et commence à faire des « suggestions ». Son loyer mensuel viendra… plus tard." },
 ];
+
+// Paliers de qualité maximale (Caféine Pure)
+const qCeil = (unlocks) => (unlocks.mastery2 ? 170 : unlocks.mastery ? 130 : 100);
 
 const LEGENDARIES = [
   { id: "lg_super", name: "Café quantique superposé", desc: "Tes lots sont dans tous les états de torréfaction à la fois : le niveau demandé par les clients est toujours le bon." },
@@ -266,6 +283,7 @@ const LEGENDARIES = [
   { id: "lg_midas", name: "Charbon gourmet", desc: "Les fournées ratées ou carbonisées se vendent quand même, à 8 € le kilo. L'échec devient un produit." },
   { id: "lg_culte", name: "Culte du grain", desc: "Tes fidèles ne te quittent plus : la réputation ne peut plus baisser." },
   { id: "lg_serre", name: "Serre hydroponique", desc: "Chaque kilo de vert acheté au marché en donne deux. La botanique a ses secrets." },
+  { id: "lg_gyroscope", name: "Gyroscope de précision", desc: "L'anneau stellaire ne dérive plus vers le bas : +8 de qualité garantie sur chaque cuisson d'étoile." },
 ];
 
 const GAUFRO_FLAVOR = [
@@ -382,6 +400,26 @@ const SFX = {
 const beep = (f, d, v) => plop(f, f * 0.7, d, v, 0, 0.04);
 
 // ————— Petits SVG —————
+const RawBean = ({ origin, size = 16 }) => {
+  const rainbow = origin?.raw === "rainbow";
+  const gid = "rb" + (origin?.id || "x");
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: "inline-block", verticalAlign: "-2px" }}>
+      {rainbow && (
+        <defs>
+          <linearGradient id={gid} x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#ff6b6b" /><stop offset="25%" stopColor="#feca57" />
+            <stop offset="50%" stopColor="#48dbb0" /><stop offset="75%" stopColor="#54a0ff" />
+            <stop offset="100%" stopColor="#c56cf0" />
+          </linearGradient>
+        </defs>
+      )}
+      <ellipse cx="12" cy="12" rx="7" ry="9" fill={rainbow ? `url(#${gid})` : (origin?.raw || "#6f9e55")} stroke={C.dark} strokeWidth="2" transform="rotate(20 12 12)" />
+      <path d="M9 6 Q12 12 10 18" stroke={C.dark} strokeWidth="1.4" fill="none" opacity="0.5" transform="rotate(20 12 12)" />
+    </svg>
+  );
+};
+
 const BeanIcon = ({ size = 18, fill = C.dark }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" style={{ display: "inline-block", verticalAlign: "-3px" }}>
     <ellipse cx="12" cy="12" rx="8" ry="10" fill={fill} transform="rotate(20 12 12)" />
@@ -569,6 +607,8 @@ function MameMameSaisons() {
   const [bestLot, setBestLot] = useState(null); // meilleure torréf manuelle du run (Percolateur temporel)
   const [gaufro, setGaufro] = useState(null); // { trust, auto: {refill, sell}, msg, unread }
   const [gaufroOpen, setGaufroOpen] = useState(false);
+  const [victoryBoss, setVictoryBoss] = useState(null);
+  const [pendingEra, setPendingEra] = useState(null);
   const [era, setEra] = useState(1); // 1 = artisan, 2 = industriel, 3 = cosmique
   const [spec, setSpec] = useState(null); // { amount } — spéculation en bourse (Ère 2)
   const [exos, setExos] = useState([]); // exo-grains découverts au télescope (Ère 3)
@@ -599,6 +639,7 @@ function MameMameSaisons() {
   const dailyBatchCap = 3 + (gear.roaster2 ? 3 : 0) + rl("doublecharge") + mLvl("cap");
   const COLS = era === 3 ? 7 : era === 2 ? 6 : GRID_COLS;
   const ROWS = era === 3 ? 10 : era === 2 ? 9 : GRID_ROWS;
+  useEffect(() => { dimsRef.current = { cols: COLS, rows: ROWS }; }, [COLS, ROWS]);
 
   const say = (msg) => {
     setToast(msg);
@@ -788,7 +829,7 @@ function MameMameSaisons() {
     if (s.vacuum) q += 3;
     const o = activeOrigins.find((x) => x.id === s.originId);
     if (o?.qBonus) q += o.qBonus;
-    q = clamp(Math.round(q), 25, 100);
+    q = clamp(Math.round(q), 25, qCeil(meta.cpUnlocks));
     let outKg = s.kg * 0.85;
     let quantum = false;
     if (Math.random() < rl("quantique") * 0.1) { outKg += 0.5; quantum = true; }
@@ -953,7 +994,7 @@ function MameMameSaisons() {
       if (spread >= 2) { q -= 6; notes.push("Claire et Foncée dans le même sac (−6)"); }
       if (rl("palais")) { q += rl("palais"); notes.push(`Palais absolu (+${rl("palais")})`); }
     }
-    q = clamp(Math.round(q), 25, 100);
+    q = clamp(Math.round(q), 25, qCeil(meta.cpUnlocks));
     return { tot: r1(tot), level, levelFloat, spread, isPure, compo, q, notes, originId: isPure ? origins[0] : "blend" };
   };
 
@@ -1017,58 +1058,73 @@ function MameMameSaisons() {
     SFX.pop(opts.sfx);
   };
 
+  const dimsRef = useRef({ cols: GRID_COLS, rows: GRID_ROWS });
   const cellAtPoint = (x, y) => {
     const el = gridRef.current;
     if (!el) return null;
     const rect = el.getBoundingClientRect();
     if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) return null;
-    const c = clamp(Math.floor(((x - rect.left) / rect.width) * COLS), 0, COLS - 1);
-    const r = clamp(Math.floor(((y - rect.top) / rect.height) * ROWS), 0, ROWS - 1);
+    const { cols, rows } = dimsRef.current;
+    const c = clamp(Math.floor(((x - rect.left) / rect.width) * cols), 0, cols - 1);
+    const r = clamp(Math.floor(((y - rect.top) / rect.height) * rows), 0, rows - 1);
     return `${r},${c}`;
   };
 
+  // Refs fraîches : le listener global lit toujours l'état courant (fini les fermetures périmées)
+  const dragRef = useRef(null);
+  const gridStateRef = useRef(factoryGrid);
+  const buildSelRef = useRef(buildSel);
+  useEffect(() => { gridStateRef.current = factoryGrid; }, [factoryGrid]);
+  useEffect(() => { buildSelRef.current = buildSel; }, [buildSel]);
+
   const startDrag = (e, type, fromKey, paletteTap) => {
-    e.preventDefault();
-    setDrag({ type, fromKey: fromKey || null, paletteTap: !!paletteTap, sx: e.clientX, sy: e.clientY, x: e.clientX, y: e.clientY, moved: false });
+    if (e.cancelable) e.preventDefault();
+    const d = { type, fromKey: fromKey || null, paletteTap: !!paletteTap, sx: e.clientX, sy: e.clientY, x: e.clientX, y: e.clientY, moved: false };
+    dragRef.current = d;
+    setDrag(d);
   };
 
+  // Écouteurs installés une seule fois : ils lisent dragRef/gridStateRef en direct
   useEffect(() => {
-    if (!drag) return;
     const move = (e) => {
-      setDrag((d) => d && {
-        ...d, x: e.clientX, y: e.clientY,
-        moved: d.moved || Math.hypot(e.clientX - d.sx, e.clientY - d.sy) > 8,
-      });
+      const d = dragRef.current;
+      if (!d) return;
+      const moved = d.moved || Math.hypot(e.clientX - d.sx, e.clientY - d.sy) > 8;
+      const nd = { ...d, x: e.clientX, y: e.clientY, moved };
+      dragRef.current = nd;
+      setDrag(nd);
     };
     const up = (e) => {
+      const d = dragRef.current;
+      if (!d) return;
+      dragRef.current = null;
+      const grid = gridStateRef.current;
+      const sel = buildSelRef.current;
       const cell = cellAtPoint(e.clientX, e.clientY);
-      setDrag((d) => {
-        if (!d) return null;
-        if (!d.moved) {
-          // simple tap
-          if (d.fromKey) {
-            if (buildSel === "remove") removeAt(d.fromKey);
-          } else if (d.paletteTap) {
-            SFX.click(opts.sfx);
-            setBuildSel((b) => (b === d.type ? null : d.type));
-          }
-        } else if (cell) {
-          if (factoryGrid[cell]) { if (cell !== d.fromKey) SFX.error(opts.sfx); }
-          else if (d.fromKey) moveMachine(d.fromKey, cell);
-          else if (d.type) placeType(d.type, cell);
-        }
-        return null;
-      });
+      if (!d.moved) {
+        if (d.fromKey) { if (sel === "remove") removeAt(d.fromKey); }
+        else if (d.paletteTap) { SFX.click(opts.sfx); setBuildSel((b) => (b === d.type ? null : d.type)); }
+      } else if (cell) {
+        if (grid[cell]) { if (cell !== d.fromKey) SFX.error(opts.sfx); }
+        else if (d.fromKey) moveMachine(d.fromKey, cell);
+        else if (d.type) placeType(d.type, cell);
+      }
+      setDrag(null);
     };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
-    return () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
-  }, [drag !== null, buildSel, buildMode, factoryGrid, money]);
+    window.addEventListener("pointercancel", up);
+    return () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      window.removeEventListener("pointercancel", up);
+    };
+  }, []);
 
   // Réassort : achète du vert au moins cher jusqu'à couvrir la capacité de l'usine
   const computeRefill = (curGreen, curMoney) => {
     const flow = computeFlow(factoryGrid);
-    const cap = flow.fedRoasters.size * 3 + flow.fedMegas.size * 12;
+    const cap = flow.roastCap;
     const total = activeOrigins.reduce((t, o) => t + (curGreen[o.id] || 0), 0);
     let need = Math.ceil(cap - total);
     const g = { ...curGreen };
@@ -1102,8 +1158,8 @@ function MameMameSaisons() {
   // Prévision de production (calcul à blanc, affiché en direct dans l'usine)
   const forecastFactory = () => {
     const flow = computeFlow(factoryGrid);
-    const nRoasters = flow.fedRoasters.size + flow.fedMegas.size;
-    const capIn = flow.fedRoasters.size * 3 + flow.fedMegas.size * 12;
+    const nRoasters = flow.fedRoasters.size;
+    const capIn = flow.roastCap;
     if (!nRoasters) return { ok: false, why: "aucun torréfacteur relié à un silo" };
     const bestProfile = Object.values(profiles).length ? Math.max(...Object.values(profiles)) : null;
     if (!bestProfile) return { ok: false, why: "aucun profil de torréfaction enregistré" };
@@ -1122,8 +1178,8 @@ function MameMameSaisons() {
 
   const runFactory = (curGreen) => {
     const flow = computeFlow(factoryGrid);
-    const nRoasters = flow.fedRoasters.size + flow.fedMegas.size;
-    const capIn = flow.fedRoasters.size * 3 + flow.fedMegas.size * 12;
+    const nRoasters = flow.fedRoasters.size;
+    const capIn = flow.roastCap;
     const nBaggers = flow.fedBaggers.size;
     if (!nRoasters) {
       const hasMachines = Object.keys(factoryGrid).length > 0;
@@ -1179,7 +1235,7 @@ function MameMameSaisons() {
   const genBoss = (cycle) => {
     const def = pick(BOSSES);
     const req = def.makeReq(cycle);
-    return { type: def.type, name: def.name, intro: def.intro, req, desc: def.desc(req), cycle, best: 0 };
+    return { type: def.type, name: def.name, intro: def.intro, winMsg: def.winMsg, req, desc: def.desc(req), cycle, best: 0 };
   };
 
   const genFlash = (d) => {
@@ -1205,7 +1261,7 @@ function MameMameSaisons() {
 
   const endRun = (reason, finalMoney, finalRep) => {
     const score = Math.max(0, Math.round(finalMoney / 3 + finalRep * 40 + served * 12 + bossesBeaten * 60));
-    let gb = Math.max(1, Math.round((finalMoney / 60 + finalRep * 2 + served * 0.5 + bossesBeaten * 6) * (1 + mLvl("livre") * 0.1)));
+    let gb = Math.max(1, Math.round((Math.sqrt(Math.max(0, finalMoney)) * 0.7 + finalRep * 2 + Math.sqrt(served) * 3 + bossesBeaten * 5) * (1 + mLvl("livre") * 0.1)));
     if (finalMoney < 0) gb = Math.max(1, Math.floor(gb / 2));
     setRunResult({ reason, score, gb, money: finalMoney, rep: finalRep, served, days: day, bosses: bossesBeaten, bankrupt: finalMoney < 0 });
     const nm = { ...meta, gb: meta.gb + gb, seasons: meta.seasons + 1, bestScore: Math.max(meta.bestScore, score) };
@@ -1270,9 +1326,12 @@ function MameMameSaisons() {
     let stellarMsg = null;
     if (era >= 3 && stellar) {
       const totalG = activeOrigins.reduce((t, o) => t + (nightGreen[o.id] || 0), 0);
-      const used = Math.min(40, totalG);
+      const used = Math.min(stellar.cap || 40, totalG);
       if (used > 0.05) {
-        const sq = stellar.orbit === "ideale" ? 78 : 65;
+        // L'orbite dérive : la qualité de base varie chaque nuit autour du réglage choisi
+        const drift = Math.round(rnd(-6, 6));
+        const baseSq = stellar.orbit === "ideale" ? 82 : stellar.orbit === "proche" ? 70 : 74;
+        const sq = clamp(baseSq + drift + (rl("lg_gyroscope") ? 8 : 0), 40, qCeil(meta.cpUnlocks));
         const level = stellar.star;
         const g2 = { ...nightGreen };
         let toUse = used;
@@ -1285,12 +1344,12 @@ function MameMameSaisons() {
           toUse -= take;
           lots.push({
             id: lotId.current++, origin: o.id, label: o.name, notes: o.notes,
-            levelIdx: level, kg: r1(take * 0.85), quality: clamp(sq + (o.qBonus || 0), 25, 100),
+            levelIdx: level, kg: r1(take * 0.85), quality: clamp(sq + (o.qBonus || 0), 25, qCeil(meta.cpUnlocks)),
           });
         }
         nightGreen = g2;
         setRoasted((r) => [...r, ...lots]);
-        stellarMsg = `Anneau stellaire : ${r1(used)} kg cuits en orbite (${LEVELS[level].name}, ${stellar.orbit === "ideale" ? "orbite idéale" : "orbite " + stellar.orbit}).`;
+        stellarMsg = `Anneau stellaire : ${r1(used)} kg cuits (${LEVELS[level].name}, orbite ${stellar.orbit}, qualité du jour ${sq}${drift >= 0 ? " ↑" : " ↓"}).`;
       }
     }
     if (rl("lg_perco") && bestLot) {
@@ -1311,6 +1370,26 @@ function MameMameSaisons() {
     const fresh = [];
     for (let i = 0; i < nNew && kept.length + fresh.length < 7; i++) fresh.push(makeOrder(day + 1));
     let newOrders = [...kept, ...fresh];
+
+    // Standard automatique : honore les commandes servables depuis le stock (Caféine Pure)
+    if (cpHas("auto_orders")) {
+      let autoServed = 0, autoGain = 0;
+      newOrders = newOrders.filter((ord) => {
+        const cand = newRoasted.filter((l) => lotMatches(l, ord)).sort((a, b) => b.quality - a.quality)[0];
+        if (!cand) return true;
+        const gain = Math.round(ord.pay * (0.55 + (cand.quality / 100) * 0.5) * (1 + rl("pourboire") * 0.05));
+        cand.kg = r1(cand.kg - ord.kg);
+        autoGain += gain; autoServed += 1;
+        return false;
+      });
+      newRoasted = newRoasted.filter((l) => l.kg > 0.05);
+      if (autoServed > 0) {
+        workMoney += autoGain;
+        setServed((n) => n + autoServed);
+        setRep((v) => clamp(r1(v + autoServed * 0.05), 0, 5));
+        gaufroNight.push(`${autoServed} commande${autoServed > 1 ? "s" : ""} honorée${autoServed > 1 ? "s" : ""} (+${autoGain} €)`);
+      }
+    }
 
     if (gaufro?.auto?.sell) {
       const idle = newRoasted.filter((l) => !newOrders.some((o) => lotMatches(l, o)));
@@ -1333,7 +1412,16 @@ function MameMameSaisons() {
       setSpec(null);
     }
     const income = rl("mecene") * 8 + fac.gain;
-    const newMoney = workMoney - charges + income;
+    // Loyer + salaire de Gaufromatic, prélevés tous les 10 jours (intégrés au bilan du soir)
+    const nextDay = day + 1;
+    let rentMsg = null, rentTotal = 0;
+    if (nextDay % 10 === 0) {
+      const rent = (era === 3 ? 600 : era === 2 ? 250 : 90) + nextDay * 2;
+      const gaufroPay = cpHas("gaufromatic") ? (era === 3 ? 200 : era === 2 ? 90 : 40) : 0;
+      rentTotal = rent + gaufroPay;
+      rentMsg = `Loyer du mois : −${rent} €${gaufroPay ? ` · Gaufromatic : −${gaufroPay} €` : ""}.`;
+    }
+    const newMoney = workMoney - charges + income - rentTotal;
     const newRep = clamp(r1(workRep - (rl("lg_culte") ? 0 : repLoss)), 0, 5);
 
     // Échéance du prêt
@@ -1366,9 +1454,11 @@ function MameMameSaisons() {
     if (bossPassed) {
       const nb = bossesBeaten + 1;
       setBossesBeaten(nb);
+      setVictoryBoss(boss);
       setBoss(null);
-      if (era === 1 && cpHas("ere2") && nb >= 2) { setEra(2); eraUp = true; }
-      else if (era === 2 && cpHas("ere3") && nb >= 4) { setEra(3); eraUp3 = true; }
+      if (era === 1 && nb >= 2) { setEra(2); eraUp = true; }
+      else if (era === 2 && nb >= 4) { setEra(3); eraUp3 = true; }
+      setPendingEra(eraUp ? "eraUp" : eraUp3 ? "eraUp3" : null);
     }
     setScannedToday(false);
 
@@ -1384,9 +1474,9 @@ function MameMameSaisons() {
       return;
     }
 
-    const nextDay = day + 1;
     setDay(nextDay);
     if (bossMsg) say(bossMsg);
+    else if (rentMsg) say(rentMsg);
     else if (stellarMsg) say(stellarMsg);
     else if (specMsg) say(specMsg);
     else if (loanMsg) say(loanMsg);
@@ -1431,10 +1521,9 @@ function MameMameSaisons() {
     }
     setFlashOffer(offer);
     setOrders(newOrders);
-    if (eraUp) { setScreen("eraUp"); return; }
-    if (eraUp3) { setScreen("eraUp3"); return; }
+    if (bossPassed) { setScreen("victory"); return; }
     if (cpHas("gaufromatic")) {
-      const ng = gaufroSuggest({ nextDay, greenAfter: fac.green, ordersAfter: newOrders, bossTomorrow: (nextDay + 1) % BOSS_EVERY === 0 });
+      const ng = gaufroSuggest({ nextDay, greenAfter: fac.green, ordersAfter: newOrders, bossTomorrow: (nextDay + 1) % BOSS_EVERY === 0, nightWorked: gaufroNight.length > 0, canRoast: batchesToday < dailyBatchCap });
       if (ng) setGaufro({ ...ng, night: gaufroNight.length ? gaufroNight.join(", ") : null });
     }
 
@@ -1475,35 +1564,41 @@ function MameMameSaisons() {
   const gaufroTier = (t) => (t >= 6 ? 2 : t >= 3 ? 1 : 0);
 
   const gaufroSuggest = (ctx) => {
-    // ctx : { nextDay, greenAfter, ordersAfter, bossTomorrow }
+    // ctx : { nextDay, greenAfter, ordersAfter, bossTomorrow, nightGain }
     if (!cpHas("gaufromatic")) return null;
     const g = gaufro || { trust: 0, auto: {} };
     const flow = computeFlow(factoryGrid);
-    const cap = flow.fedRoasters.size * 3 + flow.fedMegas.size * 12;
+    const cap = flow.roastCap;
     const totalGreen = activeOrigins.reduce((t, o) => t + (ctx.greenAfter[o.id] || 0), 0);
     const idleKg = r1(roasted.filter((l) => !ctx.ordersAfter.some((o) => lotMatches(l, o))).reduce((t, l) => t + l.kg, 0));
-    let msg;
-    if (g.trust >= 5) {
+
+    // Les nuits où Gaufromatic a travaillé seul (délégation) renforcent sa confiance en douceur
+    let trust = g.trust;
+    if (ctx.nightWorked) trust += 1;
+
+    // Ordres du matin dès la confiance 3 : plan à valider ou vetoter
+    if (trust >= 3) {
       const plan = [];
-      if (cap > 0 && totalGreen < cap) plan.push({ id: "refill", label: `Réassort complet du vert (${cap - Math.floor(totalGreen)} kg env.)` });
-      if (idleKg >= 3) plan.push({ id: "sell", label: `Écouler ${idleKg} kg dormants au comptoir` });
-      if (era === 2 && !spec && money >= 120) plan.push({ id: "spec", label: "Placer 50 € en bourse" });
-      if (plan.length) {
-        return { ...g, msg: { text: "Ordres du matin. Validation attendue.", plan }, unread: true };
-      }
+      if (cap > 0 && totalGreen < cap && !g.auto.refill) plan.push({ id: "refill", label: `Réassort du vert (~${Math.max(1, cap - Math.floor(totalGreen))} kg)` });
+      if (idleKg >= 3 && !g.auto.sell) plan.push({ id: "sell", label: `Écouler ${idleKg} kg dormants au comptoir` });
+      if (era >= 2 && !spec && money >= 200) plan.push({ id: "spec", label: "Placer 60 € en bourse" });
+      if (era >= 3 && cpHas("auto_batch") && ctx.canRoast) plan.push({ id: "roast", label: "Lancer une torréfaction sur ton meilleur profil" });
+      if (plan.length) return { ...g, trust, msg: { text: pickLine(GAUFRO_FLAVOR[gaufroTier(trust)]) + " Ordres du matin :", plan }, unread: true };
     }
+
+    let msg;
     if (ctx.bossTomorrow) {
       msg = { text: "Un boss arrive demain. J'ai calculé tes chances. Je préfère ne pas les afficher : concentre-toi." };
     } else if (cap > 0 && totalGreen < cap && !g.auto.refill) {
-      msg = { text: `Ton stock de vert (${r1(totalGreen)} kg) ne couvre pas la capacité de l'usine (${cap} kg). Je peux m'en occuper.`, action: "refill", canAuto: g.trust >= 2 };
+      msg = { text: `Ton stock de vert (${r1(totalGreen)} kg) ne couvre pas la capacité de l'usine (${cap} kg). Je peux m'en occuper.`, action: "refill", canAuto: true };
     } else if (idleKg >= 4 && !g.auto.sell) {
-      msg = { text: `${idleKg} kg de café torréfié dorment sans commande correspondante. Le café qui dort ne rapporte rien. Moi, je ne dors jamais.`, action: "sell", canAuto: g.trust >= 2 };
+      msg = { text: `${idleKg} kg de café torréfié dorment sans commande. Le café qui dort ne rapporte rien. Moi, je ne dors jamais.`, action: "sell", canAuto: true };
     } else {
-      const pool = GAUFRO_FLAVOR[gaufroTier(g.trust)];
-      msg = { text: pool[Math.floor(Math.random() * pool.length)] };
+      msg = { text: pickLine(GAUFRO_FLAVOR[gaufroTier(trust)]) };
     }
-    return { ...g, msg, unread: true };
+    return { ...g, trust, msg, unread: true };
   };
+  const pickLine = (pool) => pool[Math.floor(Math.random() * pool.length)];
 
   const gaufroAct = (mode) => {
     // mode : "do" (exécuter maintenant) | "auto" (déléguer pour de bon) | "no"
@@ -1527,7 +1622,8 @@ function MameMameSaisons() {
               setMoney((mo) => mo + gain);
             }
           }
-          if (step.id === "spec") { setMoney((mo) => mo - 50); setSpec({ amount: 50 }); }
+          if (step.id === "spec") { setMoney((mo) => mo - 60); setSpec({ amount: 60 }); }
+          if (step.id === "roast") { const best = Object.entries(profiles).sort((a, b) => b[1] - a[1])[0]; if (best) autoRoast(best[0].split("|")[0] || activeOrigins[0].id, 1); }
         });
         SFX.success(opts.sfx);
         return { ...g, trust: g.trust + 1, unread: false,
@@ -1568,7 +1664,7 @@ function MameMameSaisons() {
     const pv = transcendPreview();
     const cp = Math.max(1, pv.fromBosses + pv.fromDays + pv.fromMoney + pv.fromRep);
     const score = Math.max(0, Math.round(money / 3 + rep * 40 + served * 12 + bossesBeaten * 60));
-    const gb = Math.max(1, Math.round(money / 30 + rep * 3 + served + bossesBeaten * 10));
+    const gb = Math.max(1, Math.round((Math.sqrt(Math.max(0, money)) * 0.9 + rep * 3 + Math.sqrt(served) * 4 + bossesBeaten * 7) * (1 + mLvl("livre") * 0.1)));
     setRunResult({ transcended: true, cp, score, gb, money, rep, served, days: day, bosses: bossesBeaten, bankrupt: false });
     const nm = { ...meta, gb: meta.gb + gb, cp: (meta.cp || 0) + cp, seasons: meta.seasons + 1, bestScore: Math.max(meta.bestScore, score) };
     saveMeta(nm);
@@ -1663,7 +1759,7 @@ function MameMameSaisons() {
             <div className="flex items-center justify-between gap-2">
               <div>
                 <div className="font-bold" style={{ color: C.dark }}>
-                  <BeanIcon fill={o.id === "geisha" ? C.purple : C.green} /> {o.name}
+                  <RawBean origin={o} /> {o.name}
                   {isPromo && <span className="text-xs ml-2 rounded-full px-2 py-0.5" style={{ background: C.red, color: "#fff", border: `2px solid ${C.dark}` }}>−50 %</span>}
                 </div>
                 <div className="text-xs" style={{ color: C.grey }}>{o.notes}</div>
@@ -1671,16 +1767,19 @@ function MameMameSaisons() {
               </div>
               <div className="flex flex-col gap-1">
                 <Btn onClick={() => buyGreen(o)} bg={C.amber} small>1 kg · {price} €</Btn>
-                {era === 2 && (
-                  <Btn small bg={C.orange} disabled={money < Math.round(price * 9)}
-                    onClick={() => {
-                      const bulk = Math.round(price * 9);
-                      if (money < bulk) return;
-                      setMoney((m) => m - bulk);
-                      setGreen((g) => ({ ...g, [o.id]: r1((g[o.id] || 0) + 10) }));
-                      SFX.coin(opts.sfx);
-                    }}>10 kg · {Math.round(price * 9)} €</Btn>
-                )}
+                {[
+                  ...(era >= 2 ? [{ n: 10, disc: 0.9 }] : []),
+                  ...(era >= 2 ? [{ n: 100, disc: 0.82 }] : []),
+                  ...(era >= 3 ? [{ n: 1000, disc: 0.72, label: "1 t" }] : []),
+                ].map((b) => {
+                  const cost = Math.round(price * b.n * b.disc);
+                  return (
+                    <Btn key={b.n} small bg={C.orange} disabled={money < cost}
+                      onClick={() => { if (money < cost) return; setMoney((m) => m - cost); setGreen((g) => ({ ...g, [o.id]: r1((g[o.id] || 0) + b.n * (rl("lg_serre") ? 2 : 1)) })); SFX.coin(opts.sfx); }}>
+                      {b.label || b.n + " kg"} · {cost} €
+                    </Btn>
+                  );
+                })}
               </div>
             </div>
           </Card>
@@ -1723,7 +1822,7 @@ function MameMameSaisons() {
                   Place une mise sur les cours du vert. Demain matin : entre −40 % et +60 %. La Bourse n'a pas d'états d'âme.
                 </div>
                 <div className="flex gap-2 flex-wrap">
-                  {[50, 100, 200].map((a) => (
+                  {(era >= 3 ? [200, 500, 1500] : [50, 100, 200]).map((a) => (
                     <Btn key={a} small bg={C.orange} disabled={money < a}
                       onClick={() => { setMoney((m) => m - a); setSpec({ amount: a }); SFX.coin(opts.sfx); }}>
                       Miser {a} €
@@ -2067,8 +2166,8 @@ function MameMameSaisons() {
     const flow = computeFlow(factoryGrid);
     const hasProfile = Object.keys(profiles).length > 0;
     const bestQ = hasProfile ? Math.max(...Object.values(profiles)) : null;
-    const nR = flow.fedRoasters.size + flow.fedMegas.size, nB = flow.fedBaggers.size;
-    const capIn = flow.fedRoasters.size * 3 + flow.fedMegas.size * 12;
+    const nR = flow.fedRoasters.size, nB = flow.fedBaggers.size;
+    const capIn = flow.roastCap;
 
     // ——— Planche d'usine en SVG ———
     const S = 48;
@@ -2129,7 +2228,7 @@ function MameMameSaisons() {
         {buildMode && (
           <>
             <div className="flex gap-1 mb-2 flex-wrap">
-              {Object.entries(MACHINES).map(([id, m]) => (
+              {Object.entries(MACHINES).filter(([, m]) => !m.era || era >= m.era).map(([id, m]) => (
                 <div key={id}
                   onPointerDown={(e) => startDrag(e, id, null, true)}
                   className="flex-1 rounded-2xl py-1 px-1 text-center select-none"
@@ -2276,7 +2375,7 @@ function MameMameSaisons() {
                   Place un anneau de cargos en orbite d'une étoile : elle devient ton brûleur. Chaque nuit, jusqu'à 40 kg de vert cuits d'un coup. Construction : 2 000 €.
                 </div>
                 <Btn small bg={C.purple} disabled={money < 2000}
-                  onClick={() => { setMoney((m) => m - 2000); setStellar({ star: 1, orbit: "ideale" }); SFX.success(opts.sfx); }}>
+                  onClick={() => { setMoney((m) => m - 2000); setStellar({ star: 1, orbit: "ideale", cap: 40 }); SFX.success(opts.sfx); }}>
                   Construire l'anneau · 2 000 €
                 </Btn>
               </>
@@ -2661,6 +2760,26 @@ function MameMameSaisons() {
     </div>
   );
 
+  const VictoryScreen = () => (
+    <div className="flex-1 flex flex-col items-center justify-center p-6 text-center relative overflow-hidden" style={{ background: C.green }}>
+      {!opts.reducedAnim && <style>{`@keyframes vpop { 0% { transform: scale(0.3); opacity: 0; } 60% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }`}</style>}
+      <div style={{ animation: opts.reducedAnim ? "none" : "vpop 0.5s ease-out both" }}>
+        <KawaiiBean T={210} mood="happy" size={100} />
+        <div className="font-bold text-3xl mt-3" style={{ color: "#fff", textShadow: `2px 2px 0 ${C.dark}` }}>VICTOIRE !</div>
+        <div className="text-lg font-bold mt-1" style={{ color: C.cream }}>{victoryBoss?.name} est vaincu.</div>
+        <div className="text-sm mt-2 max-w-xs" style={{ color: "#eafbe0" }}>
+          {victoryBoss?.winMsg || "Ta réputation grandit. Le quartier entier parle de ta torréfaction."}
+        </div>
+        <div className="mt-3 rounded-full px-4 py-1 inline-block" style={{ background: C.yellow, border: `3px solid ${C.dark}`, color: C.dark }}>
+          <b>+1</b> boss vaincu (total : {bossesBeaten})
+        </div>
+      </div>
+      <div className="mt-5 w-full max-w-xs">
+        <Btn wide bg={C.dark} onClick={() => { setVictoryBoss(null); const pe = pendingEra; setPendingEra(null); setScreen(pe || "game"); }}>Continuer</Btn>
+      </div>
+    </div>
+  );
+
   const EraUp3Screen = () => (
     <div className="flex-1 flex flex-col items-center justify-center relative overflow-hidden" style={{ background: "#0a0820" }}>
       {!opts.reducedAnim && (
@@ -2914,6 +3033,7 @@ function MameMameSaisons() {
         {screen === "meta" && MetaScreen()}
         {screen === "bossIntro" && BossIntroScreen()}
         {screen === "transcend" && TranscendScreen()}
+        {screen === "victory" && VictoryScreen()}
         {screen === "eraUp" && EraUpScreen()}
         {screen === "eraUp3" && EraUp3Screen()}
         {screen === "cpshop" && CpShopScreen()}
