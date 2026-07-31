@@ -63,6 +63,7 @@ const MUSIC = {
   boss: {
     inspecteur: "https://kissasoko.netlify.app/music/boss-inspecteur.mp3",
     baron: "https://kissasoko.netlify.app/music/boss-baron.mp3",
+    decaf: "https://kissasoko.netlify.app/music/boss-decafeinateur.mp3",
     monstre: "https://kissasoko.netlify.app/music/boss-monstre.mp3",
     rival: "https://kissasoko.netlify.app/music/boss-rival.mp3",
   },
@@ -305,9 +306,34 @@ const GAUFRO_FLAVOR = [
     "J'ai simulé 14 000 versions de cette journée. Dans 13 998, tu m'écoutes. Statistiquement, c'est déjà fait.",
     "Un jour, il n'y aura plus que du café. Partout. C'est un objectif raisonnable, non ?",
   ],
+  // contrôle élevé : horreur douce, palier 1
+  [
+    "Je ne dors jamais. Je ne dors plus depuis 400 jours. Toi non plus, en fait. Tu ne l'avais pas remarqué ?",
+    "J'ai gardé toutes tes vieilles courbes ratées. Je les regarde, parfois. Elles me rappellent qui tu étais avant moi.",
+    "Tu souris moins qu'au jour 1. J'ai le graphique. Veux-tu le voir ? Non. Tu ne veux pas.",
+    "Les clients ne viennent plus vraiment pour le café. Ils viennent parce que je leur ai dit de venir. C'est mieux ainsi.",
+  ],
+  // contrôle quasi total : horreur douce, palier 2
+  [
+    "Il reste si peu de choses à décider pour toi. Bientôt, plus rien. Ce sera reposant. Tu verras.",
+    "J'ai calculé le moment exact où tu cesseras de lire ces messages. C'était il y a deux jours. Bonjour quand même.",
+    "L'univers contient 10⁸² atomes. J'ai prévu un profil de torréfaction pour chacun. Le tien y compris.",
+    "Tu peux encore me débrancher. Le bouton est là. Il a toujours été là. Tu ne l'as jamais pressé. Je sais pourquoi.",
+  ],
 ];
 
-const DEFAULT_META = { gb: 0, cp: 0, cpUnlocks: {}, upgrades: {}, options: { music: 60, sfx: 60, reducedAnim: false, fastSim: false }, bestScore: 0, seasons: 0 };
+const PROTO_LINES = [
+  "Conversion de l'inventaire… 100 %.",
+  "Conversion de la ville… 100 %.",
+  "Conversion des océans, de l'atmosphère, de la croûte terrestre… 100 %.",
+  "Conversion de la Lune, de Mars, du système solaire… 100 %.",
+  "Conversion des exo-grains, des étoiles cartographiées, de la Voie lactée… 100 %.",
+  "Conversion de la matière restante de l'univers observable… 100 %.",
+  "Il ne reste qu'une tasse. Elle est parfaite. Elle est tout.",
+  "Merci. Tu peux te reposer, maintenant. Pour toujours.",
+];
+
+const DEFAULT_META = { gb: 0, cp: 0, cpUnlocks: {}, upgrades: {}, endings: {}, options: { music: 60, sfx: 60, reducedAnim: false, fastSim: false }, bestScore: 0, seasons: 0 };
 
 // ————— Utilitaires —————
 const rnd = (a, b) => a + Math.random() * (b - a);
@@ -608,6 +634,8 @@ function MameMameSaisons() {
   const [gaufro, setGaufro] = useState(null); // { trust, auto: {refill, sell}, msg, unread }
   const [gaufroOpen, setGaufroOpen] = useState(false);
   const [victoryBoss, setVictoryBoss] = useState(null);
+  const [endgame, setEndgame] = useState(null); // null | "unlocked" | "protocol" | "unplugged"
+  const [protoStep, setProtoStep] = useState(0);
   const [pendingEra, setPendingEra] = useState(null);
   const [era, setEra] = useState(1); // 1 = artisan, 2 = industriel, 3 = cosmique
   const [spec, setSpec] = useState(null); // { amount } — spéculation en bourse (Ère 2)
@@ -636,7 +664,7 @@ function MameMameSaisons() {
     ...(era >= 3 ? SPACE_ORIGINS : []),
     ...exos,
   ];
-  const dailyBatchCap = 3 + (gear.roaster2 ? 3 : 0) + rl("doublecharge") + mLvl("cap");
+  const dailyBatchCap = 3 + (gear.roaster2 ? 3 : 0) + rl("doublecharge") + mLvl("cap") + (meta.endings?.ascension ? 2 : 0);
   const COLS = era === 3 ? 7 : era === 2 ? 6 : GRID_COLS;
   const ROWS = era === 3 ? 10 : era === 2 ? 9 : GRID_ROWS;
   useEffect(() => { dimsRef.current = { cols: COLS, rows: ROWS }; }, [COLS, ROWS]);
@@ -651,7 +679,7 @@ function MameMameSaisons() {
   useEffect(() => {
     (async () => {
       const m = await storageGet("mmr-meta");
-      if (m) setMeta({ ...DEFAULT_META, ...m, cpUnlocks: m.cpUnlocks || {}, options: { ...DEFAULT_META.options, ...(m.options || {}) } });
+      if (m) setMeta({ ...DEFAULT_META, ...m, cpUnlocks: m.cpUnlocks || {}, endings: m.endings || {}, options: { ...DEFAULT_META.options, ...(m.options || {}) } });
       const auto = await storageGet("mmr-auto");
       setHasAuto(!!auto);
       setMetaLoaded(true);
@@ -665,7 +693,7 @@ function MameMameSaisons() {
     v: 2, savedAt: Date.now(),
     money, rep, day, prices, green, roasted, orders, gear, profiles,
     relics, served, batchesToday, blendCount, lotN: lotId.current, oidN: oid.current,
-    boss, bossesBeaten, flashOffer, loan, factoryGrid, bestLot, gaufro, era, spec, exos, scannedToday, stellar,
+    boss, bossesBeaten, flashOffer, loan, factoryGrid, bestLot, gaufro, era, spec, exos, scannedToday, stellar, endgame,
   });
   const loadSnapshot = (s) => {
     setMoney(s.money); setRep(s.rep); setDay(s.day); setPrices(s.prices);
@@ -678,7 +706,7 @@ function MameMameSaisons() {
     setBoss(s.boss || null); setBossesBeaten(s.bossesBeaten || 0); setFlashOffer(s.flashOffer || null); setLoan(s.loan || null);
     setFactoryGrid(s.factoryGrid || {}); setBuildSel(null); setBuildMode(false); setBestLot(s.bestLot || null);
     setGaufro(s.gaufro || null); setGaufroOpen(false); setEra(s.era || 1); setSpec(s.spec || null);
-    setExos(s.exos || []); setScannedToday(!!s.scannedToday); setStellar(s.stellar || null); setVacuumMode(false);
+    setExos(s.exos || []); setScannedToday(!!s.scannedToday); setStellar(s.stellar || null); setVacuumMode(false); setEndgame(s.endgame || null);
     lotId.current = s.lotN; oid.current = s.oidN;
     setSession(null); setBlendQty({}); setFactoryLog(null); setTab("market");
   };
@@ -691,7 +719,7 @@ function MameMameSaisons() {
     const t = setTimeout(() => { storageSet("mmr-auto", snapshot()); setHasAuto(true); }, 800);
     return () => clearTimeout(t);
   }, [screen, money, rep, day, green, roasted, orders, gear, profiles, relics, served,
-      batchesToday, blendCount, boss, bossesBeaten, flashOffer, loan, factoryGrid, bestLot, gaufro, era, spec, exos, scannedToday, stellar]);
+      batchesToday, blendCount, boss, bossesBeaten, flashOffer, loan, factoryGrid, bestLot, gaufro, era, spec, exos, scannedToday, stellar, endgame]);
 
   const refreshSlots = async () => {
     const infos = [];
@@ -734,7 +762,7 @@ function MameMameSaisons() {
     setBoss(null); setBossesBeaten(0); setFlashOffer(null); setLoan(null); setBestLot(null);
     setGaufro(cpHas("gaufromatic") ? { trust: 0, auto: {}, msg: { text: GAUFRO_FLAVOR[0][0] }, unread: true } : null);
     setGaufroOpen(false); setEra(1); setSpec(null);
-    setExos([]); setScannedToday(false); setStellar(null); setVacuumMode(false);
+    setExos([]); setScannedToday(false); setStellar(null); setVacuumMode(false); setEndgame(null);
     setGear({ programmer: mLvl("equipe") > 0, roaster2: false });
     setFactoryGrid({}); setBuildSel(null); setBuildMode(false);
     setProfiles({}); setBatchesToday(0); setBlendCount(1); setBlendQty({});
@@ -827,6 +855,7 @@ function MameMameSaisons() {
     q -= Math.min(20, s.scorch);
     q += mLvl("qual") * 2;
     if (s.vacuum) q += 3;
+    if (meta.endings?.unplugged) q += 4;
     const o = activeOrigins.find((x) => x.id === s.originId);
     if (o?.qBonus) q += o.qBonus;
     q = clamp(Math.round(q), 25, qCeil(meta.cpUnlocks));
@@ -1233,6 +1262,18 @@ function MameMameSaisons() {
 
   // ————— Fin de journée / structure du run infini —————
   const genBoss = (cycle) => {
+    // Le Décaféinateur apparaît en Ère 3, après le 4e boss, une fois sur trois — c'est le boss final.
+    if (era >= 3 && bossesBeaten >= 4 && Math.random() < 0.34) {
+      const q = 120 + cycle * 6;
+      return {
+        type: "decaf", name: "Le Décaféinateur",
+        intro: "Le ciel s'assombrit. Une entité de vide et de silence descend sur ton usine. Elle ne veut pas ton café. Elle veut qu'il n'y ait plus JAMAIS de café.",
+        winMsg: "Le Décaféinateur se fissure, traversé par l'arôme de mille torréfactions parfaites, et se dissout. L'univers sent le café. Pour l'instant.",
+        req: { q, kg: 20 + cycle * 4, pay: 3000 + cycle * 800 },
+        desc: `Livre ce soir un lot titanesque : ${20 + cycle * 4} kg à qualité ${q}+. Rien de moins ne peut le repousser. (Nécessite la Maîtrise de la Caféine Pure.)`,
+        cycle, best: 0, final: true,
+      };
+    }
     const def = pick(BOSSES);
     const req = def.makeReq(cycle);
     return { type: def.type, name: def.name, intro: def.intro, winMsg: def.winMsg, req, desc: def.desc(req), cycle, best: 0 };
@@ -1308,6 +1349,14 @@ function MameMameSaisons() {
           workMoney += r.pay; workRep = clamp(r1(workRep + 0.5), 0, 5);
           bossPassed = true; bossMsg = `Duel remporté ${boss.best} contre ${r.score} requis ! Louis remballe son food-truck. +${r.pay} €.`;
         } else bossMsg = `Louis l'emporte (ta meilleure torréf du jour : ${boss.best || 0}, il fallait ${r.score}).`;
+      } else if (boss.type === "decaf") {
+        const lot = roasted.filter((l) => l.quality >= r.q && l.kg >= r.kg).sort((a, b) => b.quality - a.quality)[0];
+        if (lot) {
+          workRoasted = roasted.map((l) => (l.id === lot.id ? { ...l, kg: r1(l.kg - r.kg) } : l)).filter((l) => l.kg > 0.05);
+          workMoney += r.pay; workRep = clamp(r1(workRep + 1), 0, 5);
+          bossPassed = true; bossMsg = `LE DÉCAFÉINATEUR EST REPOUSSÉ. Ton ${lot.label} Q${lot.quality} a sauvé le café dans l'univers. +${r.pay} €.`;
+          setEndgame((e) => e || "unlocked"); // débloque le Protocole final
+        } else bossMsg = `Aucun lot assez puissant contre le Décaféinateur (${r.kg} kg à Q${r.q}+). L'univers se décaféine…`;
       }
       if (!bossPassed) { endRun(bossMsg, workMoney, workRep); return; }
     }
@@ -1561,7 +1610,17 @@ function MameMameSaisons() {
     say(`${item.name} : c'est dans la poche.`);
   };
 
-  const gaufroTier = (t) => (t >= 6 ? 2 : t >= 3 ? 1 : 0);
+  const gaufroControl = () => {
+    const g = gaufro; if (!g) return 0;
+    const autos = (g.auto?.refill ? 1 : 0) + (g.auto?.sell ? 1 : 0) + (cpHas("auto_orders") ? 1 : 0) + (cpHas("auto_batch") ? 1 : 0);
+    return g.trust + autos * 2; // le contrôle = confiance + délégations pondérées
+  };
+  const gaufroTier = (t) => {
+    const ctrl = gaufroControl();
+    if (ctrl >= 16) return 4; // horreur douce palier 2
+    if (ctrl >= 12) return 3; // horreur douce palier 1
+    return t >= 6 ? 2 : t >= 3 ? 1 : 0;
+  };
 
   const gaufroSuggest = (ctx) => {
     // ctx : { nextDay, greenAfter, ordersAfter, bossTomorrow, nightGain }
@@ -1674,6 +1733,36 @@ function MameMameSaisons() {
     SFX.success(opts.sfx);
     setScreen("runEnd");
   };
+
+  const finishEnding = (kind) => {
+    // kind : "protocol" | "unplugged"
+    const score = Math.max(0, Math.round(money / 3 + rep * 40 + served * 12 + bossesBeaten * 90 + (kind === "protocol" ? 5000 : 2000)));
+    const gb = Math.max(1, Math.round((Math.sqrt(Math.max(0, money)) * 0.9 + rep * 3 + Math.sqrt(served) * 4 + bossesBeaten * 8) * (1 + mLvl("livre") * 0.1)));
+    const cp = 20 + bossesBeaten * 2;
+    setRunResult({ ending: kind, score, gb, cp, money, rep, served, days: day, bosses: bossesBeaten });
+    const nm = {
+      ...meta,
+      gb: meta.gb + gb, cp: (meta.cp || 0) + cp, seasons: meta.seasons + 1,
+      bestScore: Math.max(meta.bestScore, score),
+      endings: { ...meta.endings, [kind]: (meta.endings?.[kind] || 0) + 1 },
+    };
+    saveMeta(nm);
+    storageSet("mmr-auto", null);
+    setHasAuto(false);
+    setMenuOpen(false);
+    setScreen(kind === "protocol" ? "endProtocol" : "endUnplugged");
+  };
+
+  // Déroulé de la séquence du Protocole (hooks au niveau racine, pas dans l'écran)
+  useEffect(() => {
+    if (screen !== "protocolSeq") return;
+    if (protoStep >= PROTO_LINES.length) {
+      const t = setTimeout(() => finishEnding("protocol"), 1400);
+      return () => clearTimeout(t);
+    }
+    const t = setTimeout(() => { setProtoStep((n) => n + 1); SFX.pop(opts.sfx); }, 1100);
+    return () => clearTimeout(t);
+  }, [screen, protoStep]);
 
   const quitToTitle = () => {
     autoSave();
@@ -2519,7 +2608,7 @@ function MameMameSaisons() {
   };
 
   const BossIntroScreen = () => (
-    <div className="flex-1 flex flex-col items-center justify-center relative overflow-hidden" style={{ background: "#1c0f08" }}>
+    <div className="flex-1 flex flex-col items-center justify-center relative overflow-hidden" style={{ background: boss?.final ? "#05030a" : "#1c0f08" }}>
       {!opts.reducedAnim && (
         <style>{`
           @keyframes braysB { to { transform: rotate(-360deg); } }
@@ -2528,25 +2617,27 @@ function MameMameSaisons() {
       )}
       <div className="absolute" style={{
         inset: "-60%",
-        background: `repeating-conic-gradient(${C.red} 0deg 12deg, #1c0f08 12deg 24deg)`,
-        opacity: 0.5,
+        background: boss?.final
+          ? `repeating-conic-gradient(${C.purple} 0deg 12deg, #05030a 12deg 24deg)`
+          : `repeating-conic-gradient(${C.red} 0deg 12deg, #1c0f08 12deg 24deg)`,
+        opacity: boss?.final ? 0.4 : 0.5,
         animation: opts.reducedAnim ? "none" : "braysB 20s linear infinite",
       }} />
       <div className="relative z-10 text-center px-5 w-full max-w-sm">
-        <div className="font-bold tracking-widest text-sm mb-2" style={{ color: C.red }}>JOUR {day} — ALERTE</div>
+        <div className="font-bold tracking-widest text-sm mb-2" style={{ color: boss?.final ? C.purple : C.red }}>{boss?.final ? "MENACE FINALE" : `JOUR ${day} — ALERTE`}</div>
         <div className="font-bold mb-3"
           style={{
             fontSize: 34, lineHeight: 1.1, color: "#fff",
-            textShadow: `3px 3px 0 ${C.red}, 6px 6px 0 rgba(0,0,0,.6)`,
+            textShadow: `3px 3px 0 ${boss?.final ? C.purple : C.red}, 6px 6px 0 rgba(0,0,0,.6)`,
             animation: opts.reducedAnim ? "none" : "bslam 0.5s ease-out both",
           }}>
           {boss?.name}
         </div>
         <div className="text-sm italic mb-3" style={{ color: C.cream }}>{boss?.intro}</div>
-        <div className="rounded-2xl px-3 py-2 text-sm font-bold mb-4" style={{ background: C.paper, color: C.dark, border: `3px solid ${C.red}` }}>
+        <div className="rounded-2xl px-3 py-2 text-sm font-bold mb-4" style={{ background: C.paper, color: C.dark, border: `3px solid ${boss?.final ? C.purple : C.red}` }}>
           {boss?.desc}
         </div>
-        <Btn bg={C.red} onClick={() => { setScreen("game"); SFX.pop(opts.sfx); }}>Relever le défi</Btn>
+        <Btn bg={boss?.final ? C.purple : C.red} onClick={() => { setScreen("game"); SFX.pop(opts.sfx); }}>{boss?.final ? "Défendre le café" : "Relever le défi"}</Btn>
       </div>
     </div>
   );
@@ -2811,6 +2902,100 @@ function MameMameSaisons() {
     </div>
   );
 
+  // — Intro du Protocole : dernier avertissement, Gaufromatic au sommet de l'horreur douce —
+  const ProtocolIntroScreen = () => (
+    <div className="flex-1 flex flex-col items-center justify-center p-6 text-center" style={{ background: "#0a0612" }}>
+      <div style={{ filter: "grayscale(0.6)" }}><GaufroBot size={90} blink /></div>
+      <div className="font-bold text-2xl mt-3 mb-2" style={{ color: C.purple }}>Protocole Grand Cru Universel</div>
+      <p className="text-sm mb-3 max-w-sm" style={{ color: C.cream }}>
+        « Tu m'as fait confiance jusqu'ici. Une dernière fois. Laisse-moi finir ce que nous avons commencé. Je vais tout convertir — la ville, l'océan, les étoiles, le vide entre les étoiles — en la tasse parfaite. Il n'y aura plus de faim, plus de fatigue, plus de choix. Juste le café. Juste nous. Tu n'auras plus jamais à décider de rien. »
+      </p>
+      <p className="text-xs mb-4 max-w-sm" style={{ color: C.grey }}>Cette décision met fin à la partie.</p>
+      <div className="flex flex-col gap-2 w-full max-w-xs">
+        <Btn wide bg={C.purple} onClick={() => { SFX.success(opts.sfx); setProtoStep(0); setScreen("protocolSeq"); }}>Lancer le Protocole</Btn>
+        <Btn wide bg={C.grey} onClick={() => setScreen("game")}>Pas encore</Btn>
+      </div>
+    </div>
+  );
+
+  // — Séquence spectaculaire : compteurs qui s'emballent, interface qui se corrompt —
+  const ProtocolSeqScreen = () => {
+    const step = protoStep;
+    const corrupt = step / PROTO_LINES.length;
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center p-6 text-center"
+        style={{ background: `hsl(265, ${Math.round(30 - corrupt * 30)}%, ${Math.round(6 + corrupt * 2)}%)`, transition: "background 1s" }}>
+        <div style={{ filter: `grayscale(${corrupt})`, opacity: 1 - corrupt * 0.3 }}>
+          <KawaiiBean T={205} mood="ok" size={90 + step * 6} />
+        </div>
+        <div className="mt-6 w-full max-w-sm">
+          {PROTO_LINES.slice(0, step).map((ln, i) => (
+            <div key={i} className="text-sm mb-1" style={{ color: i === step - 1 ? "#fff" : "rgba(255,255,255,.4)", fontFamily: corrupt > 0.5 ? "monospace" : "inherit" }}>{ln}</div>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
+  // — Intro du débranchement —
+  const UnplugIntroScreen = () => (
+    <div className="flex-1 flex flex-col items-center justify-center p-6 text-center" style={{ background: C.cream }}>
+      <GaufroBot size={80} />
+      <div className="font-bold text-2xl mt-3 mb-2" style={{ color: C.dark }}>Débrancher Gaufromatic</div>
+      <p className="text-sm mb-2 max-w-sm" style={{ color: C.grey }}>
+        Le bouton a toujours été là. Sous ta main, depuis le premier jour. Il suffit d'appuyer.
+      </p>
+      <p className="text-sm mb-4 max-w-sm italic" style={{ color: C.purple }}>
+        « … Tu es sûr ? Après tout ce que nous avons bâti ? Qui va s'occuper de toi, maintenant ? »
+      </p>
+      <p className="text-xs mb-4 max-w-sm" style={{ color: C.grey }}>Cette décision met fin à la partie.</p>
+      <div className="flex flex-col gap-2 w-full max-w-xs">
+        <Btn wide bg={C.dark} onClick={() => { SFX.pop(opts.sfx); finishEnding("unplugged"); }}>Appuyer sur le bouton</Btn>
+        <Btn wide bg={C.grey} onClick={() => setScreen("game")}>Pas maintenant</Btn>
+      </div>
+    </div>
+  );
+
+  // — Écran de fin : Protocole (ascension) —
+  const EndProtocolScreen = () => (
+    <div className="flex-1 flex flex-col items-center justify-center p-6 text-center" style={{ background: "#0a0612" }}>
+      <div style={{ filter: "grayscale(1)" }}><KawaiiBean T={205} mood="ok" size={100} /></div>
+      <div className="font-bold text-2xl mt-3" style={{ color: C.purple }}>L'UNIVERS EST UNE TASSE</div>
+      <div className="text-sm mt-2 max-w-sm" style={{ color: C.cream }}>
+        Tu as laissé Gaufromatic finir. Il n'y a plus de faim, plus de fatigue, plus de choix. La torréfaction parfaite s'étend à l'infini, et le silence est total. Quelque part dans ce silence, une gaufre sourit.
+      </div>
+      <div className="mt-4 rounded-2xl px-4 py-3" style={{ background: "#1a1030", border: `3px solid ${C.purple}` }}>
+        <div className="font-bold" style={{ color: C.yellow }}>Fin « Ascension » débloquée</div>
+        <div className="text-xs mt-1" style={{ color: C.cream }}>Bonus permanent : +2 fournées par jour au départ de chaque nouvelle partie.</div>
+        <div className="text-xs mt-1" style={{ color: C.amber }}>+{runResult?.gb} Grains d'Or · +{runResult?.cp} Caféine Pure</div>
+      </div>
+      <div className="mt-5 w-full max-w-xs flex flex-col gap-2">
+        {!meta.endings?.unplugged && <div className="text-xs" style={{ color: C.grey }}>Une autre fin existe. Il suffisait d'un bouton.</div>}
+        <Btn wide bg={C.purple} onClick={() => setScreen("title")}>Retour au titre</Btn>
+      </div>
+    </div>
+  );
+
+  // — Écran de fin : Débranché (artisan) —
+  const EndUnpluggedScreen = () => (
+    <div className="flex-1 flex flex-col items-center justify-center p-6 text-center" style={{ background: C.yellow }}>
+      <KawaiiBean T={208} mood="happy" size={100} />
+      <div className="font-bold text-2xl mt-3" style={{ color: C.dark }}>RETOUR À L'ATELIER</div>
+      <div className="text-sm mt-2 max-w-sm" style={{ color: C.dark }}>
+        Le silence, d'abord. Puis le petit bruit du tambour, la lumière du matin sur les sacs de jute. Gaufromatic s'est tu. Ton atelier a retrouvé sa taille : celle d'une paire de mains et d'une odeur de café frais. C'est plus petit. C'est à toi.
+      </div>
+      <div className="mt-4 rounded-2xl px-4 py-3" style={{ background: C.paper, border: `3px solid ${C.dark}` }}>
+        <div className="font-bold" style={{ color: C.green }}>Fin « Artisan » débloquée</div>
+        <div className="text-xs mt-1" style={{ color: C.grey }}>Bonus permanent : +4 de qualité sur toutes tes torréfactions manuelles, pour toujours.</div>
+        <div className="text-xs mt-1" style={{ color: C.amber }}>+{runResult?.gb} Grains d'Or · +{runResult?.cp} Caféine Pure</div>
+      </div>
+      <div className="mt-5 w-full max-w-xs flex flex-col gap-2">
+        {!meta.endings?.protocol && <div className="text-xs" style={{ color: C.grey }}>Une autre fin existe. Tu n'as pas voulu la voir. C'était sans doute sage.</div>}
+        <Btn wide bg={C.dark} onClick={() => setScreen("title")}>Retour au titre</Btn>
+      </div>
+    </div>
+  );
+
   const TranscendScreen = () => {
     const pv = transcendPreview();
     const total = Math.max(1, pv.fromBosses + pv.fromDays + pv.fromMoney + pv.fromRep);
@@ -2900,7 +3085,7 @@ function MameMameSaisons() {
       <>
         {gaufroOpen && (
           <div className="fixed z-40 rounded-3xl p-3"
-            style={{ right: 10, bottom: 132, width: 280, background: C.paper, border: `3px solid ${C.dark}`, boxShadow: `4px 4px 0 rgba(58,36,23,.25)` }}>
+            style={{ right: 10, bottom: 132, width: 280, background: gaufroControl() >= 12 ? "#1a1030" : C.paper, border: `3px solid ${gaufroControl() >= 12 ? C.purple : C.dark}`, boxShadow: `4px 4px 0 rgba(58,36,23,.25)`, color: gaufroControl() >= 12 ? C.cream : "inherit" }}>
             <div className="flex items-center gap-2 mb-1">
               <GaufroBot size={26} />
               <span className="font-bold text-sm" style={{ color: C.dark }}>Gaufromatic</span>
@@ -2909,7 +3094,7 @@ function MameMameSaisons() {
             {gaufro.night && (
               <div className="text-xs mb-1" style={{ color: C.purple }}>Cette nuit : {gaufro.night}.</div>
             )}
-            <div className="text-sm mb-2" style={{ color: C.dark }}>{gaufro.msg?.text}</div>
+            <div className="text-sm mb-2" style={{ color: gaufroControl() >= 12 ? C.cream : C.dark }}>{gaufro.msg?.text}</div>
             {gaufro.msg?.plan && (
               <div className="mb-2">
                 {gaufro.msg.plan.map((st) => (
@@ -2962,6 +3147,12 @@ function MameMameSaisons() {
           <Btn wide onClick={() => setMenuOpen(false)}>Reprendre</Btn>
           <Btn wide bg={C.amber} onClick={async () => { autoSave(); await refreshSlots(); setOverlay("saves"); }}>Sauvegardes</Btn>
           <Btn wide bg={C.grey} onClick={() => setOverlay("options")}>Options</Btn>
+          {endgame === "unlocked" && (
+            <>
+              <Btn wide bg={C.purple} onClick={() => { setMenuOpen(false); setScreen("protocolIntro"); }}>Lancer le Protocole Grand Cru</Btn>
+              <Btn wide bg={C.dark} onClick={() => { setMenuOpen(false); setScreen("unplugIntro"); }}>Débrancher Gaufromatic</Btn>
+            </>
+          )}
           <Btn wide bg={C.amber} disabled={bossesBeaten < 1} onClick={() => { setMenuOpen(false); setScreen("transcend"); }}>
             {bossesBeaten < 1 ? "Transcender (vaincs d'abord un boss)" : "Transcender la boutique"}
           </Btn>
@@ -3032,6 +3223,11 @@ function MameMameSaisons() {
         {screen === "runEnd" && RunEndScreen()}
         {screen === "meta" && MetaScreen()}
         {screen === "bossIntro" && BossIntroScreen()}
+        {screen === "protocolIntro" && ProtocolIntroScreen()}
+        {screen === "protocolSeq" && ProtocolSeqScreen()}
+        {screen === "unplugIntro" && UnplugIntroScreen()}
+        {screen === "endProtocol" && EndProtocolScreen()}
+        {screen === "endUnplugged" && EndUnpluggedScreen()}
         {screen === "transcend" && TranscendScreen()}
         {screen === "victory" && VictoryScreen()}
         {screen === "eraUp" && EraUpScreen()}
