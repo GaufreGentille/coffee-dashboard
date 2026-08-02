@@ -11,6 +11,9 @@ const ART = "https://kissasoko.netlify.app/boss/";
 const BOSS_ART = {
   inspecteur: { src: ART + "inspecteur.png", name: "L'INSPECTEUR", sub: "Q-GRADER",
                 ringA: "#E3B23C", ringB: "#A85F22", hub: "#1C1408" },
+
+  baron: { src: ART + "baron.gif", name: "LE BARON", sub: "DU VERT",
+           ringA: "#8B57A0", ringB: "#4A2A5C", hub: "#150C1A", dur: 2200 },
 };
 
 // ————— Iris de boss façon générique de cartoon —————
