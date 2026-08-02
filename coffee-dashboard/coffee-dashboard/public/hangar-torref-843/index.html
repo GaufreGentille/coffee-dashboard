@@ -6,12 +6,26 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Mame Mame Roast</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><ellipse cx='12' cy='12' rx='8' ry='10' fill='%233a2417' transform='rotate(20 12 12)'/></svg>">
+<link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7.24.4/babel.min.js"></script>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
   html, body { margin: 0; padding: 0; overscroll-behavior: none; }
+  .boss-slot { width: 100%; height: 100%; display: flex;
+    align-items: flex-end; justify-content: center; padding-bottom: 0%; }
+  .boss-art { width: 62%; transform-origin: 50% 100%;
+    animation: breathe 800ms ease-in-out infinite; }
+  @keyframes breathe {
+    0%,100% { transform: scaleY(.990) scaleX(1.006); }
+    50%     { transform: scaleY(1.010) scaleX(.994); }
+  }
+  .iris-name, .iris-sub { font-family: 'Luckiest Guy', Impact, sans-serif;
+    fill: #F5E9C8; stroke: #241C17; paint-order: stroke fill; }
+  .iris-name { font-size: 78px; stroke-width: 12.5px; }
+  .iris-sub  { font-size: 64px; stroke-width: 14.1px; }
+  .iris-shadow { fill: #241C17; stroke: #241C17; }
 </style>
 <script>
 // Shim : reproduit l'API window.storage des artifacts Claude avec localStorage
@@ -591,7 +605,89 @@ const KawaiiBean = ({ T, mood, size = 84 }) => {
     </svg>
   );
 };
+// ————— Iris de boss façon générique de cartoon —————
+function shade(hex, amt) {
+  const n = parseInt(hex.slice(1), 16);
+  let [r, g, b] = [n >> 16, (n >> 8) & 255, n & 255];
+  const t = amt > 0 ? 255 : 0, p = Math.abs(amt);
+  r = Math.round(r + (t - r) * p); g = Math.round(g + (t - g) * p);
+  b = Math.round(b + (t - b) * p);
+  return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+}
 
+function BossIris({ src, name, sub, ringA, ringB, hub, onOpen,
+                    hole = 21, w = 76, ink = 0, g = 0.5, over = 65, dur = 1300 }) {
+  const CX = 500, CY = 480, RMAX = 474, RVL = 75;
+  const [reveal, setReveal] = useState(0);
+
+  useEffect(() => {
+    const t0 = performance.now();
+    let id;
+    const step = (now) => {
+      const p = Math.min((now - t0) / dur, 1);
+      setReveal(RVL * (1 - Math.pow(1 - p, 3)));
+      if (p < 1) id = requestAnimationFrame(step);
+      else if (onOpen) onOpen();
+    };
+    id = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(id);
+  }, []);
+
+  // Disques empilés, chacun avec son dégradé clair au bord intérieur
+  const holeR = hole * 10, rings = [];
+  for (let r = RMAX, i = 0; r > holeR + 1; i++) {
+    const inner = Math.max(r - w, holeR), base = i % 2 ? ringB : ringA;
+    rings.push({ id: `rg${i}`, r, off: inner / r,
+                 hi: shade(base, g * 0.55), lo: shade(base, -g * 0.65) });
+    r = inner;
+  }
+  const art = <img src={src} alt="" className="boss-art" />;
+
+  return (
+    <div className="relative w-full" style={{ aspectRatio: "1 / 1" }}>
+      <div className="absolute inset-0" style={{ clipPath: `circle(${reveal}% at 50% 48%)` }}>
+
+        <svg viewBox="0 0 1000 1000" className="absolute inset-0">
+          <defs>{rings.map((q) => (
+            <radialGradient key={q.id} id={q.id}>
+              <stop offset={q.off} stopColor={q.hi} />
+              <stop offset="1" stopColor={q.lo} />
+            </radialGradient>))}
+          </defs>
+          {rings.map((q) => (
+            <circle key={q.id} cx={CX} cy={CY} r={q.r} fill={`url(#${q.id})`}
+              stroke="#241C17" strokeWidth={ink} />
+          ))}
+          <circle cx={CX} cy={CY} r={holeR} fill={hub} stroke="#241C17" strokeWidth={ink} />
+        </svg>
+
+        <div className="absolute inset-0" style={{ clipPath: `circle(${hole}% at 50% 48%)` }}>
+          <div className="boss-slot">{art}</div>
+        </div>
+        <div className="absolute inset-0" style={{ clipPath: `inset(0 0 ${100 - over}% 0)` }}>
+          <div className="boss-slot">{art}</div>
+        </div>
+
+        <svg viewBox="0 0 1000 1000" className="absolute inset-0" style={{ pointerEvents: "none" }}>
+          <defs>
+            <path id="arcTop" d="M 140,480 A 360,360 0 0 1 860,480" fill="none" />
+            <path id="arcBot" d="M 105,480 A 395,395 0 0 0 895,480" fill="none" />
+          </defs>
+          <g transform="translate(7,9)" opacity="0.85">
+            <text className="iris-name iris-shadow" textAnchor="middle">
+              <textPath href="#arcTop" startOffset="50%">{name}</textPath></text>
+            <text className="iris-sub iris-shadow" textAnchor="middle">
+              <textPath href="#arcBot" startOffset="50%">{sub}</textPath></text>
+          </g>
+          <text className="iris-name" textAnchor="middle">
+            <textPath href="#arcTop" startOffset="50%">{name}</textPath></text>
+          <text className="iris-sub" textAnchor="middle">
+            <textPath href="#arcBot" startOffset="50%">{sub}</textPath></text>
+        </svg>
+      </div>
+    </div>
+  );
+}
 // ═══════════════════════════════════════════════════════════
 //  COMPOSANT PRINCIPAL
 // ═══════════════════════════════════════════════════════════
@@ -2625,14 +2721,20 @@ function MameMameSaisons() {
       }} />
       <div className="relative z-10 text-center px-5 w-full max-w-sm">
         <div className="font-bold tracking-widest text-sm mb-2" style={{ color: boss?.final ? C.purple : C.red }}>{boss?.final ? "MENACE FINALE" : `JOUR ${day} — ALERTE`}</div>
-        <div className="font-bold mb-3"
-          style={{
-            fontSize: 34, lineHeight: 1.1, color: "#fff",
-            textShadow: `3px 3px 0 ${boss?.final ? C.purple : C.red}, 6px 6px 0 rgba(0,0,0,.6)`,
-            animation: opts.reducedAnim ? "none" : "bslam 0.5s ease-out both",
-          }}>
-          {boss?.name}
-        </div>
+{BOSS_ART[boss?.type] ? (
+            <div className="mb-3">
+              <BossIris key={boss.type} {...BOSS_ART[boss.type]} />
+            </div>
+          ) : (
+            <div className="font-bold mb-3"
+              style={{
+                fontSize: 34, lineHeight: 1.1, color: "#fff",
+                textShadow: `3px 3px 0 ${boss?.final ? C.purple : C.red}, 6px 6px 0 rgba(0,0,0,.6)`,
+                animation: opts.reducedAnim ? "none" : "bslam 0.5s ease-out both",
+              }}>
+              {boss?.name}
+            </div>
+          )}
         <div className="text-sm italic mb-3" style={{ color: C.cream }}>{boss?.intro}</div>
         <div className="rounded-2xl px-3 py-2 text-sm font-bold mb-4" style={{ background: C.paper, color: C.dark, border: `3px solid ${boss?.final ? C.purple : C.red}` }}>
           {boss?.desc}
