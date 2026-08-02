@@ -789,6 +789,11 @@ function MameMameSaisons() {
     })();
   }, []);
 
+  // Précharge les visuels de boss dès le lancement, pour que l'iris s'ouvre sans attente
+  useEffect(() => {
+    Object.values(BOSS_ART).forEach((a) => { new Image().src = a.src; });
+  }, []);
+
   const saveMeta = (m) => { setMeta(m); storageSet("mmr-meta", m); };
 
   // ————— Sauvegarde / chargement du run —————
