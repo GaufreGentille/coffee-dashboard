@@ -1,24 +1,56 @@
 /* ═══════════════════════════════════════════════
    Iris de boss — Mame Mame Roast
-   Police Luckiest Guy : chargée depuis index.html
+
+   Ce fichier ne contient plus QUE le squelette.
+   Toutes les valeurs (tailles, espacements, vitesse
+   de respiration) viennent de boss-iris.jsx, boss
+   par boss. Tu ne devrais plus avoir à y toucher.
    ═══════════════════════════════════════════════ */
 
-.boss-slot { width: 100%; height: 100%; display: flex;
-  align-items: flex-end; justify-content: center; padding-bottom: 0%; }
-.boss-art { width: 62%; transform-origin: 50% 100%;
-  animation: breathe 800ms ease-in-out infinite; }
-@keyframes breathe {
-  0%,100% { transform: scaleY(.990) scaleX(1.006); }
-  50%     { transform: scaleY(1.010) scaleX(.994); }
+/* Emplacement du personnage — le padding vient de charBottom */
+.boss-slot {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
 }
-.iris-name, .iris-sub { font-family: 'Luckiest Guy', Impact, sans-serif;
-  fill: #F5E9C8; stroke: #241C17; paint-order: stroke fill; }
-.iris-name { font-size: 78px; stroke-width: 12.5px; letter-spacing: 10px; }
-.iris-sub  { font-size: 64px; stroke-width: 14.1px; letter-spacing: 6px; }
-.iris-shadow { fill: #241C17; stroke: #241C17; }
 
-/* Le dx des balises <text> dans boss-iris.jsx compense le décentrage :
-   garde-le à la moitié du letter-spacing, en négatif. */
+/* La largeur et l'amplitude viennent des variables posées par le composant */
+.boss-art {
+  width: var(--char-w, 66%);
+  transform-origin: 50% 100%;
+  animation-name: breathe;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  /* animation-duration est fixée par boss, en style inline */
+}
+
+@keyframes breathe {
+  0%, 100% {
+    transform: scaleY(calc(1 - var(--breathe-amp, 0.01)))
+               scaleX(calc(1 + var(--breathe-amp, 0.01) * 0.6));
+  }
+  50% {
+    transform: scaleY(calc(1 + var(--breathe-amp, 0.01)))
+               scaleX(calc(1 - var(--breathe-amp, 0.01) * 0.6));
+  }
+}
+
+/* Lettrage : seule la police et le contour sont communs.
+   Taille, épaisseur et espacement sont posés par boss. */
+.iris-name, .iris-sub {
+  font-family: "Luckiest Guy", Impact, sans-serif;
+  fill: #F5E9C8;
+  stroke: #241C17;
+  paint-order: stroke fill;   /* le contour passe derrière le remplissage */
+}
+
+/* Ombre portée : même texte, décalé et sombre, dessiné en dessous */
+.iris-shadow {
+  fill: #241C17;
+  stroke: #241C17;
+}
 
 @media (prefers-reduced-motion: reduce) {
   .boss-art { animation: none; }
