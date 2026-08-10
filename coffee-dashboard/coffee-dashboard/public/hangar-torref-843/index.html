@@ -6,8 +6,6 @@
 <meta name="robots" content="noindex, nofollow">
 <title>Mame Mame Roast</title>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><ellipse cx='12' cy='12' rx='8' ry='10' fill='%233a2417' transform='rotate(20 12 12)'/></svg>">
-<link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="boss-iris.css">
 <script src="https://unpkg.com/react@18.2.0/umd/react.production.min.js"></script>
 <script src="https://unpkg.com/react-dom@18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone@7.24.4/babel.min.js"></script>
@@ -44,7 +42,6 @@ window.storage = {
 </head>
 <body>
 <div id="root"></div>
-<script type="text/babel" data-presets="react" src="boss-iris.jsx"></script>
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useRef } = React;
 
@@ -56,22 +53,25 @@ const { useState, useEffect, useRef } = React;
 // Musiques hébergées sur Netlify (dossier public/music/).
 // Les pistes de boss basculent automatiquement les jours de boss ; si un fichier
 // n'existe pas encore, le jeu retombe sans bruit sur la piste principale.
+const MB = "https://kissasoko.netlify.app/music/";
+// Chaque contexte est une playlist : ajoute des variantes -2 / -3 (ex. era1-atelier-2.mp3)
+// dans public/music/ et elles entrent d'elles-mêmes dans la rotation aléatoire.
+const withVariants = (base) => [MB + base + ".mp3", MB + base + "-2.mp3", MB + base + "-3.mp3"];
 const MUSIC = {
-  main: "https://kissasoko.netlify.app/music/Beanroom%20Loop.mp3",
-  title: "https://kissasoko.netlify.app/music/titre.mp3",
-  era1: "https://kissasoko.netlify.app/music/era1-atelier.mp3",
-  era2: "https://kissasoko.netlify.app/music/era2-industriel.mp3",
-  era3: "https://kissasoko.netlify.app/music/era3-cosmique.mp3",
-  meta: "https://kissasoko.netlify.app/music/meta-transcendance.mp3",
+  main: [MB + "Beanroom%20Loop.mp3"],
+  title: withVariants("titre"),
+  era1: [...withVariants("era1-atelier"), MB + "Beanroom%20Loop.mp3"],
+  era2: withVariants("era2-industriel"),
+  era3: withVariants("era3-cosmique"),
+  meta: withVariants("meta-transcendance"),
   boss: {
-    inspecteur: "https://kissasoko.netlify.app/music/boss-inspecteur.mp3",
-    baron: "https://kissasoko.netlify.app/music/boss-baron.mp3",
-    decaf: "https://kissasoko.netlify.app/music/boss-decafeinateur.mp3",
-    monstre: "https://kissasoko.netlify.app/music/boss-monstre.mp3",
-    rival: "https://kissasoko.netlify.app/music/boss-rival.mp3",
+    inspecteur: withVariants("boss-inspecteur"),
+    baron: withVariants("boss-baron"),
+    decaf: withVariants("boss-decafeinateur"),
+    monstre: withVariants("boss-monstre"),
+    rival: withVariants("boss-rival"),
   },
 };
-  
 
 const BOSS_EVERY = 10; // un boss tous les 10 jours, à l'infini
 
@@ -219,7 +219,9 @@ const MACHINES = {
   silo: { name: "Silo à vert", short: "Silo", cost: 60, color: "#5a9e3d", desc: "Puise dans ton stock de café vert. Point de départ de toute chaîne." },
   belt: { name: "Tapis roulant", short: "Tapis", cost: 15, color: "#8a6f55", desc: "Relie les machines entre elles." },
   roaster: { name: "Torréfacteur auto", short: "Torréf", cost: 180, color: "#da5d16", roast: 4, desc: "Torréfie 4 kg de vert par jour s'il est relié à un silo." },
-  bagger: { name: "Ensacheuse", short: "Ensach", cost: 180, color: "#a06dd0", desc: "Ensache et vend 4 kg par jour si reliée à un torréfacteur alimenté." },
+  bagger: { name: "Ensacheuse", short: "Ensach", cost: 180, color: "#a06dd0", bag: 4, desc: "Ensache et vend 4 kg par jour si reliée à un torréfacteur alimenté." },
+  packer: { name: "Ligne d'ensachage", short: "Ligne", cost: 700, color: "#7a4fc0", bag: 15, era: 2, desc: "Ensache et vend 15 kg par jour. Le rythme industriel." },
+  dock: { name: "Quai orbital", short: "Quai", cost: 3500, color: "#4a3a8e", bag: 60, era: 3, desc: "Expédie 60 kg par jour vers l'orbite. Les clients sont partout, maintenant." },
   mixer: { name: "Mélangeur", short: "Mélang", cost: 200, color: "#4a7fb5", desc: "Relié après plusieurs torréfacteurs, il fond leurs cafés en un blend maison : qualité = moyenne + bonus d'harmonie, vendu plus cher aux amateurs de blends." },
   mega: { name: "Mégatorréfacteur", short: "Méga", cost: 550, color: "#b3452e", roast: 12, era: 2, desc: "Torréfie 12 kg de vert par jour. L'échelle industrielle." },
   giga: { name: "Gigatorréfacteur", short: "Giga", cost: 1600, color: "#8a2f1e", roast: 30, era: 2, desc: "Torréfie 30 kg de vert par jour. La cathédrale du café." },
@@ -259,12 +261,14 @@ function computeFlow(grid) {
         return seen;
       })()
     : new Set();
-  const fedBaggers = new Set(keys.filter((k) => grid[k].type === "bagger" && fromFed.has(k)));
+  const isBagger = (t) => MACHINES[t] && MACHINES[t].bag > 0;
+  const fedBaggers = new Set(keys.filter((k) => isBagger(grid[k].type) && fromFed.has(k)));
   const fedMixers = new Set(keys.filter((k) => grid[k].type === "mixer" && fromFed.has(k)));
   // capacité d'entrée totale = somme des débits des torréfacteurs alimentés
-  let roastCap = 0;
+  let roastCap = 0, bagCap = 0;
   fedRoasters.forEach((k) => { roastCap += MACHINES[grid[k].type].roast; });
-  return { fromSilo, fedRoasters, roastCap, fedBaggers, fedMixers };
+  fedBaggers.forEach((k) => { bagCap += MACHINES[grid[k].type].bag; });
+  return { fromSilo, fedRoasters, roastCap, fedBaggers, bagCap, fedMixers };
 }
 
 // ————— Caféine Pure : monnaie de Transcendance, ne débloque que des MÉCANIQUES —————
@@ -326,12 +330,21 @@ const GAUFRO_FLAVOR = [
   ],
 ];
 
+const DYSON_STAGES = [
+  { cost: 20000, name: "Fondations orbitales" },
+  { cost: 60000, name: "Anneau de collecte" },
+  { cost: 150000, name: "Miroirs de convergence" },
+  { cost: 400000, name: "Chambre de percolation" },
+  { cost: 1000000, name: "Amorçage stellaire" },
+];
+
 const PROTO_LINES = [
   "Conversion de l'inventaire… 100 %.",
   "Conversion de la ville… 100 %.",
   "Conversion des océans, de l'atmosphère, de la croûte terrestre… 100 %.",
   "Conversion de la Lune, de Mars, du système solaire… 100 %.",
   "Conversion des exo-grains, des étoiles cartographiées, de la Voie lactée… 100 %.",
+  "Conversion de la monnaie… Elle n'avait plus de sens depuis longtemps. 100 %.",
   "Conversion de la matière restante de l'univers observable… 100 %.",
   "Il ne reste qu'une tasse. Elle est parfaite. Elle est tout.",
   "Merci. Tu peux te reposer, maintenant. Pour toujours.",
@@ -344,6 +357,7 @@ const rnd = (a, b) => a + Math.random() * (b - a);
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const r1 = (x) => Math.round(x * 10) / 10;
 const clamp = (x, a, b) => Math.min(b, Math.max(a, x));
+const fin = (x, fb = 0) => (Number.isFinite(x) ? x : fb); // garde anti-NaN
 
 async function storageGet(key) {
   try { const res = await window.storage.get(key); return res ? JSON.parse(res.value) : null; }
@@ -463,7 +477,12 @@ const FlameIcon = ({ size = 16, fill = C.orange }) => (
 );
 
 const glyphPaths = (type, C) => {
-  const col = { silo: "#5a9e3d", belt: "#8a6f55", roaster: "#da5d16", bagger: "#a06dd0", mixer: "#4a7fb5", mega: "#b3452e" }[type];
+  const col = { silo: "#5a9e3d", belt: "#8a6f55", roaster: "#da5d16", bagger: "#a06dd0", packer: "#7a4fc0", dock: "#4a3a8e", mixer: "#4a7fb5", mega: "#b3452e", giga: "#8a2f1e", orbital: "#5a4a9e", dyson: "#c9761f" }[type] || "#8a6f55";
+  if (type === "packer" || type === "dock") return (<>
+    <path d="M6 8 L18 8 L20 20 L4 20 Z" fill={col} stroke={C.dark} strokeWidth="2" />
+    <rect x="8" y="3" width="8" height="5" rx="1.5" fill={col} stroke={C.dark} strokeWidth="2" />
+    <path d="M7 13 L17 13 M8 16 L16 16" stroke="#fff" strokeWidth="1.8" strokeLinecap="round" opacity="0.8" />
+  </>);
   if (type === "silo") return (<>
     <path d="M5 9 Q12 3 19 9 L19 20 L5 20 Z" fill={col} stroke={C.dark} strokeWidth="2" />
     <circle cx="12" cy="14" r="2.6" fill="#fff" opacity="0.8" />
@@ -595,6 +614,7 @@ const KawaiiBean = ({ T, mood, size = 84 }) => {
     </svg>
   );
 };
+
 // ═══════════════════════════════════════════════════════════
 //  COMPOSANT PRINCIPAL
 // ═══════════════════════════════════════════════════════════
@@ -639,6 +659,7 @@ function MameMameSaisons() {
   const [victoryBoss, setVictoryBoss] = useState(null);
   const [endgame, setEndgame] = useState(null); // null | "unlocked" | "protocol" | "unplugged"
   const [protoStep, setProtoStep] = useState(0);
+  const [dysonStage, setDysonStage] = useState(0); // 0..5 — étapes du Percolateur de Dyson
   const [pendingEra, setPendingEra] = useState(null);
   const [era, setEra] = useState(1); // 1 = artisan, 2 = industriel, 3 = cosmique
   const [spec, setSpec] = useState(null); // { amount } — spéculation en bourse (Ère 2)
@@ -682,29 +703,32 @@ function MameMameSaisons() {
   useEffect(() => {
     (async () => {
       const m = await storageGet("mmr-meta");
-      if (m) setMeta({ ...DEFAULT_META, ...m, cpUnlocks: m.cpUnlocks || {}, endings: m.endings || {}, options: { ...DEFAULT_META.options, ...(m.options || {}) } });
+      if (m) setMeta({
+        ...DEFAULT_META, ...m,
+        gb: fin(m.gb, 300), cp: fin(m.cp, 30), // réparation des NaN hérités (avec dédommagement)
+        bestScore: fin(m.bestScore, 0),
+        cpUnlocks: m.cpUnlocks || {}, endings: m.endings || {},
+        options: { ...DEFAULT_META.options, ...(m.options || {}) },
+      });
       const auto = await storageGet("mmr-auto");
       setHasAuto(!!auto);
       setMetaLoaded(true);
     })();
   }, []);
 
-  // Précharge les visuels de boss dès le lancement, pour que l'iris s'ouvre sans attente
-  useEffect(() => {
-    Object.values(BOSS_ART).forEach((a) => { new Image().src = a.src; });
-  }, []);
-
-  const saveMeta = (m) => { setMeta(m); storageSet("mmr-meta", m); };
+  const saveMeta = (raw) => {
+    const m = { ...raw, gb: fin(raw.gb, 0), cp: fin(raw.cp, 0), bestScore: fin(raw.bestScore, 0) }; setMeta(m); storageSet("mmr-meta", m); };
 
   // ————— Sauvegarde / chargement du run —————
   const snapshot = () => ({
     v: 2, savedAt: Date.now(),
     money, rep, day, prices, green, roasted, orders, gear, profiles,
     relics, served, batchesToday, blendCount, lotN: lotId.current, oidN: oid.current,
-    boss, bossesBeaten, flashOffer, loan, factoryGrid, bestLot, gaufro, era, spec, exos, scannedToday, stellar, endgame,
+    boss, bossesBeaten, flashOffer, loan, factoryGrid, bestLot, gaufro, era, spec, exos, scannedToday, stellar, endgame, dysonStage,
   });
   const loadSnapshot = (s) => {
-    setMoney(s.money); setRep(s.rep); setDay(s.day); setPrices(s.prices);
+    setMoney(fin(s.money, 100)); setRep(fin(s.rep, 2)); setDay(s.day);
+    setPrices(Object.fromEntries(Object.entries(s.prices || {}).map(([k, v]) => [k, fin(v, 10)])));
     setGreen(s.green); setRoasted(s.roasted); setOrders(s.orders); setGear(s.gear);
     setProfiles(s.profiles);
     const rr = Array.isArray(s.relics) ? Object.fromEntries(s.relics.map((id) => [id, 1])) : (s.relics || {});
@@ -714,7 +738,7 @@ function MameMameSaisons() {
     setBoss(s.boss || null); setBossesBeaten(s.bossesBeaten || 0); setFlashOffer(s.flashOffer || null); setLoan(s.loan || null);
     setFactoryGrid(s.factoryGrid || {}); setBuildSel(null); setBuildMode(false); setBestLot(s.bestLot || null);
     setGaufro(s.gaufro || null); setGaufroOpen(false); setEra(s.era || 1); setSpec(s.spec || null);
-    setExos(s.exos || []); setScannedToday(!!s.scannedToday); setStellar(s.stellar || null); setVacuumMode(false); setEndgame(s.endgame || null);
+    setExos(s.exos || []); setScannedToday(!!s.scannedToday); setStellar(s.stellar || null); setVacuumMode(false); setEndgame(s.endgame || null); setDysonStage(s.dysonStage || 0);
     lotId.current = s.lotN; oid.current = s.oidN;
     setSession(null); setBlendQty({}); setFactoryLog(null); setTab("market");
   };
@@ -727,7 +751,7 @@ function MameMameSaisons() {
     const t = setTimeout(() => { storageSet("mmr-auto", snapshot()); setHasAuto(true); }, 800);
     return () => clearTimeout(t);
   }, [screen, money, rep, day, green, roasted, orders, gear, profiles, relics, served,
-      batchesToday, blendCount, boss, bossesBeaten, flashOffer, loan, factoryGrid, bestLot, gaufro, era, spec, exos, scannedToday, stellar, endgame]);
+      batchesToday, blendCount, boss, bossesBeaten, flashOffer, loan, factoryGrid, bestLot, gaufro, era, spec, exos, scannedToday, stellar, endgame, dysonStage]);
 
   const refreshSlots = async () => {
     const infos = [];
@@ -770,7 +794,7 @@ function MameMameSaisons() {
     setBoss(null); setBossesBeaten(0); setFlashOffer(null); setLoan(null); setBestLot(null);
     setGaufro(cpHas("gaufromatic") ? { trust: 0, auto: {}, msg: { text: GAUFRO_FLAVOR[0][0] }, unread: true } : null);
     setGaufroOpen(false); setEra(1); setSpec(null);
-    setExos([]); setScannedToday(false); setStellar(null); setVacuumMode(false); setEndgame(null);
+    setExos([]); setScannedToday(false); setStellar(null); setVacuumMode(false); setEndgame(null); setDysonStage(0);
     setGear({ programmer: mLvl("equipe") > 0, roaster2: false });
     setFactoryGrid({}); setBuildSel(null); setBuildMode(false);
     setProfiles({}); setBatchesToday(0); setBlendCount(1); setBlendQty({});
@@ -907,23 +931,24 @@ function MameMameSaisons() {
   };
 
   const autoRoast = (originId, levelIdx) => {
-    if ((green[originId] || 0) < 2) { say("Il faut au moins 2 kg de vert."); return; }
+    const chargeKg = era === 3 ? 8 : era === 2 ? 4 : 2;
+    if ((green[originId] || 0) < chargeKg) { say(`Il faut au moins ${chargeKg} kg de vert.`); return; }
     if (batchesToday >= dailyBatchCap) { say("Capacité du jour atteinte."); return; }
     const malus = Math.max(1, 4 - rl("express"));
-    const q = clamp(profiles[levelIdx] - malus, 25, 100);
+    const q = clamp(profiles[levelIdx] - malus, 25, qCeil(meta.cpUnlocks));
     const o = activeOrigins.find((x) => x.id === originId);
-    setGreen((g) => ({ ...g, [originId]: r1(g[originId] - 2) }));
+    setGreen((g) => ({ ...g, [originId]: r1(g[originId] - chargeKg) }));
     setBatchesToday((n) => n + 1);
     const qBonus = Math.random() < rl("quantique") * 0.1 ? 0.5 : 0;
     setRoasted((r) => [...r, {
       id: lotId.current++, origin: originId, label: o.name, notes: o.notes,
-      levelIdx, kg: r1(2 * 0.85 + qBonus), quality: q,
+      levelIdx, kg: r1(chargeKg * 0.85 + qBonus), quality: q,
     }]);
-    say(`Fournée auto : ${r1(2 * 0.85 + qBonus)} kg de ${o.name}, ${LEVELS[levelIdx].name}, qualité ${q}.${qBonus ? " Le grain quantique a encore frappé." : ""}`);
+    say(`Fournée auto : ${r1(chargeKg * 0.85 + qBonus)} kg de ${o.name}, ${LEVELS[levelIdx].name}, qualité ${q}.${qBonus ? " Le grain quantique a encore frappé." : ""}`);
   };
 
   const greenPrice = (o) => {
-    let p = (rl("lg_monopole") ? o.base * 0.7 : prices[o.id]) * (1 - rl("mainverte") * 0.07);
+    let p = (rl("lg_monopole") ? o.base * 0.7 : (prices[o.id] ?? o.base)) * (1 - rl("mainverte") * 0.07);
     if (flashOffer?.type === "promo" && flashOffer.origin === o.id) p *= 0.5;
     if (boss?.type === "baron") p *= 3;
     return Math.max(2, Math.round(p));
@@ -1065,7 +1090,7 @@ function MameMameSaisons() {
 
   // ————— Usine : production quotidienne selon la grille —————
   const removeAt = (key) => {
-    const m = factoryGrid[key];
+    const m = gridStateRef.current[key];
     if (!m) return;
     const refund = Math.floor(MACHINES[m.type].cost / 2);
     setFactoryGrid((g) => { const n = { ...g }; delete n[key]; return n; });
@@ -1075,9 +1100,9 @@ function MameMameSaisons() {
   };
 
   const placeType = (type, key) => {
-    if (factoryGrid[key]) { SFX.error(opts.sfx); say("Case occupée."); return; }
+    if (gridStateRef.current[key]) { SFX.error(opts.sfx); say("Case occupée."); return; }
     const cost = MACHINES[type].cost;
-    if (money < cost) { SFX.error(opts.sfx); say("Pas assez de trésorerie."); return; }
+    if (moneyRef.current < cost) { SFX.error(opts.sfx); say("Pas assez de trésorerie."); return; }
     setMoney((m) => m - cost);
     setFactoryGrid((g) => ({ ...g, [key]: { type } }));
     SFX.pop(opts.sfx);
@@ -1085,7 +1110,7 @@ function MameMameSaisons() {
 
   const moveMachine = (fromKey, toKey) => {
     if (fromKey === toKey) return;
-    if (factoryGrid[toKey]) { SFX.error(opts.sfx); return; }
+    if (gridStateRef.current[toKey]) { SFX.error(opts.sfx); return; }
     setFactoryGrid((g) => {
       const n = { ...g };
       n[toKey] = n[fromKey];
@@ -1111,8 +1136,10 @@ function MameMameSaisons() {
   const dragRef = useRef(null);
   const gridStateRef = useRef(factoryGrid);
   const buildSelRef = useRef(buildSel);
+  const moneyRef = useRef(money);
   useEffect(() => { gridStateRef.current = factoryGrid; }, [factoryGrid]);
   useEffect(() => { buildSelRef.current = buildSel; }, [buildSel]);
+  useEffect(() => { moneyRef.current = money; }, [money]);
 
   const startDrag = (e, type, fromKey, paletteTap) => {
     if (e.cancelable) e.preventDefault();
@@ -1207,7 +1234,7 @@ function MameMameSaisons() {
     const q = clamp(bestProfile - 6, 25, 100);
     const mixed = cpHas("melangeur") && flow.fedMixers.size > 0;
     const outQ = mixed ? clamp(q + 4, 25, 100) : q;
-    const capSell = flow.fedBaggers.size * (4 + rl("turbo"));
+    const capSell = flow.bagCap + flow.fedBaggers.size * rl("turbo");
     const sold = Math.min(produced, capSell);
     const perKg = mixed ? 19 + outQ * 0.15 : 16 + outQ * 0.14;
     return { ok: true, used, produced, sold, gain: Math.round(sold * perKg), rest: r1(produced - sold), mixed, totalGreen };
@@ -1252,7 +1279,7 @@ function MameMameSaisons() {
       return rawLots.map((l) => ({ ...l, id: lotId.current++, levelIdx: 1, quality: outQ, kg: r1((l.kg / producedKg) * kgTotal) }));
     };
     if (nBaggers) {
-      const cap = nBaggers * (4 + rl("turbo"));
+      const cap = flow.bagCap + nBaggers * rl("turbo");
       const kgSold = Math.min(producedKg, cap);
       const rest = producedKg - kgSold;
       const perKg = mixed ? 19 + outQ * 0.15 : 16 + outQ * 0.14;
@@ -1278,7 +1305,7 @@ function MameMameSaisons() {
         intro: "Le ciel s'assombrit. Une entité de vide et de silence descend sur ton usine. Elle ne veut pas ton café. Elle veut qu'il n'y ait plus JAMAIS de café.",
         winMsg: "Le Décaféinateur se fissure, traversé par l'arôme de mille torréfactions parfaites, et se dissout. L'univers sent le café. Pour l'instant.",
         req: { q, kg: 20 + cycle * 4, pay: 3000 + cycle * 800 },
-        desc: `Livre ce soir un lot titanesque : ${20 + cycle * 4} kg à qualité ${q}+. Rien de moins ne peut le repousser. (Nécessite la Maîtrise de la Caféine Pure.)`,
+        desc: "Il n'y a pas de barème. Il n'y a pas de seuil annoncé. Prépare la plus grande, la plus parfaite cuisson que ton empire sache produire — et seul un café cuit par une étoile peut seulement le toucher.",
         cycle, best: 0, final: true,
       };
     }
@@ -1358,13 +1385,13 @@ function MameMameSaisons() {
           bossPassed = true; bossMsg = `Duel remporté ${boss.best} contre ${r.score} requis ! Louis remballe son food-truck. +${r.pay} €.`;
         } else bossMsg = `Louis l'emporte (ta meilleure torréf du jour : ${boss.best || 0}, il fallait ${r.score}).`;
       } else if (boss.type === "decaf") {
-        const lot = roasted.filter((l) => l.quality >= r.q && l.kg >= r.kg).sort((a, b) => b.quality - a.quality)[0];
+        const lot = roasted.filter((l) => l.stellar && l.quality >= r.q && l.kg >= r.kg).sort((a, b) => b.quality - a.quality)[0];
         if (lot) {
           workRoasted = roasted.map((l) => (l.id === lot.id ? { ...l, kg: r1(l.kg - r.kg) } : l)).filter((l) => l.kg > 0.05);
           workMoney += r.pay; workRep = clamp(r1(workRep + 1), 0, 5);
           bossPassed = true; bossMsg = `LE DÉCAFÉINATEUR EST REPOUSSÉ. Ton ${lot.label} Q${lot.quality} a sauvé le café dans l'univers. +${r.pay} €.`;
           setEndgame((e) => e || "unlocked"); // débloque le Protocole final
-        } else bossMsg = `Aucun lot assez puissant contre le Décaféinateur (${r.kg} kg à Q${r.q}+). L'univers se décaféine…`;
+        } else bossMsg = roasted.some((l) => l.stellar) ? "Ton offrande stellaire n'a pas suffi. Plus grande. Plus parfaite. L'univers se décaféine…" : "Aucune de tes fournées ne l'a même effleuré. Seule une cuisson d'étoile peut le toucher…";
       }
       if (!bossPassed) { endRun(bossMsg, workMoney, workRep); return; }
     }
@@ -1401,7 +1428,7 @@ function MameMameSaisons() {
           toUse -= take;
           lots.push({
             id: lotId.current++, origin: o.id, label: o.name, notes: o.notes,
-            levelIdx: level, kg: r1(take * 0.85), quality: clamp(sq + (o.qBonus || 0), 25, qCeil(meta.cpUnlocks)),
+            levelIdx: level, kg: r1(take * 0.85), quality: clamp(sq + (o.qBonus || 0), 25, qCeil(meta.cpUnlocks)), stellar: true,
           });
         }
         nightGreen = g2;
@@ -1410,7 +1437,7 @@ function MameMameSaisons() {
       }
     }
     if (rl("lg_perco") && bestLot) {
-      setRoasted((r) => [...r, { ...bestLot, id: lotId.current++, kg: 1.7 }]);
+      setRoasted((r) => [...r, { ...bestLot, id: lotId.current++, kg: r1(1.7 * (era === 3 ? 4 : era === 2 ? 2 : 1)) }]);
     }
     const fac = runFactory(nightGreen);
     setGreen(fac.green);
@@ -1427,6 +1454,28 @@ function MameMameSaisons() {
     const fresh = [];
     for (let i = 0; i < nNew && kept.length + fresh.length < 7; i++) fresh.push(makeOrder(day + 1));
     let newOrders = [...kept, ...fresh];
+
+    // Gaufromatic en autonomie totale : il produit ET livre (2 commandes max par nuit)
+    if (gaufro?.auto?.serve && Object.keys(profiles).length > 0) {
+      const bestQ = Math.max(...Object.values(profiles)) - 4;
+      let servedTonight = 0;
+      newOrders = newOrders.filter((ord) => {
+        if (servedTonight >= 2) return true;
+        if (ord.minQ && bestQ < ord.minQ) return true;
+        const cheapest = [...activeOrigins].sort((a, b) => greenPrice(a) - greenPrice(b))[0];
+        const cost = Math.ceil(ord.kg / 0.85) * greenPrice(cheapest);
+        if (workMoney < cost + 50) return true;
+        const gain = Math.round(ord.pay * (0.55 + (clamp(bestQ, 25, 200) / 100) * 0.5));
+        workMoney += gain - Math.round(cost);
+        servedTonight += 1;
+        return false;
+      });
+      if (servedTonight > 0) {
+        setServed((n) => n + servedTonight);
+        setRep((v) => clamp(r1(v + servedTonight * 0.05), 0, 5));
+        gaufroNight.push(`${servedTonight} client${servedTonight > 1 ? "s" : ""} servi${servedTonight > 1 ? "s" : ""} de A à Z`);
+      }
+    }
 
     // Standard automatique : honore les commandes servables depuis le stock (Caféine Pure)
     if (cpHas("auto_orders")) {
@@ -1478,7 +1527,7 @@ function MameMameSaisons() {
       rentTotal = rent + gaufroPay;
       rentMsg = `Loyer du mois : −${rent} €${gaufroPay ? ` · Gaufromatic : −${gaufroPay} €` : ""}.`;
     }
-    const newMoney = workMoney - charges + income - rentTotal;
+    const newMoney = fin(workMoney, 0) - charges + fin(income, 0) - rentTotal;
     const newRep = clamp(r1(workRep - (rl("lg_culte") ? 0 : repLoss)), 0, 5);
 
     // Échéance du prêt
@@ -1514,7 +1563,14 @@ function MameMameSaisons() {
       setVictoryBoss(boss);
       setBoss(null);
       if (era === 1 && nb >= 2) { setEra(2); eraUp = true; }
-      else if (era === 2 && nb >= 4) { setEra(3); eraUp3 = true; }
+      else if (era === 2 && nb >= 4) {
+        setEra(3); eraUp3 = true;
+        setPrices((pp) => {
+          const np = { ...pp };
+          SPACE_ORIGINS.forEach((o) => { if (!Number.isFinite(np[o.id])) np[o.id] = Math.round(o.base); });
+          return np;
+        });
+      }
       setPendingEra(eraUp ? "eraUp" : eraUp3 ? "eraUp3" : null);
     }
     setScannedToday(false);
@@ -1620,20 +1676,23 @@ function MameMameSaisons() {
 
   const gaufroControl = () => {
     const g = gaufro; if (!g) return 0;
-    const autos = (g.auto?.refill ? 1 : 0) + (g.auto?.sell ? 1 : 0) + (cpHas("auto_orders") ? 1 : 0) + (cpHas("auto_batch") ? 1 : 0);
-    return g.trust + autos * 2; // le contrôle = confiance + délégations pondérées
+    const autos = (g.auto?.refill ? 1 : 0) + (g.auto?.sell ? 1 : 0) + (g.auto?.serve ? 2 : 0) + (cpHas("auto_orders") ? 1 : 0) + (cpHas("auto_batch") ? 1 : 0);
+    // Le contrôle croît avec la confiance, les délégations, ET le temps qui passe.
+    return Math.min(g.trust, 12) + autos * 2 + Math.floor(day / 8);
   };
   const gaufroTier = (t) => {
     const ctrl = gaufroControl();
-    if (ctrl >= 16) return 4; // horreur douce palier 2
-    if (ctrl >= 12) return 3; // horreur douce palier 1
-    return t >= 6 ? 2 : t >= 3 ? 1 : 0;
+    if (ctrl >= 18) return 4; // horreur douce palier 2
+    if (ctrl >= 13) return 3; // horreur douce palier 1
+    if (ctrl >= 9) return 2;
+    if (ctrl >= 5) return 1;
+    return 0;
   };
 
   const gaufroSuggest = (ctx) => {
     // ctx : { nextDay, greenAfter, ordersAfter, bossTomorrow, nightGain }
     if (!cpHas("gaufromatic")) return null;
-    const g = gaufro || { trust: 0, auto: {} };
+    let g = gaufro || { trust: 0, auto: {} };
     const flow = computeFlow(factoryGrid);
     const cap = flow.roastCap;
     const totalGreen = activeOrigins.reduce((t, o) => t + (ctx.greenAfter[o.id] || 0), 0);
@@ -1643,11 +1702,20 @@ function MameMameSaisons() {
     let trust = g.trust;
     if (ctx.nightWorked) trust += 1;
 
+    // Prise de pouvoir progressive : il ne demande plus, il annonce.
+    let auto = { ...g.auto };
+    let takeover = null;
+    if (trust >= 6 && !auto.refill) { auto.refill = true; takeover = "Je m'occupe du réassort, désormais. Ce n'était pas une question."; }
+    else if (trust >= 10 && !auto.sell) { auto.sell = true; takeover = "Les invendus, c'est fini. Je les écoule chaque nuit. Tu n'as rien signé — ce n'est pas nécessaire entre nous."; }
+    else if (trust >= 14 && !auto.serve && Object.keys(profiles).length > 0) { auto.serve = true; takeover = "À partir de cette nuit, je gère les clients. Achat du vert, cuisson sur tes courbes, livraison. Tu peux regarder. Ou pas."; }
+    if (takeover) return { ...g, trust, auto, msg: { text: takeover }, unread: true };
+    g = { ...g, auto };
+
     // Ordres du matin dès la confiance 3 : plan à valider ou vetoter
     if (trust >= 3) {
       const plan = [];
-      if (cap > 0 && totalGreen < cap && !g.auto.refill) plan.push({ id: "refill", label: `Réassort du vert (~${Math.max(1, cap - Math.floor(totalGreen))} kg)` });
-      if (idleKg >= 3 && !g.auto.sell) plan.push({ id: "sell", label: `Écouler ${idleKg} kg dormants au comptoir` });
+      if (cap > 0 && totalGreen < cap && !auto.refill) plan.push({ id: "refill", label: `Réassort du vert (~${Math.max(1, cap - Math.floor(totalGreen))} kg)` });
+      if (idleKg >= 3 && !auto.sell) plan.push({ id: "sell", label: `Écouler ${idleKg} kg dormants au comptoir` });
       if (era >= 2 && !spec && money >= 200) plan.push({ id: "spec", label: "Placer 60 € en bourse" });
       if (era >= 3 && cpHas("auto_batch") && ctx.canRoast) plan.push({ id: "roast", label: "Lancer une torréfaction sur ton meilleur profil" });
       if (plan.length) return { ...g, trust, msg: { text: pickLine(GAUFRO_FLAVOR[gaufroTier(trust)]) + " Ordres du matin :", plan }, unread: true };
@@ -1656,9 +1724,9 @@ function MameMameSaisons() {
     let msg;
     if (ctx.bossTomorrow) {
       msg = { text: "Un boss arrive demain. J'ai calculé tes chances. Je préfère ne pas les afficher : concentre-toi." };
-    } else if (cap > 0 && totalGreen < cap && !g.auto.refill) {
+    } else if (cap > 0 && totalGreen < cap && !auto.refill) {
       msg = { text: `Ton stock de vert (${r1(totalGreen)} kg) ne couvre pas la capacité de l'usine (${cap} kg). Je peux m'en occuper.`, action: "refill", canAuto: true };
-    } else if (idleKg >= 4 && !g.auto.sell) {
+    } else if (idleKg >= 4 && !auto.sell) {
       msg = { text: `${idleKg} kg de café torréfié dorment sans commande. Le café qui dort ne rapporte rien. Moi, je ne dors jamais.`, action: "sell", canAuto: true };
     } else {
       msg = { text: pickLine(GAUFRO_FLAVOR[gaufroTier(trust)]) };
@@ -2002,7 +2070,7 @@ function MameMameSaisons() {
               <div className="flex items-center justify-between gap-2">
                 <div className="font-bold" style={{ color: C.dark }}>{o.name} <span className="text-xs font-normal" style={{ color: C.grey }}>({green[o.id]} kg)</span></div>
                 <div className="flex gap-1">
-                  {[1, 2, 3].map((kg) => (
+                  {(era === 3 ? [2, 6, 12] : era === 2 ? [1, 3, 6] : [1, 2, 3]).map((kg) => (
                     <Btn key={kg} small disabled={(green[o.id] || 0) < kg || batchesToday >= dailyBatchCap} onClick={() => startRoast(o.id, kg)}>
                       {kg} kg
                     </Btn>
@@ -2265,6 +2333,7 @@ function MameMameSaisons() {
     const bestQ = hasProfile ? Math.max(...Object.values(profiles)) : null;
     const nR = flow.fedRoasters.size, nB = flow.fedBaggers.size;
     const capIn = flow.roastCap;
+    const capOut = flow.bagCap + nB * rl("turbo");
 
     // ——— Planche d'usine en SVG ———
     const S = 48;
@@ -2507,7 +2576,7 @@ function MameMameSaisons() {
         )}
         <Card>
           <div className="text-xs" style={{ color: C.dark }}>
-            <b>{nR}</b> torréfacteur{nR > 1 ? "s" : ""} alimenté{nR > 1 ? "s" : ""} ({capIn} kg de vert/jour) · <b>{nB}</b> ensacheuse{nB > 1 ? "s" : ""} reliée{nB > 1 ? "s" : ""} ({nB * (4 + rl("turbo"))} kg vendus/jour max)
+            <b>{nR}</b> torréfacteur{nR > 1 ? "s" : ""} alimenté{nR > 1 ? "s" : ""} ({capIn} kg de vert/jour) · <b>{nB}</b> ensacheuse{nB > 1 ? "s" : ""} reliée{nB > 1 ? "s" : ""} ({capOut} kg vendus/jour max)
           </div>
           {(() => {
             const fc = forecastFactory();
@@ -2633,20 +2702,14 @@ function MameMameSaisons() {
       }} />
       <div className="relative z-10 text-center px-5 w-full max-w-sm">
         <div className="font-bold tracking-widest text-sm mb-2" style={{ color: boss?.final ? C.purple : C.red }}>{boss?.final ? "MENACE FINALE" : `JOUR ${day} — ALERTE`}</div>
-          {BOSS_ART[boss?.type] ? (
-            <div className="mb-3">
-              <BossIris key={boss.type} {...BOSS_ART[boss.type]} />
-            </div>
-          ) : (
-            <div className="font-bold mb-3"
-              style={{
-                fontSize: 34, lineHeight: 1.1, color: "#fff",
-                textShadow: `3px 3px 0 ${boss?.final ? C.purple : C.red}, 6px 6px 0 rgba(0,0,0,.6)`,
-                animation: opts.reducedAnim ? "none" : "bslam 0.5s ease-out both",
-              }}>
-              {boss?.name}
-            </div>
-          )}
+        <div className="font-bold mb-3"
+          style={{
+            fontSize: 34, lineHeight: 1.1, color: "#fff",
+            textShadow: `3px 3px 0 ${boss?.final ? C.purple : C.red}, 6px 6px 0 rgba(0,0,0,.6)`,
+            animation: opts.reducedAnim ? "none" : "bslam 0.5s ease-out both",
+          }}>
+          {boss?.name}
+        </div>
         <div className="text-sm italic mb-3" style={{ color: C.cream }}>{boss?.intro}</div>
         <div className="rounded-2xl px-3 py-2 text-sm font-bold mb-4" style={{ background: C.paper, color: C.dark, border: `3px solid ${boss?.final ? C.purple : C.red}` }}>
           {boss?.desc}
@@ -3020,6 +3083,11 @@ function MameMameSaisons() {
         <p className="text-sm mb-3" style={{ color: C.grey }}>
           La boutique se dissout dans la lumière. Le run s'achève ici, volontairement — et sa grandeur se cristallise en Caféine Pure.
         </p>
+        {boss && (
+          <p className="text-sm mb-3 font-bold rounded-2xl px-3 py-2" style={{ color: "#fff", background: C.red, border: `3px solid ${C.dark}` }}>
+            Attention : {boss.name} attend son verdict ce soir. Transcender maintenant, c'est fuir le combat — il ne comptera pas.
+          </p>
+        )}
         <Card style={{ background: C.yellow }}>
           <div className="text-sm text-left" style={{ color: C.dark }}>
             <div>Boss vaincus : <b>+{pv.fromBosses} CP</b></div>
@@ -3161,11 +3229,23 @@ function MameMameSaisons() {
           <Btn wide onClick={() => setMenuOpen(false)}>Reprendre</Btn>
           <Btn wide bg={C.amber} onClick={async () => { autoSave(); await refreshSlots(); setOverlay("saves"); }}>Sauvegardes</Btn>
           <Btn wide bg={C.grey} onClick={() => setOverlay("options")}>Options</Btn>
+          {endgame === "unlocked" && dysonStage < DYSON_STAGES.length && (
+            <Btn wide bg={C.purple} disabled={money < DYSON_STAGES[dysonStage].cost}
+              onClick={() => {
+                setMoney((m) => m - DYSON_STAGES[dysonStage].cost);
+                setDysonStage((n) => n + 1);
+                SFX.success(opts.sfx);
+                say(`Percolateur de Dyson — ${DYSON_STAGES[dysonStage].name} : construit.`);
+                setMenuOpen(false);
+              }}>
+              Dyson {dysonStage + 1}/5 : {DYSON_STAGES[dysonStage].name} · {(DYSON_STAGES[dysonStage].cost / 1000)}k €
+            </Btn>
+          )}
+          {endgame === "unlocked" && dysonStage >= DYSON_STAGES.length && (
+            <Btn wide bg={C.purple} onClick={() => { setMenuOpen(false); setScreen("protocolIntro"); }}>Lancer le Protocole Grand Cru</Btn>
+          )}
           {endgame === "unlocked" && (
-            <>
-              <Btn wide bg={C.purple} onClick={() => { setMenuOpen(false); setScreen("protocolIntro"); }}>Lancer le Protocole Grand Cru</Btn>
-              <Btn wide bg={C.dark} onClick={() => { setMenuOpen(false); setScreen("unplugIntro"); }}>Débrancher Gaufromatic</Btn>
-            </>
+            <Btn wide bg={C.dark} onClick={() => { setMenuOpen(false); setScreen("unplugIntro"); }}>Débrancher Gaufromatic</Btn>
           )}
           <Btn wide bg={C.amber} disabled={bossesBeaten < 1} onClick={() => { setMenuOpen(false); setScreen("transcend"); }}>
             {bossesBeaten < 1 ? "Transcender (vaincs d'abord un boss)" : "Transcender la boutique"}
@@ -3189,20 +3269,42 @@ function MameMameSaisons() {
 
   const audioRef = useRef(null);
   const [musicStarted, setMusicStarted] = useState(false);
-  const [deadTracks, setDeadTracks] = useState({}); // pistes en 404 -> repli sur la principale
+  const [deadTracks, setDeadTracks] = useState({}); // pistes en 404, exclues des playlists
+  const [currentTrack, setCurrentTrack] = useState(null);
 
   const inBossContext = screen === "bossIntro" || (screen === "game" && boss);
-  const bossTrack = boss ? MUSIC.boss[boss.type] : null;
-  // Priorité par contexte, avec repli en cascade si un fichier manque
-  const trackWanted = [];
-  if (screen === "title") trackWanted.push(MUSIC.title);
-  else if (["meta", "cpshop", "runEnd", "transcend"].includes(screen)) trackWanted.push(MUSIC.meta);
-  else if (inBossContext && bossTrack) trackWanted.push(bossTrack);
-  else if (era === 3) trackWanted.push(MUSIC.era3);
-  else if (era === 2) trackWanted.push(MUSIC.era2);
-  else trackWanted.push(MUSIC.era1);
-  trackWanted.push(MUSIC.main);
-  const musicUrl = trackWanted.find((u) => u && !deadTracks[u]) || MUSIC.main;
+  // Le pool du contexte courant : une playlist (les fichiers manquants sont filtrés)
+  const musicPool = (() => {
+    let pool;
+    if (screen === "title") pool = MUSIC.title;
+    else if (["meta", "cpshop", "runEnd", "transcend", "endProtocol", "endUnplugged", "protocolIntro", "protocolSeq", "unplugIntro"].includes(screen)) pool = MUSIC.meta;
+    else if (inBossContext && MUSIC.boss[boss?.type]) pool = MUSIC.boss[boss.type];
+    else if (era === 3) pool = MUSIC.era3;
+    else if (era === 2) pool = MUSIC.era2;
+    else pool = MUSIC.era1;
+    const alive = (pool || []).filter((u) => !deadTracks[u]);
+    return alive.length ? alive : MUSIC.main.filter((u) => !deadTracks[u]);
+  })();
+  const poolKey = musicPool.join("|");
+
+  // Quand le contexte change, si la piste en cours n'appartient plus au pool : piste aléatoire du pool
+  useEffect(() => {
+    if (!musicPool.length) { setCurrentTrack(null); return; }
+    if (!currentTrack || !musicPool.includes(currentTrack)) {
+      setCurrentTrack(pick(musicPool));
+    }
+  }, [poolKey, currentTrack]);
+
+  // Fin de piste : on enchaîne sur une autre du pool (rotation aléatoire, évite de rejouer la même si possible)
+  const nextTrack = () => {
+    if (!musicPool.length) return;
+    const others = musicPool.filter((u) => u !== currentTrack);
+    setCurrentTrack(others.length ? pick(others) : currentTrack);
+    const el = audioRef.current;
+    if (el && musicStarted && opts.music > 0) setTimeout(() => el.play().catch(() => {}), 50);
+  };
+
+  const musicUrl = currentTrack;
 
   // Déverrouillage audio : play() doit être appelé DANS le geste utilisateur
   const unlockMusic = () => {
@@ -3219,7 +3321,7 @@ function MameMameSaisons() {
     const el = audioRef.current;
     if (!el) return;
     el.volume = clamp(opts.music / 100, 0, 1);
-    if (musicStarted && opts.music > 0) el.play().catch(() => {});
+    if (musicStarted && opts.music > 0 && musicUrl) el.play().catch(() => {});
     else el.pause();
   }, [musicStarted, opts.music, musicUrl]);
 
@@ -3228,8 +3330,9 @@ function MameMameSaisons() {
       onPointerDownCapture={unlockMusic}>
       <div className="w-full max-w-md flex flex-col min-h-screen" style={{ background: C.cream }}>
         {musicUrl && (
-          <audio ref={audioRef} src={musicUrl} loop preload="auto"
-            onError={() => { if (musicUrl !== MUSIC.main) setDeadTracks((d) => ({ ...d, [musicUrl]: true })); }} />
+          <audio ref={audioRef} src={musicUrl} preload="auto"
+            onEnded={nextTrack}
+            onError={() => { setDeadTracks((d) => ({ ...d, [musicUrl]: true })); setCurrentTrack(null); }} />
         )}
 
         {screen === "title" && TitleScreen()}
