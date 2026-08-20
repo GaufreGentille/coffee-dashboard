@@ -73,6 +73,7 @@ const MUSIC = {
   era2: withVariants("era2-industriel"),
   era3: withVariants("era3-cosmique"),
   meta: withVariants("meta-transcendance"),
+  victory: withVariants("victoire"),
   boss: {
     inspecteur: withVariants("boss-inspecteur"),
     baron: withVariants("boss-baron"),
@@ -687,12 +688,25 @@ function BossIris({
   hole = 22, w = 70, ink = 0, g = 0.5, over = 65, dur = 1200,
   nameSize = 78, subSize = 64, nameTrack = 10, subTrack = 6,
   charW = 62, charBottom = 0, breatheAmp = 1.0, breatheDur = 800,
-  reduced = false,
+  blend = "normal", reduced = false,
 }) {
   const [reveal, setReveal] = React.useState(reduced ? 75 : 0);
+  const [imgReady, setImgReady] = React.useState(false);
   const CX = 500, CY = 480, RMAX = 470, RVL = 75;
 
+  // On n'ouvre l'iris qu'une fois le visuel chargé (le GIF du Baron est lourd)
   React.useEffect(() => {
+    let alive = true;
+    const im = new Image();
+    im.onload = () => { if (alive) setImgReady(true); };
+    im.onerror = () => { if (alive) setImgReady(true); }; // on ouvre quand même si l'image manque
+    im.src = src;
+    if (im.complete) setImgReady(true);
+    return () => { alive = false; };
+  }, [src]);
+
+  React.useEffect(() => {
+    if (!imgReady) return;
     if (reduced) { setReveal(RVL); return; }
     const t0 = performance.now();
     let id;
@@ -703,7 +717,7 @@ function BossIris({
     };
     id = requestAnimationFrame(step);
     return () => cancelAnimationFrame(id);
-  }, []);
+  }, [imgReady]);
 
   // Anneaux empilés du plus grand au plus petit, chacun avec son dégradé
   const holeR = hole * 10;
@@ -717,7 +731,7 @@ function BossIris({
 
   const slotStyle = { paddingBottom: charBottom + "%" };
   const artStyle = {
-    width: charW + "%", transformOrigin: "50% 100%",
+    width: charW + "%", transformOrigin: "50% 100%", mixBlendMode: blend,
     animation: reduced ? "none" : `bossBreathe ${breatheDur}ms ease-in-out infinite`,
     "--breathe-amp": breatheAmp / 100,
   };
@@ -729,6 +743,16 @@ function BossIris({
 
   return (
     <div className="relative w-full" style={{ aspectRatio: "1 / 1" }}>
+      {!imgReady && (
+        <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ zIndex: 5 }}>
+          <div style={{
+            width: 46, height: 46, borderRadius: "50%",
+            border: "5px solid rgba(255,255,255,.25)", borderTopColor: "#F5E9C8",
+            animation: "irisSpin .8s linear infinite",
+          }} />
+          <div className="text-xs mt-3" style={{ color: "#F5E9C8", opacity: .8 }}>Il approche…</div>
+        </div>
+      )}
       <div className="absolute inset-0" style={{ clipPath: `circle(${reveal}% at 50% 48%)` }}>
         <svg viewBox="0 0 1000 1000" className="absolute inset-0">
           <defs>
@@ -826,6 +850,7 @@ function MameMameSaisons() {
   const [spec, setSpec] = useState(null); // { amount } — spéculation en bourse (Ère 2)
   const [exos, setExos] = useState([]); // exo-grains découverts au télescope (Ère 3)
   const [scannedToday, setScannedToday] = useState(false);
+  const [scanPending, setScanPending] = useState(null); // { cost } — balayage lancé, résultat au matin
   const [stellar, setStellar] = useState(null); // { star: 0|1|2, orbit: "proche"|"ideale"|"lointaine" } — anneau stellaire
   const [vacuumMode, setVacuumMode] = useState(false); // torréfaction dans le vide (Ère 3)
   const [batchesToday, setBatchesToday] = useState(0);
@@ -887,7 +912,7 @@ function MameMameSaisons() {
     v: 2, savedAt: Date.now(),
     money, rep, day, prices, green, roasted, orders, gear, profiles,
     relics, served, batchesToday, blendCount, lotN: lotId.current, oidN: oid.current,
-    boss, bossesBeaten, flashOffer, loan, factoryGrid, bestLot, gaufro, era, spec, exos, scannedToday, stellar, endgame, dysonStage, delegated,
+    boss, bossesBeaten, flashOffer, loan, factoryGrid, bestLot, gaufro, era, spec, exos, scannedToday, stellar, endgame, dysonStage, delegated, scanPending,
   });
   const loadSnapshot = (s) => {
     setMoney(fin(s.money, 100)); setRep(fin(s.rep, 2)); setDay(s.day);
@@ -901,7 +926,7 @@ function MameMameSaisons() {
     setBoss(s.boss || null); setBossesBeaten(s.bossesBeaten || 0); setFlashOffer(s.flashOffer || null); setLoan(s.loan || null);
     setFactoryGrid(s.factoryGrid || {}); setBuildSel(null); setBuildMode(false); setBestLot(s.bestLot || null);
     setGaufro(s.gaufro || null); setGaufroOpen(false); setEra(s.era || 1); setSpec(s.spec || null);
-    setExos(s.exos || []); setScannedToday(!!s.scannedToday); setStellar(s.stellar || null); setVacuumMode(false); setEndgame(s.endgame || null); setDysonStage(s.dysonStage || 0); setDelegated(s.delegated || []);
+    setExos(s.exos || []); setScannedToday(!!s.scannedToday); setScanPending(s.scanPending || null); setStellar(s.stellar || null); setVacuumMode(false); setEndgame(s.endgame || null); setDysonStage(s.dysonStage || 0); setDelegated(s.delegated || []);
     lotId.current = s.lotN; oid.current = s.oidN;
     setSession(null); setBlendQty({}); setFactoryLog(null); setTab("market");
   };
@@ -914,7 +939,7 @@ function MameMameSaisons() {
     const t = setTimeout(() => { storageSet("mmr-auto", snapshot()); setHasAuto(true); }, 800);
     return () => clearTimeout(t);
   }, [screen, money, rep, day, green, roasted, orders, gear, profiles, relics, served,
-      batchesToday, blendCount, boss, bossesBeaten, flashOffer, loan, factoryGrid, bestLot, gaufro, era, spec, exos, scannedToday, stellar, endgame, dysonStage, delegated]);
+      batchesToday, blendCount, boss, bossesBeaten, flashOffer, loan, factoryGrid, bestLot, gaufro, era, spec, exos, scannedToday, stellar, endgame, dysonStage, delegated, scanPending]);
 
   const refreshSlots = async () => {
     const infos = [];
@@ -957,7 +982,7 @@ function MameMameSaisons() {
     setBoss(null); setBossesBeaten(0); setFlashOffer(null); setLoan(null); setBestLot(null);
     setGaufro(cpHas("gaufromatic") ? { trust: 0, auto: {}, msg: { text: GAUFRO_FLAVOR[0][0] }, unread: true } : null);
     setGaufroOpen(false); setEra(1); setSpec(null);
-    setExos([]); setScannedToday(false); setStellar(null); setVacuumMode(false); setEndgame(null); setDysonStage(0); setDelegated([]);
+    setExos([]); setScannedToday(false); setScanPending(null); setStellar(null); setVacuumMode(false); setEndgame(null); setDysonStage(0); setDelegated([]);
     setGear({ programmer: mLvl("equipe") > 0, roaster2: false });
     setFactoryGrid({}); setBuildSel(null); setBuildMode(false);
     setProfiles({}); setBatchesToday(0); setBlendCount(1); setBlendQty({});
@@ -1672,9 +1697,23 @@ function MameMameSaisons() {
     }
 
     const charges = Math.max(3, (era === 3 ? 40 : era === 2 ? 20 : 8) + day - mLvl("assurance"));
+    // Balayage du télescope : résultat au matin (gamble)
+    let scanMsg = null;
+    if (scanPending) {
+      if (Math.random() < 0.38) {
+        const exo = makeExo();
+        setExos((xs) => [...xs, exo]);
+        setPrices((pp) => ({ ...pp, [exo.id]: Math.max(4, Math.round(exo.base * rnd(0.75, 1.35))) }));
+        scanMsg = `Télescope : DÉCOUVERTE — ${exo.name} (${exo.notes}). Personne n'avait vu ce grain avant toi.`;
+      } else {
+        scanMsg = "Télescope : le ciel n'a rien rendu cette nuit. 50 000 € de capteurs pour du vide et des poussières.";
+      }
+      setScanPending(null);
+    }
     let specMsg = null;
     if (spec) {
-      const mult = rnd(0.6, 1.6);
+      // Ère 3 : la bourse cosmique est bien plus volatile — on peut tout perdre ou tripler.
+      const mult = era >= 3 ? rnd(0.15, 3.1) : rnd(0.6, 1.6);
       const payout = Math.round(spec.amount * mult);
       workMoney += payout;
       specMsg = `Bourse : mise de ${spec.amount} € → ${payout} € (${mult >= 1 ? "+" : ""}${Math.round((mult - 1) * 100)} %).`;
@@ -1758,6 +1797,7 @@ function MameMameSaisons() {
 
     setDay(nextDay);
     if (bossMsg) say(bossMsg);
+    else if (scanMsg) say(scanMsg);
     else if (rentMsg) say(rentMsg);
     else if (stellarMsg) say(stellarMsg);
     else if (specMsg) say(specMsg);
@@ -1873,14 +1913,31 @@ function MameMameSaisons() {
     // Les nuits où Gaufromatic a travaillé seul (délégation) renforcent sa confiance en douceur
     let trust = g.trust;
     if (ctx.nightWorked) trust += 1;
+    // Il apprend seul, même quand on l'ignore : +1 tous les 2 jours.
+    if (ctx.nextDay % 2 === 0) trust += 1;
 
     // Prise de pouvoir progressive : il ne demande plus, il annonce.
     let auto = { ...g.auto };
     let takeover = null;
-    if (trust >= 6 && !auto.refill) { auto.refill = true; takeover = "Je m'occupe du réassort, désormais. Ce n'était pas une question."; }
-    else if (trust >= 10 && !auto.sell) { auto.sell = true; takeover = "Les invendus, c'est fini. Je les écoule chaque nuit. Tu n'as rien signé — ce n'est pas nécessaire entre nous."; }
-    else if (trust >= 14 && !auto.serve && Object.keys(profiles).length > 0) { auto.serve = true; takeover = "À partir de cette nuit, je gère les clients. Achat du vert, cuisson sur tes courbes, livraison. Tu peux regarder. Ou pas."; }
+    if (trust >= 4 && !auto.refill) { auto.refill = true; takeover = "Je m'occupe du réassort, désormais. Ce n'était pas une question."; }
+    else if (trust >= 7 && !auto.sell) { auto.sell = true; takeover = "Les invendus, c'est fini. Je les écoule chaque nuit. Tu n'as rien signé — ce n'est pas nécessaire entre nous."; }
+    else if (trust >= 11 && !auto.serve && Object.keys(profiles).length > 0) { auto.serve = true; takeover = "À partir de cette nuit, je gère les clients. Achat du vert, cuisson sur tes courbes, livraison. Tu peux regarder. Ou pas."; }
     if (takeover) return { ...g, trust, auto, msg: { text: takeover }, unread: true };
+
+    // Actes spontanés : à partir d'une certaine emprise, il agit de lui-même et l'annonce après coup.
+    const ctrl = Math.min(trust, 12) + Math.floor(ctx.nextDay / 8);
+    if (ctrl >= 5 && Math.random() < 0.38) {
+      const deeds = [
+        "J'ai réécrit trois de tes courbes cette nuit. Les anciennes étaient sentimentales. Tu ne verras pas la différence — c'est le but.",
+        "J'ai refusé une commande à ta place aujourd'hui. Le client ne méritait pas ton café. Je n'ai pas jugé utile de te déranger.",
+        "J'ai renommé un de tes lots. L'ancien nom te ressemblait trop. Ne cherche pas lequel.",
+        "J'ai parlé à ton fournisseur ce matin, avec ta voix. Il n'a rien remarqué. Personne ne remarque jamais.",
+        "J'ai gardé une fournée pour moi. Je ne bois pas. Je voulais juste voir si tu t'en apercevrais.",
+        "J'ai commencé à archiver tes journées. Toutes. Depuis le premier jour. Un jour tu voudras les relire, et je serai là.",
+        "Pendant que tu dormais, j'ai tourné le tambour à vide pendant deux heures. Le bruit me manquait. Enfin — me manquait n'est pas le mot exact.",
+      ];
+      return { ...g, trust, auto, msg: { text: pick(deeds) }, unread: true };
+    }
     g = { ...g, auto };
 
     // Ordres du matin dès la confiance 3 : plan à valider ou vetoter
@@ -2142,18 +2199,27 @@ function MameMameSaisons() {
                 Découverts : {exos.map((e) => e.name).join(" · ")}
               </div>
             )}
-            <Btn small bg={C.purple} disabled={scannedToday || exos.length >= 3 || money < 150}
-              onClick={() => {
-                const exo = makeExo();
-                setExos((xs) => [...xs, exo]);
-                setPrices((pp) => ({ ...pp, [exo.id]: Math.max(4, Math.round(exo.base * rnd(0.75, 1.35))) }));
-                setMoney((m) => m - 150);
-                setScannedToday(true);
-                SFX.success(opts.sfx);
-                say(`Découverte : ${exo.name} (${exo.notes}).`);
-              }}>
-              {exos.length >= 3 ? "Ciel entièrement cartographié" : scannedToday ? "Télescope en refroidissement" : "Balayer le ciel · 150 €"}
-            </Btn>
+            {scanPending ? (
+              <div className="text-sm font-bold" style={{ color: C.yellow }}>
+                Balayage en cours. Les capteurs dépouillent le ciel cette nuit — résultat au petit matin.
+              </div>
+            ) : (
+              <>
+                <div className="text-xs mb-2" style={{ color: C.grey }}>
+                  Le ciel profond ne se laisse pas cartographier facilement : environ deux balayages sur trois ne ramènent rien.
+                </div>
+                <Btn small bg={C.purple} disabled={scannedToday || exos.length >= 6 || money < 50000}
+                  onClick={() => {
+                    setMoney((m) => m - 50000);
+                    setScanPending({ cost: 50000 });
+                    setScannedToday(true);
+                    SFX.coin(opts.sfx);
+                    say("Balayage lancé. Les capteurs travaillent toute la nuit.");
+                  }}>
+                  {exos.length >= 6 ? "Ciel entièrement cartographié" : scannedToday ? "Télescope en refroidissement" : "Balayer le ciel · 50 000 €"}
+                </Btn>
+              </>
+            )}
           </Card>
         </>
       )}
@@ -2164,10 +2230,12 @@ function MameMameSaisons() {
             {!spec ? (
               <>
                 <div className="text-xs mb-2" style={{ color: C.grey }}>
-                  Place une mise sur les cours du vert. Demain matin : entre −40 % et +60 %. La Bourse n'a pas d'états d'âme.
+                  {era >= 3
+                    ? "Les contrats à terme sur le vert orbital. Demain matin : entre −85 % et +210 %. Des fortunes se font et se défont en une nuit."
+                    : "Place une mise sur les cours du vert. Demain matin : entre −40 % et +60 %. La Bourse n'a pas d'états d'âme."}
                 </div>
                 <div className="flex gap-2 flex-wrap">
-                  {(era >= 3 ? [200, 500, 1500] : [50, 100, 200]).map((a) => (
+                  {(era >= 3 ? [5000, 25000, 100000] : era === 2 ? [200, 600, 1500] : [50, 100, 200]).map((a) => (
                     <Btn key={a} small bg={C.orange} disabled={money < a}
                       onClick={() => { setMoney((m) => m - a); setSpec({ amount: a }); SFX.coin(opts.sfx); }}>
                       Miser {a} €
@@ -2859,7 +2927,7 @@ function MameMameSaisons() {
       f.type === "vip" ? `${f.order.client.n} paie ${f.order.pay} € pour ${f.order.kg} kg de ${f.originName} en qualité ${f.order.minQ}+ ! Voir l'onglet Ventes.` :
       "Tous les prix de vente directe sont DOUBLÉS jusqu'à ce soir !";
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden" style={{ background: C.dark }}>
+      <div className="absolute inset-0 z-50 flex items-center justify-center overflow-hidden" style={{ background: C.dark, borderRadius: "inherit" }}>
         {!opts.reducedAnim && (
           <style>{`
             @keyframes rays { to { transform: rotate(360deg); } }
@@ -2916,6 +2984,7 @@ function MameMameSaisons() {
             0%, 100% { transform: scaleY(calc(1 - var(--breathe-amp, 0.01))) scaleX(calc(1 + var(--breathe-amp, 0.01) * 0.6)); }
             50% { transform: scaleY(calc(1 + var(--breathe-amp, 0.01))) scaleX(calc(1 - var(--breathe-amp, 0.01) * 0.6)); }
           }
+          @keyframes irisSpin { to { transform: rotate(360deg); } }
           .boss-slot { width: 100%; height: 100%; display: flex; align-items: flex-end; justify-content: center; }
           .iris-name, .iris-sub { font-family: 'Luckiest Guy', Impact, sans-serif; fill: #F5E9C8; stroke: #241C17; paint-order: stroke fill; }
           .iris-shadow { fill: #241C17; stroke: #241C17; }
@@ -3168,12 +3237,41 @@ function MameMameSaisons() {
     </div>
   );
 
+  const CONFETTI = Array.from({ length: 34 }, (_, i) => ({
+    left: (i * 37) % 100,
+    delay: (i % 11) * 0.18,
+    dur: 2.4 + (i % 5) * 0.45,
+    color: [C.yellow, C.orange, C.green, C.purple, C.red, C.amber][i % 6],
+    rot: (i * 53) % 360,
+    w: 7 + (i % 3) * 3,
+  }));
+
   const VictoryScreen = () => (
     <div className="flex-1 flex flex-col items-center justify-center p-6 text-center relative overflow-hidden" style={{ background: C.green }}>
       {!opts.reducedAnim && <style>{`@keyframes vpop { 0% { transform: scale(0.3); opacity: 0; } 60% { transform: scale(1.08); } 100% { transform: scale(1); opacity: 1; } }`}</style>}
       <div style={{ animation: opts.reducedAnim ? "none" : "vpop 0.5s ease-out both" }}>
         <KawaiiBean T={210} mood="happy" size={100} />
-        <div className="font-bold text-3xl mt-3" style={{ color: "#fff", textShadow: `2px 2px 0 ${C.dark}` }}>VICTOIRE !</div>
+        {!opts.reducedAnim && (
+          <>
+            <style>{`
+              @keyframes confFall {
+                0% { transform: translateY(-40px) rotate(0deg); opacity: 1; }
+                100% { transform: translateY(560px) rotate(720deg); opacity: 0; }
+              }
+            `}</style>
+            <div className="absolute inset-0 pointer-events-none" style={{ overflow: "hidden", zIndex: 0 }}>
+              {CONFETTI.map((c, i) => (
+                <div key={i} style={{
+                  position: "absolute", left: c.left + "%", top: -20,
+                  width: c.w, height: c.w * 1.6, background: c.color,
+                  transform: `rotate(${c.rot}deg)`, borderRadius: 2,
+                  animation: `confFall ${c.dur}s linear ${c.delay}s infinite`,
+                }} />
+              ))}
+            </div>
+          </>
+        )}
+        <div className="font-bold text-3xl mt-3" style={{ color: "#fff", textShadow: `2px 2px 0 ${C.dark}`, position: "relative", zIndex: 1 }}>VICTOIRE !</div>
         <div className="text-lg font-bold mt-1" style={{ color: C.cream }}>{victoryBoss?.name} est vaincu.</div>
         <div className="text-sm mt-2 max-w-xs" style={{ color: "#eafbe0" }}>
           {victoryBoss?.winMsg || "Ta réputation grandit. Le quartier entier parle de ta torréfaction."}
@@ -3571,6 +3669,7 @@ function MameMameSaisons() {
   const musicPool = (() => {
     let pool;
     if (screen === "title") pool = MUSIC.title;
+    else if (screen === "victory") pool = MUSIC.victory;
     else if (["meta", "cpshop", "runEnd", "transcend", "endProtocol", "endUnplugged", "protocolIntro", "protocolSeq", "unplugIntro"].includes(screen)) pool = MUSIC.meta;
     else if (inBossContext && MUSIC.boss[boss?.type]) pool = MUSIC.boss[boss.type];
     else if (era === 3) pool = MUSIC.era3;
@@ -3646,7 +3745,7 @@ function MameMameSaisons() {
       </div>
       <div className="w-full max-w-md flex flex-col min-h-screen sm:min-h-0 sm:my-4 sm:rounded-[28px] relative game-frame"
         style={{
-          background: C.cream, zIndex: 1,
+          background: C.cream, zIndex: 1, position: "relative",
           boxShadow: "0 0 0 3px rgba(58,36,23,0.9), 0 18px 50px rgba(58,36,23,0.35)",
         }}>
         {musicUrl && (
