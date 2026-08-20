@@ -155,9 +155,9 @@ const SPACE_ORIGINS = [
 const EXO_COLORS = ["#c98fd0", "#d0708f", "#70a8d0", "#8fd0b0", "#d0c070", "#b090d0", "#70d0c0"];
 
 // Exo-grains procéduraux : chaque run découvre les siens au télescope
-const EXO_SYL = ["Kep", "Tau", "Vel", "Zar", "Nyx", "Ori", "Cass", "Lyr", "Alt", "Sag"];
-const EXO_END = ["ora IV", "ion IX", "ette b", "una Prime", "os VII", "ari 12", "eia c", "yx III"];
-const EXO_NOTES = ["nébuleuse sucrée", "ozone et miel", "fruit inconnu n°7", "pluie de méthane", "caramel d'antimatière", "fleur cryogénique", "umami stellaire", "sève de comète", "brume violette", "sucre d'aurore"];
+const EXO_SYL = ["Kep", "Tau", "Vel", "Zar", "Nyx", "Ori", "Cass", "Lyr", "Alt", "Sag", "Mira", "Vega", "Dral", "Ith", "Corv", "Pyx", "Quel", "Ryn", "Sylv", "Thal", "Ume", "Xen", "Yss", "Zeph"];
+const EXO_END = ["ora IV", "ion IX", "ette b", "una Prime", "os VII", "ari 12", "eia c", "yx III", "andra VI", "elle 88", "ux Minor", "ara Nova", "is Australis", "ophon II", "urnia d", "enka X"];
+const EXO_NOTES = ["nébuleuse sucrée", "ozone et miel", "fruit inconnu n°7", "pluie de méthane", "caramel d'antimatière", "fleur cryogénique", "umami stellaire", "sève de comète", "brume violette", "sucre d'aurore", "poussière de quasar", "agrume à trois lunes", "miel de vide", "résine d'anneau", "sel d'exoplanète", "cacao de gravité nulle", "vanille de trou noir", "pêche cryogénique", "fumée d'étoile morte", "nectar de géante rouge", "épice d'horizon", "thé de comète longue", "réglisse magnétique", "abricot de Titan"];
 function makeExo() {
   const name = pick(EXO_SYL) + pick(EXO_END);
   const shiny = Math.random() < 0.03; // 3% : exo-grain shiny arc-en-ciel
@@ -170,6 +170,19 @@ function makeExo() {
     notes: `${pick(EXO_NOTES)}, ${pick(EXO_NOTES)}${shiny ? ", éclat impossible" : ""} · +${qBonus} qualité`,
   };
 }
+
+// Classes stellaires : le cœur du four cosmique. Chacune cuit autrement.
+// "over" = de combien elle peut DÉPASSER le plafond de qualité normal.
+const STARS = [
+  { id: "naine",  name: "Naine rouge",   col: "#c94b3a", base: 88,  over: 15, cap: 60,  risk: 0.05,
+    desc: "Braise lente et sûre. Cuisson douce, gros volumes, peu de surprises." },
+  { id: "jaune",  name: "Étoile jaune",  col: "#e8b53a", base: 104, over: 30, cap: 90,  risk: 0.10,
+    desc: "L'équilibre. La lumière qui a fait mûrir tous les cafés de la Terre." },
+  { id: "bleue",  name: "Géante bleue",  col: "#4f8fd6", base: 122, over: 50, cap: 70,  risk: 0.22,
+    desc: "Brûlante, brutale, magnifique. Qualité extrême — quand elle ne carbonise pas tout." },
+  { id: "pulsar", name: "Pulsar",        col: "#9b6cd8", base: 132, over: 75, cap: 45,  risk: 0.34,
+    desc: "Cuisson par impulsions. Le sommet absolu du café, une nuit sur trois. Sinon, du charbon." },
+];
 
 const LEVELS = [
   { name: "Claire", color: "#b98953", target: 200, lo: 193, hi: 205 },
@@ -219,6 +232,7 @@ const META_UPGRADES = [
   { id: "assurance", name: "Assurance boutique", desc: "Les charges quotidiennes baissent de 1 €.", costs: [6, 12, 20] },
   { id: "etiquettes", name: "Étiquettes soignées", desc: "Vente directe : +5 %.", costs: [7, 13] },
   { id: "livre", name: "Grand livre", desc: "+10 % de Grains d'Or récoltés en fin de run.", costs: [12, 22] },
+  { id: "heritage", name: "Héritage industriel", desc: "Commence chaque partie directement en ÈRE 2 : atelier agrandi, marché boursier, machines lourdes. Le quartier te connaît déjà.", costs: [1000] },
   { id: "geisha", name: "Filière Panama", desc: "Débloque le Geisha du Panama au marché (rare et cher, mais quel café).", costs: [22] },
   { id: "equipe", name: "Départ équipé", desc: "Le programmateur de courbes est offert dès le jour 1.", costs: [18] },
 ];
@@ -294,6 +308,13 @@ const CP_SHOP = [
 
 // Paliers de qualité maximale (Caféine Pure)
 const qCeil = (unlocks) => (unlocks.mastery2 ? 170 : unlocks.mastery ? 130 : 100);
+// Prix payé selon la qualité : jusqu'à 100 c'est linéaire, au-delà la rareté s'envole.
+// Un lot à 150 vaut ~2,4× un lot à 100 ; un lot à 220 vaut ~5×. Le café d'étoile devient une rente.
+const qPayMult = (q) => {
+  const base = 0.55 + (Math.min(q, 100) / 100) * 0.5;           // 0,55 → 1,05
+  const extra = Math.max(0, q - 100);
+  return base + Math.pow(extra / 100, 1.35) * 3.6;
+};
 
 const LEGENDARIES = [
   { id: "lg_super", name: "Café quantique superposé", desc: "Tes lots sont dans tous les états de torréfaction à la fois : le niveau demandé par les clients est toujours le bon." },
@@ -974,16 +995,17 @@ function MameMameSaisons() {
 
   const newRun = () => {
     lotId.current = 1; oid.current = 1;
-    const startMoney = 120 + mLvl("cash") * 50;
+    const heritage = mLvl("heritage") > 0;
+    const startMoney = (120 + mLvl("cash") * 50) * (heritage ? 6 : 1);
     const startRep = 2.5 + mLvl("rep") * 0.5;
     const startGreen = { bresil: 4 + mLvl("stock") * 2, ...(mLvl("fournisseur") ? { colombie: mLvl("fournisseur") * 2 } : {}) };
     setMoney(startMoney); setRep(startRep); setDay(1);
     setGreen(startGreen); setRoasted([]); setRelics({}); setServed(0);
-    setBoss(null); setBossesBeaten(0); setFlashOffer(null); setLoan(null); setBestLot(null);
+    setBoss(null); setBossesBeaten(heritage ? 2 : 0); setFlashOffer(null); setLoan(null); setBestLot(null);
     setGaufro(cpHas("gaufromatic") ? { trust: 0, auto: {}, msg: { text: GAUFRO_FLAVOR[0][0] }, unread: true } : null);
-    setGaufroOpen(false); setEra(1); setSpec(null);
+    setGaufroOpen(false); setEra(heritage ? 2 : 1); setSpec(null);
     setExos([]); setScannedToday(false); setScanPending(null); setStellar(null); setVacuumMode(false); setEndgame(null); setDysonStage(0); setDelegated([]);
-    setGear({ programmer: mLvl("equipe") > 0, roaster2: false });
+    setGear({ programmer: mLvl("equipe") > 0 || heritage, roaster2: heritage });
     setFactoryGrid({}); setBuildSel(null); setBuildMode(false);
     setProfiles({}); setBatchesToday(0); setBlendCount(1); setBlendQty({});
     setSession(null); setFactoryLog(null); setTab("market");
@@ -1195,7 +1217,7 @@ function MameMameSaisons() {
     const candidates = roasted.filter((l) => lotMatches(l, order)).sort((a, b) => b.quality - a.quality);
     if (!candidates.length) return;
     const lot = candidates[0];
-    const gain = Math.round(order.pay * (0.55 + (lot.quality / 100) * 0.5) * (1 + rl("pourboire") * 0.05));
+    const gain = Math.round(order.pay * qPayMult(lot.quality) * (1 + rl("pourboire") * 0.05));
     setRoasted((r) => r.map((l) => (l.id === lot.id ? { ...l, kg: r1(l.kg - order.kg) } : l)).filter((l) => l.kg > 0.05));
     setOrders((os) => os.filter((o) => o.id !== order.id));
     setMoney((m) => m + gain);
@@ -1597,12 +1619,19 @@ function MameMameSaisons() {
     let stellarMsg = null;
     if (era >= 3 && stellar) {
       const totalG = activeOrigins.reduce((t, o) => t + (nightGreen[o.id] || 0), 0);
-      const used = Math.min(stellar.cap || 40, totalG);
+      const stClass = STARS[stellar.starClass ?? 1] || STARS[1];
+      const used = Math.min(stClass.cap, totalG);
       if (used > 0.05) {
         // L'orbite dérive : la qualité de base varie chaque nuit autour du réglage choisi
         const drift = Math.round(rnd(-6, 6));
-        const baseSq = stellar.orbit === "ideale" ? 82 : stellar.orbit === "proche" ? 70 : 74;
-        const sq = clamp(baseSq + drift + (rl("lg_gyroscope") ? 8 : 0), 40, qCeil(meta.cpUnlocks));
+        const st = STARS[stellar.starClass ?? 1] || STARS[1];
+        const orbitBonus = stellar.orbit === "ideale" ? 8 : stellar.orbit === "proche" ? -6 : 0;
+        // L'anneau est la SEULE technologie qui dépasse le plafond de qualité.
+        const ceiling = qCeil(meta.cpUnlocks) + st.over + (rl("lg_gyroscope") ? 10 : 0);
+        const flare = Math.random() < st.risk * (stellar.orbit === "proche" ? 1.5 : stellar.orbit === "lointaine" ? 0.6 : 1);
+        const sq = flare
+          ? clamp(Math.round(st.base * 0.42) + drift, 25, ceiling)   // éruption : la nuit est perdue
+          : clamp(st.base + drift + orbitBonus + (rl("lg_gyroscope") ? 8 : 0), 40, ceiling);
         const level = stellar.star;
         const g2 = { ...nightGreen };
         let toUse = used;
@@ -1615,12 +1644,14 @@ function MameMameSaisons() {
           toUse -= take;
           lots.push({
             id: lotId.current++, origin: o.id, label: o.name, notes: o.notes,
-            levelIdx: level, kg: r1(take * 0.85), quality: clamp(sq + (o.qBonus || 0), 25, qCeil(meta.cpUnlocks)), stellar: true,
+            levelIdx: level, kg: r1(take * 0.85), quality: clamp(sq + (o.qBonus || 0), 25, ceiling), stellar: true,
           });
         }
         nightGreen = g2;
         setRoasted((r) => [...r, ...lots]);
-        stellarMsg = `Anneau stellaire : ${r1(used)} kg cuits (${LEVELS[level].name}, orbite ${stellar.orbit}, qualité du jour ${sq}${drift >= 0 ? " ↑" : " ↓"}).`;
+        stellarMsg = flare
+          ? `Anneau stellaire : ÉRUPTION de la ${st.name} ! ${r1(used)} kg cuits dans la panique, qualité ${sq}. L'astronomie ne pardonne pas.`
+          : `Anneau stellaire : ${r1(used)} kg cuits sous ${st.name} (${LEVELS[level].name}, orbite ${stellar.orbit}, qualité ${sq}${drift >= 0 ? " ↑" : " ↓"}${sq > qCeil(meta.cpUnlocks) ? " — au-delà du plafond terrestre" : ""}).`;
       }
     }
     if (rl("lg_perco") && bestLot) {
@@ -1671,7 +1702,7 @@ function MameMameSaisons() {
       newOrders = newOrders.filter((ord) => {
         const cand = newRoasted.filter((l) => lotMatches(l, ord)).sort((a, b) => b.quality - a.quality)[0];
         if (!cand) return true;
-        const gain = Math.round(ord.pay * (0.55 + (cand.quality / 100) * 0.5) * (1 + rl("pourboire") * 0.05));
+        const gain = Math.round(ord.pay * qPayMult(cand.quality) * (1 + rl("pourboire") * 0.05));
         cand.kg = r1(cand.kg - ord.kg);
         autoGain += gain; autoServed += 1;
         return false;
@@ -1722,7 +1753,7 @@ function MameMameSaisons() {
     // Ventes déléguées : tout le stock torréfié s'écoule automatiquement au comptoir, au meilleur prix.
     let salesAuto = 0;
     if (hasDelegated("sales")) {
-      newRoasted.forEach((l) => { salesAuto += Math.round(l.kg * (8 + clamp(l.quality, 25, 200) / 100 * 12)); });
+      newRoasted.forEach((l) => { salesAuto += Math.round(l.kg * 12 * qPayMult(l.quality)); });
       if (salesAuto > 0) { newRoasted = []; setServed((n) => n + 1); }
     }
     const income = rl("mecene") * 8 + fac.gain + salesAuto;
@@ -2788,37 +2819,58 @@ function MameMameSaisons() {
             {!stellar ? (
               <>
                 <div className="text-xs mb-2" style={{ color: C.cream }}>
-                  Place un anneau de cargos en orbite d'une étoile : elle devient ton brûleur. Chaque nuit, jusqu'à 40 kg de vert cuits d'un coup. Construction : 2 000 €.
+                  Place un anneau de cargos en orbite d'une étoile : elle devient ton brûleur. C'est la <b>seule technologie capable de dépasser le plafond de qualité terrestre</b> — aucune main, aucune machine ne monte aussi haut. Construction : 12 000 €.
                 </div>
-                <Btn small bg={C.purple} disabled={money < 2000}
-                  onClick={() => { setMoney((m) => m - 2000); setStellar({ star: 1, orbit: "ideale", cap: 40 }); SFX.success(opts.sfx); }}>
-                  Construire l'anneau · 2 000 €
+                <Btn small bg={C.purple} disabled={money < 12000}
+                  onClick={() => { setMoney((m) => m - 12000); setStellar({ star: 1, starClass: 1, orbit: "ideale" }); SFX.success(opts.sfx); }}>
+                  Construire l'anneau · 12 000 €
                 </Btn>
               </>
             ) : (
               <>
-                <div className="text-xs mb-1" style={{ color: C.cream }}>Étoile-brûleur (fixe le niveau) :</div>
-                <div className="flex gap-1 mb-2">
-                  {[["Naine rouge", 0, "#c94040"], ["Jaune", 1, "#fed238"], ["Géante bleue", 2, "#4a7fb5"]].map(([nm, li, cc]) => (
-                    <button key={li} type="button" onClick={() => { SFX.click(opts.sfx); setStellar((st) => ({ ...st, star: li })); }}
-                      className="flex-1 rounded-xl py-1 text-xs font-bold"
-                      style={{ background: stellar.star === li ? cc : "#2a2347", color: stellar.star === li ? (li === 1 ? C.dark : "#fff") : C.cream, border: `2px solid ${C.dark}`, cursor: "pointer" }}>
-                      {nm}
+                <div className="text-xs mb-1" style={{ color: C.cream }}>Classe de l'étoile-brûleur :</div>
+                <div className="flex gap-1 mb-1 flex-wrap">
+                  {STARS.map((st, i) => (
+                    <button key={st.id} type="button" onClick={() => { SFX.click(opts.sfx); setStellar((v) => ({ ...v, starClass: i })); }}
+                      className="rounded-xl py-1 px-2 text-xs font-bold"
+                      style={{ flex: "1 1 44%", background: (stellar.starClass ?? 1) === i ? st.col : "#2a2347",
+                        color: (stellar.starClass ?? 1) === i ? (i === 1 ? C.dark : "#fff") : C.cream,
+                        border: `2px solid ${C.dark}`, cursor: "pointer" }}>
+                      {st.name}
                     </button>
                   ))}
                 </div>
-                <div className="text-xs mb-1" style={{ color: C.cream }}>Orbite (fixe la qualité) :</div>
+                {(() => {
+                  const st = STARS[stellar.starClass ?? 1] || STARS[1];
+                  const ceil = qCeil(meta.cpUnlocks) + st.over + (rl("lg_gyroscope") ? 10 : 0);
+                  return (
+                    <div className="text-xs mb-2 rounded-xl px-2 py-1" style={{ background: "#241d3f", color: C.cream }}>
+                      <div className="italic mb-1">{st.desc}</div>
+                      <div style={{ color: C.yellow }}>
+                        Qualité jusqu'à <b>{ceil}</b> (plafond terrestre : {qCeil(meta.cpUnlocks)}) · {st.cap} kg/nuit · risque d'éruption {Math.round(st.risk * 100)} %
+                      </div>
+                    </div>
+                  );
+                })()}
+                <div className="text-xs mb-1" style={{ color: C.cream }}>Niveau de cuisson :</div>
+                <div className="flex gap-1 mb-2">
+                  {LEVELS.map((lv, li) => (
+                    <button key={li} type="button" onClick={() => { SFX.click(opts.sfx); setStellar((v) => ({ ...v, star: li })); }}
+                      className="flex-1 rounded-xl py-1 text-xs font-bold"
+                      style={{ background: stellar.star === li ? C.orange : "#2a2347", color: "#fff", border: `2px solid ${C.dark}`, cursor: "pointer" }}>
+                      {lv.name}
+                    </button>
+                  ))}
+                </div>
+                <div className="text-xs mb-1" style={{ color: C.cream }}>Orbite :</div>
                 <div className="flex gap-1">
                   {["proche", "ideale", "lointaine"].map((ob) => (
-                    <button key={ob} type="button" onClick={() => { SFX.click(opts.sfx); setStellar((st) => ({ ...st, orbit: ob })); }}
+                    <button key={ob} type="button" onClick={() => { SFX.click(opts.sfx); setStellar((v) => ({ ...v, orbit: ob })); }}
                       className="flex-1 rounded-xl py-1 text-xs font-bold"
                       style={{ background: stellar.orbit === ob ? C.purple : "#2a2347", color: "#fff", border: `2px solid ${C.dark}`, cursor: "pointer" }}>
-                      {ob === "ideale" ? "idéale (Q78)" : ob + " (Q65)"}
+                      {ob === "ideale" ? "idéale" : ob === "proche" ? "proche (+risque)" : "lointaine (−risque)"}
                     </button>
                   ))}
-                </div>
-                <div className="text-xs mt-2" style={{ color: C.grey }}>
-                  Cette nuit : tout le vert disponible (max 40 kg) → {LEVELS[stellar.star].name}.
                 </div>
               </>
             )}
