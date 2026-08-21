@@ -110,7 +110,7 @@ const BOSSES = [
   },
   {
     type: "rival", name: "Louis, le Torréfacteur Rival",
-    intro: "Il gare son food-truck juste en face et te défie en duel de torréfaction, devant tout le quartier.",
+    intro: "Il gare son food-truck juste en face et te défie en duel de torréfaction devant tout le quartier.",
     makeReq: (c) => ({ score: 74 + c * 5, pay: 140 + c * 85 }),
     desc: (r) => `Réalise aujourd'hui une torréfaction MANUELLE de qualité ${r.score} ou plus pour le battre. Récompense : ${r.pay} € et de la réputation.`,
     winMsg: "Louis contemple ta courbe, ferme son food-truck en silence. « … Apprends-moi. » Le quartier explose en acclamations.",
