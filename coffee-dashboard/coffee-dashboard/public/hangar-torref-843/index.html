@@ -658,6 +658,15 @@ const TabIcon = ({ id, active }) => {
   return null;
 };
 
+// Couleur propre à chaque intercalaire, pour les reconnaître d'un coup d'œil
+const TAB_COLORS = {
+  market: "#7fc45c",   // vert : le vert qu'on achète
+  roast:  "#e8934a",   // orange : la flamme
+  blend:  "#c99bdd",   // lilas : l'assemblage
+  orders: "#f2c744",   // jaune : la vente
+  factory:"#8fb8d8",   // bleu acier : l'usine
+};
+
 const KawaiiBean = ({ T, mood, size = 84 }) => {
   const eyes = mood === "burnt"
     ? (<><path d="M38 46 l10 10 M48 46 l-10 10" stroke="#fff" strokeWidth="4" strokeLinecap="round" />
@@ -3848,7 +3857,8 @@ function MameMameSaisons() {
           .mmr-tab:hover svg { transform: translateY(-2px) scale(1.12); }
         }
         .mmr-tab svg { transition: transform .15s ease; }
-        .mmr-tabbar { padding-left: 6px; padding-right: 6px; gap: 4px; }
+        .mmr-tab:hover { filter: brightness(1.07); }
+        .mmr-content { padding-right: 52px; }
       `}</style>
       {/* Grains décoratifs en fond, visibles surtout sur grand écran */}
       <div className="hidden sm:block fixed inset-0 pointer-events-none" style={{ opacity: 0.5, zIndex: 0 }}>
@@ -3942,31 +3952,49 @@ function MameMameSaisons() {
               )}
             </div>
 
-            <div className="flex-1 overflow-y-auto p-3 pb-24">
+            <div className="flex-1 overflow-y-auto p-3" style={{ paddingRight: 56, paddingBottom: 16 }}>
               {ActiveView()}
             </div>
 
-            <div className="sticky bottom-0 w-full flex mmr-tabbar" style={{ background: C.paper, borderTop: `3px solid ${C.dark}`, zIndex: 40 }}>
-              {TABS.map((t) => (
-                <button key={t.id} onClick={() => setTab(t.id)} title={t.label}
-                  className="flex-1 py-2 flex flex-col items-center relative mmr-tab"
-                  style={{ background: tab === t.id ? C.yellow : "transparent", color: C.dark, fontWeight: tab === t.id ? 700 : 500 }}>
-                  <TabIcon id={t.id} active={tab === t.id} />
-                  {/* Infobulle : n'apparaît qu'au survol souris (ordinateur) */}
-                  <span className="mmr-tip" style={{
-                    position: "absolute", bottom: "100%", left: "50%", transform: "translateX(-50%)",
-                    marginBottom: 6, padding: "3px 9px", borderRadius: 10, whiteSpace: "nowrap",
-                    background: C.dark, color: C.cream, fontSize: 12, fontWeight: 700,
-                    opacity: 0, pointerEvents: "none", transition: "opacity .15s, transform .15s",
-                  }}>{t.label}</span>
-                  {t.badge > 0 && (
-                    <span className="absolute rounded-full text-xs font-bold flex items-center justify-center"
-                      style={{ top: 2, right: "22%", width: 17, height: 17, background: C.red, color: "#fff", border: `2px solid ${C.paper}` }}>
-                      {t.badge}
-                    </span>
-                  )}
-                </button>
-              ))}
+            {/* Intercalaires verticaux, façon onglets de classeur, sur le bord droit */}
+            <div className="mmr-tabbar" style={{
+              position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)",
+              display: "flex", flexDirection: "column", gap: 7, zIndex: 40, paddingRight: 0,
+            }}>
+              {TABS.map((t) => {
+                const on = tab === t.id;
+                return (
+                  <button key={t.id} onClick={() => setTab(t.id)} title={t.label}
+                    className="relative mmr-tab flex items-center justify-center"
+                    style={{
+                      width: on ? 52 : 42, height: 46,
+                      marginLeft: on ? -10 : 0,
+                      background: TAB_COLORS[t.id] || C.amber,
+                      color: C.dark,
+                      border: `3px solid ${C.dark}`, borderRight: "none",
+                      borderRadius: "16px 0 0 16px",
+                      boxShadow: on ? `-3px 3px 0 rgba(58,36,23,.35)` : "none",
+                      opacity: on ? 1 : 0.82,
+                      transition: "width .16s ease, margin-left .16s ease, opacity .16s ease",
+                      cursor: "pointer",
+                    }}>
+                    <TabIcon id={t.id} active />
+                    {/* Infobulle : au survol souris (ordinateur) uniquement */}
+                    <span className="mmr-tip" style={{
+                      position: "absolute", right: "100%", top: "50%", transform: "translateY(-50%)",
+                      marginRight: 8, padding: "4px 10px", borderRadius: 10, whiteSpace: "nowrap",
+                      background: C.dark, color: C.cream, fontSize: 12, fontWeight: 700,
+                      opacity: 0, pointerEvents: "none", transition: "opacity .15s",
+                    }}>{t.label}</span>
+                    {t.badge > 0 && (
+                      <span className="absolute rounded-full text-xs font-bold flex items-center justify-center"
+                        style={{ top: -5, left: -7, width: 18, height: 18, background: C.red, color: "#fff", border: `2px solid ${C.paper}` }}>
+                        {t.badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
             {GaufroWidget()}
