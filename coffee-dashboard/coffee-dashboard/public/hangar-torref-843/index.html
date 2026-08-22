@@ -103,14 +103,14 @@ const BOSSES = [
   },
   {
     type: "monstre", name: "Mochi, le Kaiju Gourmand",
-    intro: "Un client de trente mètres de haut frappe doucement à ta porte. Il veut goûter TOUTE ta gamme.",
+    intro: "Un ventre de trente mètres de haut se gare devant ta boutique. Mochi n'attaque pas les villes : il les DÉGUSTE. Et aujourd'hui, il a très, très faim de café.",
     makeReq: (c) => ({ kgEach: 2 + Math.floor(c * 0.8), q: 64 + c * 5, pay: 240 + c * 140 }),
-    desc: (r) => `Fournis ce soir un lot de CHAQUE niveau (Claire, Medium, Foncée), chacun d'au moins ${r.kgEach} kg et de qualité ${r.q}+. Récompense : ${r.pay} €.`,
-    winMsg: "Mochi engloutit les trois lots, pousse un rugissement ravi qui fait trembler les vitres, et s'en va content.",
+    desc: (r) => `Mochi veut TOUT goûter, et il veut ça MAINTENANT : un lot de chaque niveau (Claire, Medium, Foncée), ${r.kgEach} kg chacun minimum, qualité ${r.q}+. Il tapote son ventre en attendant. Récompense : ${r.pay} €.`,
+    winMsg: "Mochi engloutit les trois lots d'une seule lampée, se lèche les babines pendant huit secondes entières, pousse un rot qui décoiffe le quartier, et repart en réclamant déjà le dessert.",
   },
   {
     type: "rival", name: "Louis, le Torréfacteur Rival",
-    intro: "Il gare son food-truck juste en face et te défie en duel de torréfaction devant tout le quartier.",
+    intro: "Il gare son food-truck juste en face et te défie en duel de torréfaction, devant tout le quartier.",
     makeReq: (c) => ({ score: 74 + c * 5, pay: 140 + c * 85 }),
     desc: (r) => `Réalise aujourd'hui une torréfaction MANUELLE de qualité ${r.score} ou plus pour le battre. Récompense : ${r.pay} € et de la réputation.`,
     winMsg: "Louis contemple ta courbe, ferme son food-truck en silence. « … Apprends-moi. » Le quartier explose en acclamations.",
@@ -233,7 +233,6 @@ const META_UPGRADES = [
   { id: "etiquettes", name: "Étiquettes soignées", desc: "Vente directe : +5 %.", costs: [7, 13] },
   { id: "livre", name: "Grand livre", desc: "+10 % de Grains d'Or récoltés en fin de run.", costs: [12, 22] },
   { id: "heritage", name: "Héritage industriel", desc: "Commence chaque partie directement en ÈRE 2 : atelier agrandi, marché boursier, machines lourdes. Le quartier te connaît déjà.", costs: [1000] },
-  { id: "geisha", name: "Filière Panama", desc: "Débloque le Geisha du Panama au marché (rare et cher, mais quel café).", costs: [22] },
   { id: "equipe", name: "Départ équipé", desc: "Le programmateur de courbes est offert dès le jour 1.", costs: [18] },
 ];
 
@@ -647,6 +646,18 @@ const AnimalAvatar = ({ kind, size = 44 }) => {
   return <svg width={size} height={size} viewBox="0 0 48 48" style={{ flexShrink: 0 }}>{body}</svg>;
 };
 
+// Icônes des onglets — SVG maison, reconnaissables d'un coup d'œil
+const TabIcon = ({ id, active }) => {
+  const col = active ? C.dark : "#8a7b68";
+  const p = { fill: "none", stroke: col, strokeWidth: 2.2, strokeLinecap: "round", strokeLinejoin: "round" };
+  if (id === "market") return (<svg width="22" height="22" viewBox="0 0 24 24"><path d="M4 8h16l-1.4 10.2a2 2 0 0 1-2 1.8H7.4a2 2 0 0 1-2-1.8L4 8Z" {...p} /><path d="M8.5 8V6.2a3.5 3.5 0 0 1 7 0V8" {...p} /></svg>);
+  if (id === "roast") return (<svg width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="13" r="6.6" {...p} /><path d="M12 6.4V3.6M8.4 4.6l1.2 2M15.6 4.6l-1.2 2" {...p} /><path d="M12 9.6c-1.4 1.9-1.4 4.9 0 6.8" {...p} /></svg>);
+  if (id === "blend") return (<svg width="22" height="22" viewBox="0 0 24 24"><path d="M5 4h14l-5.4 7.4V19l-3.2 1.6V11.4L5 4Z" {...p} /></svg>);
+  if (id === "orders") return (<svg width="22" height="22" viewBox="0 0 24 24"><path d="M5.5 8h13l-1 11.2a1.6 1.6 0 0 1-1.6 1.4H8.1a1.6 1.6 0 0 1-1.6-1.4L5.5 8Z" {...p} /><path d="M9 8V5.6A3 3 0 0 1 15 5.6V8" {...p} /><path d="M9.6 12.4l1.8 1.8 3.2-3.4" {...p} /></svg>);
+  if (id === "factory") return (<svg width="22" height="22" viewBox="0 0 24 24"><path d="M3.6 20.4V11l5 3V11l5 3V6.4h1.8l1.4 14H3.6Z" {...p} /><path d="M7 17.4h1.6M11.4 17.4H13M15.6 17.4h1.4" {...p} /></svg>);
+  return null;
+};
+
 const KawaiiBean = ({ T, mood, size = 84 }) => {
   const eyes = mood === "burnt"
     ? (<><path d="M38 46 l10 10 M48 46 l-10 10" stroke="#fff" strokeWidth="4" strokeLinecap="round" />
@@ -891,7 +902,7 @@ function MameMameSaisons() {
   const cpHas = (id) => !!meta.cpUnlocks[id];
   const activeOrigins = [
     ...BASE_ORIGINS,
-    ...(mLvl("geisha") ? [GEISHA] : []),
+    GEISHA,
     ...(era >= 3 ? SPACE_ORIGINS : []),
     ...exos,
   ];
@@ -1648,14 +1659,14 @@ function MameMameSaisons() {
           });
         }
         nightGreen = g2;
-        setRoasted((r) => [...r, ...lots]);
+        workRoasted = [...workRoasted, ...lots]; // rejoint l'inventaire du soir (ne plus écraser)
         stellarMsg = flare
           ? `Anneau stellaire : ÉRUPTION de la ${st.name} ! ${r1(used)} kg cuits dans la panique, qualité ${sq}. L'astronomie ne pardonne pas.`
           : `Anneau stellaire : ${r1(used)} kg cuits sous ${st.name} (${LEVELS[level].name}, orbite ${stellar.orbit}, qualité ${sq}${drift >= 0 ? " ↑" : " ↓"}${sq > qCeil(meta.cpUnlocks) ? " — au-delà du plafond terrestre" : ""}).`;
       }
     }
     if (rl("lg_perco") && bestLot) {
-      setRoasted((r) => [...r, { ...bestLot, id: lotId.current++, kg: r1(1.7 * (era === 3 ? 4 : era === 2 ? 2 : 1)) }]);
+      workRoasted = [...workRoasted, { ...bestLot, id: lotId.current++, kg: r1(1.7 * (era === 3 ? 4 : era === 2 ? 2 : 1)) }];
     }
     const fac = runFactory(nightGreen);
     if (hasDelegated("factory")) { fac.gain = Math.round(fac.gain * 1.8) + 40 * era; } // usine cédée : plein rendement perpétuel
@@ -2979,7 +2990,7 @@ function MameMameSaisons() {
       f.type === "vip" ? `${f.order.client.n} paie ${f.order.pay} € pour ${f.order.kg} kg de ${f.originName} en qualité ${f.order.minQ}+ ! Voir l'onglet Ventes.` :
       "Tous les prix de vente directe sont DOUBLÉS jusqu'à ce soir !";
     return (
-      <div className="absolute inset-0 z-50 flex items-center justify-center overflow-hidden" style={{ background: C.dark, borderRadius: "inherit" }}>
+      <div className="absolute inset-0 z-50 flex items-center justify-center" style={{ background: C.dark, borderRadius: "inherit", overflow: "hidden" }}>
         {!opts.reducedAnim && (
           <style>{`
             @keyframes rays { to { transform: rotate(360deg); } }
@@ -2990,7 +3001,8 @@ function MameMameSaisons() {
           `}</style>
         )}
         <div className="absolute" style={{
-          inset: "-60%",
+          top: "50%", left: "50%", width: "160vmax", height: "160vmax",
+          marginTop: "-80vmax", marginLeft: "-80vmax",
           background: `repeating-conic-gradient(${C.yellow} 0deg 14deg, ${C.amber} 14deg 28deg)`,
           animation: opts.reducedAnim ? "none" : "rays 14s linear infinite",
         }} />
@@ -3043,7 +3055,8 @@ function MameMameSaisons() {
         `}</style>
       )}
       <div className="absolute" style={{
-        inset: "-60%",
+        top: "50%", left: "50%", width: "160vmax", height: "160vmax",
+        marginTop: "-80vmax", marginLeft: "-80vmax",
         background: boss?.final
           ? `repeating-conic-gradient(${C.purple} 0deg 12deg, #05030a 12deg 24deg)`
           : `repeating-conic-gradient(${C.red} 0deg 12deg, #1c0f08 12deg 24deg)`,
@@ -3697,7 +3710,7 @@ function MameMameSaisons() {
 
   // ————— Rendu —————
   const ALL_TABS = [
-    { id: "market", label: era === 3 ? "Cosmos" : era === 2 ? "Bourse" : "Marché", view: Market },
+    { id: "market", label: era === 3 ? "Cosmos" : era === 2 ? "Bourse" : "Achat", view: Market },
     { id: "roast", label: "Torréf.", view: Roaster },
     { id: "blend", label: "Assemblage", view: Blends },
     { id: "orders", label: "Ventes", view: Orders, badge: orders.length },
@@ -3770,6 +3783,12 @@ function MameMameSaisons() {
     else el.pause();
   }, [musicStarted, opts.music, musicUrl]);
 
+  // Le volume doit suivre le curseur en temps réel, même pendant la lecture.
+  useEffect(() => {
+    const el = audioRef.current;
+    if (el) el.volume = clamp(opts.music / 100, 0, 1);
+  }, [opts.music]);
+
   return (
     <div className="min-h-screen flex justify-center items-stretch sm:items-center" style={{
         fontFamily: "'Baloo 2','Trebuchet MS',system-ui,sans-serif",
@@ -3780,6 +3799,13 @@ function MameMameSaisons() {
         @media (min-width: 640px) {
           .game-frame { height: 92vh; overflow-y: auto; overflow-x: hidden; }
         }
+        /* Infobulles des onglets : uniquement pour les vrais pointeurs (ordinateur) */
+        @media (hover: hover) and (pointer: fine) {
+          .mmr-tab:hover .mmr-tip { opacity: 1; transform: translateX(-50%) translateY(-2px); }
+          .mmr-tab:hover svg { transform: translateY(-2px) scale(1.12); }
+        }
+        .mmr-tab svg { transition: transform .15s ease; }
+        .mmr-tabbar { padding-left: 6px; padding-right: 6px; gap: 4px; }
       `}</style>
       {/* Grains décoratifs en fond, visibles surtout sur grand écran */}
       <div className="hidden sm:block fixed inset-0 pointer-events-none" style={{ opacity: 0.5, zIndex: 0 }}>
@@ -3877,14 +3903,22 @@ function MameMameSaisons() {
               {ActiveView()}
             </div>
 
-            <div className="fixed bottom-0 left-1/2 w-full max-w-md flex" style={{ transform: "translateX(-50%)", background: C.paper, borderTop: `3px solid ${C.dark}`, zIndex: 40 }}>
+            <div className="sticky bottom-0 w-full flex mmr-tabbar" style={{ background: C.paper, borderTop: `3px solid ${C.dark}`, zIndex: 40 }}>
               {TABS.map((t) => (
-                <button key={t.id} onClick={() => setTab(t.id)} className="flex-1 py-2 flex flex-col items-center relative"
+                <button key={t.id} onClick={() => setTab(t.id)} title={t.label}
+                  className="flex-1 py-2 flex flex-col items-center relative mmr-tab"
                   style={{ background: tab === t.id ? C.yellow : "transparent", color: C.dark, fontWeight: tab === t.id ? 700 : 500 }}>
-                  <span className="text-xs">{t.label}</span>
+                  <TabIcon id={t.id} active={tab === t.id} />
+                  {/* Infobulle : n'apparaît qu'au survol souris (ordinateur) */}
+                  <span className="mmr-tip" style={{
+                    position: "absolute", bottom: "100%", left: "50%", transform: "translateX(-50%)",
+                    marginBottom: 6, padding: "3px 9px", borderRadius: 10, whiteSpace: "nowrap",
+                    background: C.dark, color: C.cream, fontSize: 12, fontWeight: 700,
+                    opacity: 0, pointerEvents: "none", transition: "opacity .15s, transform .15s",
+                  }}>{t.label}</span>
                   {t.badge > 0 && (
-                    <span className="absolute top-0 rounded-full text-xs font-bold flex items-center justify-center"
-                      style={{ right: "10%", width: 17, height: 17, background: C.red, color: "#fff", border: `2px solid ${C.paper}` }}>
+                    <span className="absolute rounded-full text-xs font-bold flex items-center justify-center"
+                      style={{ top: 2, right: "22%", width: 17, height: 17, background: C.red, color: "#fff", border: `2px solid ${C.paper}` }}>
                       {t.badge}
                     </span>
                   )}
