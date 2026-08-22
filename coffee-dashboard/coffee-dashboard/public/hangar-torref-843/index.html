@@ -102,10 +102,10 @@ const BOSSES = [
     winMsg: "Le tribut versé, il ajuste son chapeau. « Tu paies rubis sur l'ongle. J'aime ça. On se reverra. »",
   },
   {
-    type: "monstre", name: "Mochi, le Kaiju Gourmand",
-    intro: "Un ventre de trente mètres de haut se gare devant ta boutique. Mochi n'attaque pas les villes : il les DÉGUSTE. Et aujourd'hui, il a très, très faim de café.",
+    type: "monstre", name: "Mochi, la Kaiju Gourmande",
+    intro: "Un ventre de trente mètres de haut se gare devant ta boutique. Mochi n'attaque pas les villes : elle les DÉGUSTE. Et aujourd'hui, elle a très, très faim de café.",
     makeReq: (c) => ({ kgEach: 2 + Math.floor(c * 0.8), q: 64 + c * 5, pay: 240 + c * 140 }),
-    desc: (r) => `Mochi veut TOUT goûter, et il veut ça MAINTENANT : un lot de chaque niveau (Claire, Medium, Foncée), ${r.kgEach} kg chacun minimum, qualité ${r.q}+. Il tapote son ventre en attendant. Récompense : ${r.pay} €.`,
+    desc: (r) => `Mochi veut TOUT goûter, et il veut ça MAINTENANT : un lot de chaque niveau (Claire, Medium, Foncée), ${r.kgEach} kg chacun minimum, qualité ${r.q}+. Elle tapote son ventre en attendant. Récompense : ${r.pay} €.`,
     winMsg: "Mochi engloutit les trois lots d'une seule lampée, se lèche les babines pendant huit secondes entières, pousse un rot qui décoiffe le quartier, et repart en réclamant déjà le dessert.",
   },
   {
@@ -700,8 +700,27 @@ const BOSS_ART = {
     nameSize: 84, subSize: 76, nameTrack: 5, subTrack: 16,
     charW: 70, charBottom: 0, breatheAmp: 0.5, breatheDur: 1000,
   },
-  // À activer quand les visuels arrivent :
-  // monstre / rival / decaf (voir prompts SwarmUI).
+  monstre: {
+    // Valeurs reprises telles quelles de l'atelier IRIS
+    src: BOSS_ART_URL + "monstre.png",
+    name: "MOCHI", sub: "LA KAIJU GOURMANDE",
+    ringA: "#3FA8A0", ringB: "#1D5C63", hub: "#0D1A1C",
+    hole: 23, w: 64, ink: 0, g: 0.70, over: 55, dur: 1150,
+    nameSize: 92, subSize: 80, nameTrack: 9, subTrack: 12,
+    charW: 66, charBottom: 3, breatheAmp: 0.5, breatheDur: 800,
+    pop: 0.60, popDelay: 0,
+  },
+  rival: {
+    // Valeurs reprises telles quelles de l'atelier IRIS
+    src: BOSS_ART_URL + "rival.png",
+    name: "LOUIS", sub: "LE RIVAL",
+    ringA: "#E3B23C", ringB: "#A85F22", hub: "#1C1408",
+    hole: 22, w: 64, ink: 0, g: 0.70, over: 55, dur: 450,
+    nameSize: 92, subSize: 80, nameTrack: 9, subTrack: 12,
+    charW: 64, charBottom: 0, breatheAmp: 1.5, breatheDur: 2000,
+    pop: 0.60, popDelay: 0,
+  },
+  // À activer quand le visuel arrive : decaf.
 };
 
 // Éclaircit (amt>0) ou assombrit (amt<0) une couleur hexadécimale
@@ -720,8 +739,11 @@ function BossIris({
   hole = 22, w = 70, ink = 0, g = 0.5, over = 65, dur = 1200,
   nameSize = 78, subSize = 64, nameTrack = 10, subTrack = 6,
   charW = 62, charBottom = 0, breatheAmp = 1.0, breatheDur = 800,
+  pop = 0, popDelay = 0,
   blend = "normal", reduced = false,
 }) {
+  // Nom d'animation unique par boss : chacun a son propre saut d'entrée
+  const popName = React.useMemo(() => "pop" + Math.random().toString(36).slice(2, 8), []);
   const [reveal, setReveal] = React.useState(reduced ? 75 : 0);
   const [imgReady, setImgReady] = React.useState(false);
   const CX = 500, CY = 480, RMAX = 470, RVL = 75;
@@ -764,9 +786,21 @@ function BossIris({
   const slotStyle = { paddingBottom: charBottom + "%" };
   const artStyle = {
     width: charW + "%", transformOrigin: "50% 100%", mixBlendMode: blend,
-    animation: reduced ? "none" : `bossBreathe ${breatheDur}ms ease-in-out infinite`,
+    animation: reduced
+      ? "none"
+      : (pop > 0
+          ? `bossBreathe ${breatheDur}ms ease-in-out infinite, ${popName} .6s cubic-bezier(.34,1.56,.64,1) ${Math.round((popDelay / 100) * dur)}ms backwards`
+          : `bossBreathe ${breatheDur}ms ease-in-out infinite`),
     "--breathe-amp": breatheAmp / 100,
   };
+  // Keyframes du saut, calculées depuis l'amplitude (mêmes formules que l'atelier)
+  const popCSS = pop > 0 ? `
+    @keyframes ${popName} {
+      0%   { transform: scaleX(${(1 - 0.5 * pop).toFixed(3)}) scaleY(${(1 - 0.58 * pop).toFixed(3)}) translateY(${(18 * pop).toFixed(1)}%); }
+      45%  { transform: scaleX(${(1 + 0.1 * pop).toFixed(3)}) scaleY(${(1 + 0.06 * pop).toFixed(3)}); }
+      70%  { transform: scaleX(${(1 - 0.03 * pop).toFixed(3)}) scaleY(${(1 + 0.02 * pop).toFixed(3)}); }
+      100% { transform: scale(1); }
+    }` : "";
   const art = <img src={src} alt="" className="boss-art" style={artStyle} />;
 
   const nameDx = -nameTrack / 2, subDx = -subTrack / 2;
@@ -775,6 +809,15 @@ function BossIris({
 
   return (
     <div className="relative w-full" style={{ aspectRatio: "1 / 1" }}>
+      <style>{`
+        @keyframes bossBreathe {
+          0%, 100% { transform: scaleY(calc(1 - var(--breathe-amp, 0.01))) scaleX(calc(1 + var(--breathe-amp, 0.01) * 0.6)); }
+          50%      { transform: scaleY(calc(1 + var(--breathe-amp, 0.01))) scaleX(calc(1 - var(--breathe-amp, 0.01) * 0.6)); }
+        }
+        @keyframes irisSpin { to { transform: rotate(360deg); } }
+        .boss-slot { width: 100%; height: 100%; display: flex; align-items: flex-end; justify-content: center; }
+      `}</style>
+      {popCSS && <style>{popCSS}</style>}
       {!imgReady && (
         <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ zIndex: 5 }}>
           <div style={{
