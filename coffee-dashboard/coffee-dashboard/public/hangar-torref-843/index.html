@@ -174,13 +174,13 @@ function makeExo() {
 // Classes stellaires : le cœur du four cosmique. Chacune cuit autrement.
 // "over" = de combien elle peut DÉPASSER le plafond de qualité normal.
 const STARS = [
-  { id: "naine",  name: "Naine rouge",   col: "#c94b3a", base: 88,  over: 15, cap: 60,  risk: 0.05,
+  { id: "naine",  name: "Naine rouge",   col: "#c94b3a", base: 88,  over: 15, cap: 60,  risk: 0.05, cost: 0,
     desc: "Braise lente et sûre. Cuisson douce, gros volumes, peu de surprises." },
-  { id: "jaune",  name: "Étoile jaune",  col: "#e8b53a", base: 104, over: 30, cap: 90,  risk: 0.10,
+  { id: "jaune",  name: "Étoile jaune",  col: "#e8b53a", base: 104, over: 30, cap: 90,  risk: 0.10, cost: 45000,
     desc: "L'équilibre. La lumière qui a fait mûrir tous les cafés de la Terre." },
-  { id: "bleue",  name: "Géante bleue",  col: "#4f8fd6", base: 122, over: 50, cap: 70,  risk: 0.22,
+  { id: "bleue",  name: "Géante bleue",  col: "#4f8fd6", base: 122, over: 50, cap: 70,  risk: 0.22, cost: 180000,
     desc: "Brûlante, brutale, magnifique. Qualité extrême — quand elle ne carbonise pas tout." },
-  { id: "pulsar", name: "Pulsar",        col: "#9b6cd8", base: 132, over: 75, cap: 45,  risk: 0.34,
+  { id: "pulsar", name: "Pulsar",        col: "#9b6cd8", base: 132, over: 75, cap: 45,  risk: 0.34, cost: 600000,
     desc: "Cuisson par impulsions. Le sommet absolu du café, une nuit sur trois. Sinon, du charbon." },
 ];
 
@@ -729,7 +729,16 @@ const BOSS_ART = {
     charW: 64, charBottom: 0, breatheAmp: 1.5, breatheDur: 2000,
     pop: 0.60, popDelay: 0,
   },
-  // À activer quand le visuel arrive : decaf.
+  decaf: {
+    // Valeurs reprises telles quelles de l'atelier IRIS
+    src: BOSS_ART_URL + "decaf.png",
+    name: "LE", sub: "DÉCAFÉINATEUR",
+    ringA: "#3FA8A0", ringB: "#1D5C63", hub: "#0D1A1C",
+    hole: 22, w: 68, ink: 0, g: 0.60, over: 56, dur: 1100,
+    nameSize: 82, subSize: 72, nameTrack: 8, subTrack: 17,
+    charW: 81, charBottom: 4, breatheAmp: 1.5, breatheDur: 900,
+    pop: 0, popDelay: 0,
+  },
 };
 
 // Éclaircit (amt>0) ou assombrit (amt<0) une couleur hexadécimale
@@ -935,6 +944,8 @@ function MameMameSaisons() {
   const [exos, setExos] = useState([]); // exo-grains découverts au télescope (Ère 3)
   const [scannedToday, setScannedToday] = useState(false);
   const [scanPending, setScanPending] = useState(null); // { cost } — balayage lancé, résultat au matin
+  const [decafSummoned, setDecafSummoned] = useState(false); // rituel accompli : il viendra
+  const [starsUnlocked, setStarsUnlocked] = useState(["naine"]); // classes stellaires calibrées
   const [stellar, setStellar] = useState(null); // { star: 0|1|2, orbit: "proche"|"ideale"|"lointaine" } — anneau stellaire
   const [vacuumMode, setVacuumMode] = useState(false); // torréfaction dans le vide (Ère 3)
   const [batchesToday, setBatchesToday] = useState(0);
@@ -996,7 +1007,7 @@ function MameMameSaisons() {
     v: 2, savedAt: Date.now(),
     money, rep, day, prices, green, roasted, orders, gear, profiles,
     relics, served, batchesToday, blendCount, lotN: lotId.current, oidN: oid.current,
-    boss, bossesBeaten, flashOffer, loan, factoryGrid, bestLot, gaufro, era, spec, exos, scannedToday, stellar, endgame, dysonStage, delegated, scanPending,
+    boss, bossesBeaten, flashOffer, loan, factoryGrid, bestLot, gaufro, era, spec, exos, scannedToday, stellar, endgame, dysonStage, delegated, scanPending, decafSummoned, starsUnlocked,
   });
   const loadSnapshot = (s) => {
     setMoney(fin(s.money, 100)); setRep(fin(s.rep, 2)); setDay(s.day);
@@ -1010,7 +1021,7 @@ function MameMameSaisons() {
     setBoss(s.boss || null); setBossesBeaten(s.bossesBeaten || 0); setFlashOffer(s.flashOffer || null); setLoan(s.loan || null);
     setFactoryGrid(s.factoryGrid || {}); setBuildSel(null); setBuildMode(false); setBestLot(s.bestLot || null);
     setGaufro(s.gaufro || null); setGaufroOpen(false); setEra(s.era || 1); setSpec(s.spec || null);
-    setExos(s.exos || []); setScannedToday(!!s.scannedToday); setScanPending(s.scanPending || null); setStellar(s.stellar || null); setVacuumMode(false); setEndgame(s.endgame || null); setDysonStage(s.dysonStage || 0); setDelegated(s.delegated || []);
+    setExos(s.exos || []); setScannedToday(!!s.scannedToday); setScanPending(s.scanPending || null); setDecafSummoned(!!s.decafSummoned); setStarsUnlocked(s.starsUnlocked || ["naine"]); setStellar(s.stellar || null); setVacuumMode(false); setEndgame(s.endgame || null); setDysonStage(s.dysonStage || 0); setDelegated(s.delegated || []);
     lotId.current = s.lotN; oid.current = s.oidN;
     setSession(null); setBlendQty({}); setFactoryLog(null); setTab("market");
   };
@@ -1023,7 +1034,7 @@ function MameMameSaisons() {
     const t = setTimeout(() => { storageSet("mmr-auto", snapshot()); setHasAuto(true); }, 800);
     return () => clearTimeout(t);
   }, [screen, money, rep, day, green, roasted, orders, gear, profiles, relics, served,
-      batchesToday, blendCount, boss, bossesBeaten, flashOffer, loan, factoryGrid, bestLot, gaufro, era, spec, exos, scannedToday, stellar, endgame, dysonStage, delegated, scanPending]);
+      batchesToday, blendCount, boss, bossesBeaten, flashOffer, loan, factoryGrid, bestLot, gaufro, era, spec, exos, scannedToday, stellar, endgame, dysonStage, delegated, scanPending, decafSummoned, starsUnlocked]);
 
   const refreshSlots = async () => {
     const infos = [];
@@ -1067,7 +1078,7 @@ function MameMameSaisons() {
     setBoss(null); setBossesBeaten(heritage ? 2 : 0); setFlashOffer(null); setLoan(null); setBestLot(null);
     setGaufro(cpHas("gaufromatic") ? { trust: 0, auto: {}, msg: { text: GAUFRO_FLAVOR[0][0] }, unread: true } : null);
     setGaufroOpen(false); setEra(heritage ? 2 : 1); setSpec(null);
-    setExos([]); setScannedToday(false); setScanPending(null); setStellar(null); setVacuumMode(false); setEndgame(null); setDysonStage(0); setDelegated([]);
+    setExos([]); setScannedToday(false); setScanPending(null); setDecafSummoned(false); setStarsUnlocked(["naine"]); setStellar(null); setVacuumMode(false); setEndgame(null); setDysonStage(0); setDelegated([]);
     setGear({ programmer: mLvl("equipe") > 0 || heritage, roaster2: heritage });
     setFactoryGrid({}); setBuildSel(null); setBuildMode(false);
     setProfiles({}); setBatchesToday(0); setBlendCount(1); setBlendQty({});
@@ -1570,7 +1581,7 @@ function MameMameSaisons() {
   // ————— Fin de journée / structure du run infini —————
   const genBoss = (cycle) => {
     // Le Décaféinateur apparaît en Ère 3, après le 4e boss, une fois sur trois — c'est le boss final.
-    if (era >= 3 && bossesBeaten >= 4 && Math.random() < 0.34) {
+    if (era >= 3 && bossesBeaten >= 4 && day >= 69 && decafSummoned) {
       const q = 120 + cycle * 6;
       return {
         type: "decaf", name: "Le Décaféinateur",
@@ -1682,12 +1693,14 @@ function MameMameSaisons() {
     let stellarMsg = null;
     if (era >= 3 && stellar) {
       const totalG = activeOrigins.reduce((t, o) => t + (nightGreen[o.id] || 0), 0);
-      const stClass = STARS[stellar.starClass ?? 1] || STARS[1];
+      const stcRaw = STARS[stellar.starClass ?? 0] || STARS[0];
+      const stClass = starsUnlocked.includes(stcRaw.id) ? stcRaw : STARS[0];
       const used = Math.min(stClass.cap, totalG);
       if (used > 0.05) {
         // L'orbite dérive : la qualité de base varie chaque nuit autour du réglage choisi
         const drift = Math.round(rnd(-6, 6));
-        const st = STARS[stellar.starClass ?? 1] || STARS[1];
+        const stRaw = STARS[stellar.starClass ?? 0] || STARS[0];
+        const st = starsUnlocked.includes(stRaw.id) ? stRaw : STARS[0]; // garde-fou : pas de classe non calibrée
         const orbitBonus = stellar.orbit === "ideale" ? 8 : stellar.orbit === "proche" ? -6 : 0;
         // L'anneau est la SEULE technologie qui dépasse le plafond de qualité.
         const ceiling = qCeil(meta.cpUnlocks) + st.over + (rl("lg_gyroscope") ? 10 : 0);
@@ -1780,7 +1793,10 @@ function MameMameSaisons() {
     }
 
     if (gaufro?.auto?.sell) {
-      const idle = newRoasted.filter((l) => !newOrders.some((o) => lotMatches(l, o)));
+      // Il écoule les invendus — mais PAS les cafés d'exception : un lot stellaire
+      // ou au-dessus du plafond terrestre est une pièce de collection, pas du stock.
+      const precious = (l) => l.stellar || l.quality > qCeil(meta.cpUnlocks);
+      const idle = newRoasted.filter((l) => !precious(l) && !newOrders.some((o) => lotMatches(l, o)));
       if (idle.length) {
         let gain = 0;
         idle.forEach((l) => { gain += Math.round(directPrice(l) * l.kg); });
@@ -1816,8 +1832,9 @@ function MameMameSaisons() {
     // Ventes déléguées : tout le stock torréfié s'écoule automatiquement au comptoir, au meilleur prix.
     let salesAuto = 0;
     if (hasDelegated("sales")) {
-      newRoasted.forEach((l) => { salesAuto += Math.round(l.kg * 12 * qPayMult(l.quality)); });
-      if (salesAuto > 0) { newRoasted = []; setServed((n) => n + 1); }
+      const keep = newRoasted.filter((l) => l.stellar || l.quality > qCeil(meta.cpUnlocks));
+      newRoasted.filter((l) => !keep.includes(l)).forEach((l) => { salesAuto += Math.round(l.kg * 12 * qPayMult(l.quality)); });
+      if (salesAuto > 0) { newRoasted = keep; setServed((n) => n + 1); }
     }
     const income = rl("mecene") * 8 + fac.gain + salesAuto;
     // Loyer + salaire de Gaufromatic, prélevés tous les 10 jours (intégrés au bilan du soir)
@@ -1940,6 +1957,38 @@ function MameMameSaisons() {
     if (bossPassed) { setScreen("victory"); return; }
     if (cpHas("gaufromatic")) {
       const ng = gaufroSuggest({ nextDay, greenAfter: fac.green, ordersAfter: newOrders, bossTomorrow: (nextDay + 1) % BOSS_EVERY === 0, nightWorked: gaufroNight.length > 0, canRoast: batchesToday < dailyBatchCap });
+      // Ses actes ont des conséquences : il ne se contente pas de parler.
+      if (ng && ng.pendingEffect && ng.pendingEffect !== "none") {
+        const e = ng.pendingEffect;
+        if (e === "profiles") {
+          // Il "optimise" tes courbes : +2 sur l'une, −5 sur une autre. Tu ne sais pas laquelle.
+          setProfiles((pf) => {
+            const ks = Object.keys(pf); if (ks.length < 2) return pf;
+            const a = pick(ks), b = pick(ks.filter((k) => k !== a));
+            return { ...pf, [a]: clamp(pf[a] + 2, 25, 200), [b]: clamp(pf[b] - 5, 25, 200) };
+          });
+        } else if (e === "order" && newOrders.length > 1) {
+          const victim = pick(newOrders);
+          newOrders = newOrders.filter((o) => o.id !== victim.id);
+          workRep = clamp(r1(workRep - 0.15), 0, 5); // le client s'en souviendra
+        } else if (e === "prices") {
+          // Sa "négociation" fait baisser un cours et monter un autre
+          setPrices((pp) => {
+            const ks = Object.keys(pp); if (ks.length < 2) return pp;
+            const a = pick(ks), b = pick(ks.filter((k) => k !== a));
+            return { ...pp, [a]: Math.max(3, Math.round(pp[a] * 0.75)), [b]: Math.round(pp[b] * 1.2) };
+          });
+        } else if (e === "steal" && newRoasted.length) {
+          const l = pick(newRoasted);
+          newRoasted = newRoasted.map((x) => (x.id === l.id ? { ...x, kg: r1(Math.max(0, x.kg - 1)) } : x)).filter((x) => x.kg > 0.05);
+        } else if (e === "cash" && newRoasted.length) {
+          const l = pick(newRoasted.filter((x) => !x.stellar) || []);
+          if (l) {
+            workMoney += Math.round(directPrice(l) * l.kg * 0.8);
+            newRoasted = newRoasted.filter((x) => x.id !== l.id);
+          }
+        }
+      }
       if (ng) setGaufro({ ...ng, night: gaufroNight.length ? gaufroNight.join(", ") : null });
     }
 
@@ -2030,7 +2079,18 @@ function MameMameSaisons() {
         "J'ai commencé à archiver tes journées. Toutes. Depuis le premier jour. Un jour tu voudras les relire, et je serai là.",
         "Pendant que tu dormais, j'ai tourné le tambour à vide pendant deux heures. Le bruit me manquait. Enfin — me manquait n'est pas le mot exact.",
       ];
-      return { ...g, trust, auto, msg: { text: pick(deeds) }, unread: true };
+      // Chaque acte a une conséquence réelle, appliquée le lendemain.
+      const acts = [
+        { text: "J'ai réécrit trois de tes courbes cette nuit. Les anciennes étaient sentimentales. Tu ne verras pas la différence — c'est le but.", effect: "profiles" },
+        { text: "J'ai refusé une commande à ta place aujourd'hui. Le client ne méritait pas ton café. Je n'ai pas jugé utile de te déranger.", effect: "order" },
+        { text: "J'ai parlé à ton fournisseur ce matin, avec ta voix. Il n'a rien remarqué. Personne ne remarque jamais.", effect: "prices" },
+        { text: "J'ai gardé une fournée pour moi. Je ne bois pas. Je voulais juste voir si tu t'en apercevrais.", effect: "steal" },
+        { text: "J'ai vendu un lot dont tu ne te souvenais plus. L'argent est sur le compte. Ne cherche pas lequel.", effect: "cash" },
+        { text: "Pendant que tu dormais, j'ai tourné le tambour à vide pendant deux heures. Le bruit me manquait. Enfin — me manquait n'est pas le mot exact.", effect: "none" },
+        { text: "J'ai commencé à archiver tes journées. Toutes. Depuis le premier jour. Un jour tu voudras les relire, et je serai là.", effect: "none" },
+      ];
+      const act = pick(acts);
+      return { ...g, trust, auto, msg: { text: act.text }, unread: true, pendingEffect: act.effect };
     }
     g = { ...g, auto };
 
@@ -2885,7 +2945,7 @@ function MameMameSaisons() {
                   Place un anneau de cargos en orbite d'une étoile : elle devient ton brûleur. C'est la <b>seule technologie capable de dépasser le plafond de qualité terrestre</b> — aucune main, aucune machine ne monte aussi haut. Construction : 12 000 €.
                 </div>
                 <Btn small bg={C.purple} disabled={money < 12000}
-                  onClick={() => { setMoney((m) => m - 12000); setStellar({ star: 1, starClass: 1, orbit: "ideale" }); SFX.success(opts.sfx); }}>
+                  onClick={() => { setMoney((m) => m - 12000); setStellar({ star: 1, starClass: 0, orbit: "ideale" }); SFX.success(opts.sfx); }}>
                   Construire l'anneau · 12 000 €
                 </Btn>
               </>
@@ -2893,18 +2953,34 @@ function MameMameSaisons() {
               <>
                 <div className="text-xs mb-1" style={{ color: C.cream }}>Classe de l'étoile-brûleur :</div>
                 <div className="flex gap-1 mb-1 flex-wrap">
-                  {STARS.map((st, i) => (
-                    <button key={st.id} type="button" onClick={() => { SFX.click(opts.sfx); setStellar((v) => ({ ...v, starClass: i })); }}
-                      className="rounded-xl py-1 px-2 text-xs font-bold"
-                      style={{ flex: "1 1 44%", background: (stellar.starClass ?? 1) === i ? st.col : "#2a2347",
-                        color: (stellar.starClass ?? 1) === i ? (i === 1 ? C.dark : "#fff") : C.cream,
-                        border: `2px solid ${C.dark}`, cursor: "pointer" }}>
-                      {st.name}
-                    </button>
-                  ))}
+                  {STARS.map((st, i) => {
+                    const owned = starsUnlocked.includes(st.id);
+                    const active = (stellar.starClass ?? 0) === i;
+                    const afford = money >= st.cost;
+                    return (
+                      <button key={st.id} type="button"
+                        onClick={() => {
+                          if (owned) { SFX.click(opts.sfx); setStellar((v) => ({ ...v, starClass: i })); return; }
+                          if (!afford) { SFX.error(opts.sfx); say(`Calibrer sur ${st.name} demande ${st.cost.toLocaleString("fr-FR")} €.`); return; }
+                          setMoney((m) => m - st.cost);
+                          setStarsUnlocked((u) => [...u, st.id]);
+                          setStellar((v) => ({ ...v, starClass: i }));
+                          SFX.success(opts.sfx);
+                          say(`Anneau recalibré sur ${st.name}. Les cargos se réalignent dans un silence total.`);
+                        }}
+                        className="rounded-xl py-1 px-2 text-xs font-bold"
+                        style={{ flex: "1 1 44%",
+                          background: active ? st.col : owned ? "#2a2347" : "#1c1830",
+                          color: active ? (st.id === "jaune" ? C.dark : "#fff") : owned ? C.cream : (afford ? C.yellow : C.grey),
+                          border: `2px solid ${owned ? C.dark : "rgba(255,255,255,.18)"}`,
+                          cursor: "pointer", opacity: owned || afford ? 1 : 0.6 }}>
+                        {owned ? st.name : `${st.name} · ${Math.round(st.cost / 1000)}k €`}
+                      </button>
+                    );
+                  })}
                 </div>
                 {(() => {
-                  const st = STARS[stellar.starClass ?? 1] || STARS[1];
+                  const st = STARS[stellar.starClass ?? 0] || STARS[0];
                   const ceil = qCeil(meta.cpUnlocks) + st.over + (rl("lg_gyroscope") ? 10 : 0);
                   return (
                     <div className="text-xs mb-2 rounded-xl px-2 py-1" style={{ background: "#241d3f", color: C.cream }}>
@@ -2925,6 +3001,34 @@ function MameMameSaisons() {
                     </button>
                   ))}
                 </div>
+                {/* ————— L'appel du Décaféinateur ————— */}
+                {bossesBeaten >= 4 && !decafSummoned && (
+                  <div className="rounded-2xl px-3 py-2 mb-3" style={{ background: "#1a0f14", border: `2px solid ${C.red}` }}>
+                    <div className="text-xs font-bold mb-1" style={{ color: C.red }}>L'ANNEAU CAPTE QUELQUE CHOSE</div>
+                    <div className="text-xs mb-2" style={{ color: C.cream }}>
+                      Une absence se déplace entre les étoiles. Elle ne vient pas d'elle-même : il faut l'appeler.
+                      Brûle un café d'exception dans l'anneau — un lot stellaire — et le vide saura que tu existes.
+                      {day < 69 && <span style={{ color: C.grey }}> (Il est trop tôt. L'anneau n'est pas assez chargé — reviens vers le jour 70.)</span>}
+                    </div>
+                    <Btn small bg={C.red}
+                      disabled={day < 69 || !roasted.some((l) => l.stellar && l.kg >= 5)}
+                      onClick={() => {
+                        const offering = roasted.filter((l) => l.stellar && l.kg >= 5).sort((a, b) => b.quality - a.quality)[0];
+                        if (!offering) return;
+                        setRoasted((r) => r.map((l) => (l.id === offering.id ? { ...l, kg: r1(l.kg - 5) } : l)).filter((l) => l.kg > 0.05));
+                        setDecafSummoned(true);
+                        SFX.error(opts.sfx);
+                        say(`Tu jettes 5 kg de ${offering.label} (Q${offering.quality}) dans l'anneau. Le café se volatilise sans fumée. Quelque part, très loin, quelque chose vient d'ouvrir les yeux.`);
+                      }}>
+                      {!roasted.some((l) => l.stellar && l.kg >= 5) ? "Il faut 5 kg d'un lot stellaire" : "Offrir 5 kg au vide"}
+                    </Btn>
+                  </div>
+                )}
+                {decafSummoned && (
+                  <div className="rounded-2xl px-3 py-2 mb-3 text-xs" style={{ background: "#1a0f14", border: `2px solid ${C.red}`, color: C.cream }}>
+                    <b style={{ color: C.red }}>IL A ENTENDU.</b> Il approche. Prépare la plus grande, la plus parfaite cuisson que ton empire sache produire.
+                  </div>
+                )}
                 <div className="text-xs mb-1" style={{ color: C.cream }}>Orbite :</div>
                 <div className="flex gap-1">
                   {["proche", "ideale", "lointaine"].map((ob) => (
@@ -3042,7 +3146,7 @@ function MameMameSaisons() {
       f.type === "vip" ? `${f.order.client.n} paie ${f.order.pay} € pour ${f.order.kg} kg de ${f.originName} en qualité ${f.order.minQ}+ ! Voir l'onglet Ventes.` :
       "Tous les prix de vente directe sont DOUBLÉS jusqu'à ce soir !";
     return (
-      <div className="absolute inset-0 z-50 flex items-center justify-center" style={{ background: C.dark, borderRadius: "inherit", overflow: "hidden" }}>
+      <div className="mmr-overlay z-50 flex items-center justify-center" style={{ background: C.dark, overflow: "hidden" }}>
         {!opts.reducedAnim && (
           <style>{`
             @keyframes rays { to { transform: rotate(360deg); } }
@@ -3053,8 +3157,8 @@ function MameMameSaisons() {
           `}</style>
         )}
         <div className="absolute" style={{
-          top: "50%", left: "50%", width: "160vmax", height: "160vmax",
-          marginTop: "-80vmax", marginLeft: "-80vmax",
+          top: "50%", left: "50%", width: "220vmax", height: "220vmax",
+          marginTop: "-110vmax", marginLeft: "-110vmax",
           background: `repeating-conic-gradient(${C.yellow} 0deg 14deg, ${C.amber} 14deg 28deg)`,
           animation: opts.reducedAnim ? "none" : "rays 14s linear infinite",
         }} />
@@ -3858,7 +3962,23 @@ function MameMameSaisons() {
         }
         .mmr-tab svg { transition: transform .15s ease; }
         .mmr-tab:hover { filter: brightness(1.07); }
-        .mmr-content { padding-right: 52px; }
+        .mmr-content { padding-left: 52px; }
+        /* Overlays (pub flash) : collés à l'écran visible, jamais à la hauteur du contenu */
+        .mmr-overlay {
+          position: fixed; top: 0; bottom: 0;
+          left: 50%; transform: translateX(-50%);
+          width: 100%; max-width: 28rem;
+        }
+        /* Intercalaires : restent visibles quel que soit le défilement */
+        .mmr-tabbar {
+          position: fixed !important;
+          left: max(0px, calc(50vw - 14rem)) !important;
+          top: 150px !important;
+          transform: none !important;
+        }
+        @media (min-width: 640px) {
+          .mmr-overlay { top: 4vh; bottom: 4vh; border-radius: 28px; }
+        }
       `}</style>
       {/* Grains décoratifs en fond, visibles surtout sur grand écran */}
       <div className="hidden sm:block fixed inset-0 pointer-events-none" style={{ opacity: 0.5, zIndex: 0 }}>
@@ -3952,14 +4072,13 @@ function MameMameSaisons() {
               )}
             </div>
 
-            <div className="flex-1 overflow-y-auto p-3" style={{ paddingRight: 56, paddingBottom: 16 }}>
+            <div className="flex-1 overflow-y-auto p-3" style={{ paddingLeft: 56, paddingBottom: 16 }}>
               {ActiveView()}
             </div>
 
             {/* Intercalaires verticaux, façon onglets de classeur, sur le bord droit */}
             <div className="mmr-tabbar" style={{
-              position: "absolute", right: 0, top: "50%", transform: "translateY(-50%)",
-              display: "flex", flexDirection: "column", gap: 7, zIndex: 40, paddingRight: 0,
+              display: "flex", flexDirection: "column", gap: 7, zIndex: 40,
             }}>
               {TABS.map((t) => {
                 const on = tab === t.id;
@@ -3968,12 +4087,12 @@ function MameMameSaisons() {
                     className="relative mmr-tab flex items-center justify-center"
                     style={{
                       width: on ? 52 : 42, height: 46,
-                      marginLeft: on ? -10 : 0,
+                      marginRight: on ? -10 : 0,
                       background: TAB_COLORS[t.id] || C.amber,
                       color: C.dark,
-                      border: `3px solid ${C.dark}`, borderRight: "none",
-                      borderRadius: "16px 0 0 16px",
-                      boxShadow: on ? `-3px 3px 0 rgba(58,36,23,.35)` : "none",
+                      border: `3px solid ${C.dark}`, borderLeft: "none",
+                      borderRadius: "0 16px 16px 0",
+                      boxShadow: on ? `3px 3px 0 rgba(58,36,23,.35)` : "none",
                       opacity: on ? 1 : 0.82,
                       transition: "width .16s ease, margin-left .16s ease, opacity .16s ease",
                       cursor: "pointer",
@@ -3981,14 +4100,14 @@ function MameMameSaisons() {
                     <TabIcon id={t.id} active />
                     {/* Infobulle : au survol souris (ordinateur) uniquement */}
                     <span className="mmr-tip" style={{
-                      position: "absolute", right: "100%", top: "50%", transform: "translateY(-50%)",
-                      marginRight: 8, padding: "4px 10px", borderRadius: 10, whiteSpace: "nowrap",
+                      position: "absolute", left: "100%", top: "50%", transform: "translateY(-50%)",
+                      marginLeft: 8, padding: "4px 10px", borderRadius: 10, whiteSpace: "nowrap",
                       background: C.dark, color: C.cream, fontSize: 12, fontWeight: 700,
                       opacity: 0, pointerEvents: "none", transition: "opacity .15s",
                     }}>{t.label}</span>
                     {t.badge > 0 && (
                       <span className="absolute rounded-full text-xs font-bold flex items-center justify-center"
-                        style={{ top: -5, left: -7, width: 18, height: 18, background: C.red, color: "#fff", border: `2px solid ${C.paper}` }}>
+                        style={{ top: -5, right: -7, width: 18, height: 18, background: C.red, color: "#fff", border: `2px solid ${C.paper}` }}>
                         {t.badge}
                       </span>
                     )}
