@@ -948,6 +948,7 @@ function MameMameSaisons() {
   const [scanPending, setScanPending] = useState(null); // { cost } — balayage lancé, résultat au matin
   const [decafSummoned, setDecafSummoned] = useState(false); // rituel accompli : il viendra
   const [starsUnlocked, setStarsUnlocked] = useState(["naine"]); // classes stellaires calibrées
+  const toastTimer = useRef(null);
   const headerRef = useRef(null);
   const [tabTop, setTabTop] = useState(150); // les intercalaires se calent sous le bandeau
   const [stellar, setStellar] = useState(null); // { star: 0|1|2, orbit: "proche"|"ideale"|"lointaine" } — anneau stellaire
@@ -980,8 +981,8 @@ function MameMameSaisons() {
 
   const say = (msg) => {
     setToast(msg);
-    clearTimeout(say._t);
-    say._t = setTimeout(() => setToast(null), 2800);
+    clearTimeout(toastTimer.current);
+    toastTimer.current = setTimeout(() => setToast(null), 2800);
   };
 
   // ————— Chargement initial —————
@@ -1034,7 +1035,7 @@ function MameMameSaisons() {
   // Auto-save continue : dès qu'un état du run change, on sauvegarde (débounce 800 ms).
   // Remplace les anciens appels ponctuels, qui pouvaient capturer un état périmé.
   useEffect(() => {
-    if (!["game", "draft", "bossIntro", "eraUp", "transcend"].includes(screen)) return;
+    if (!["game", "draft", "bossIntro", "eraUp", "eraUp3", "victory", "transcend"].includes(screen)) return;
     const t = setTimeout(() => { storageSet("mmr-auto", snapshot()); setHasAuto(true); }, 800);
     return () => clearTimeout(t);
   }, [screen, money, rep, day, green, roasted, orders, gear, profiles, relics, served,
@@ -1055,9 +1056,12 @@ function MameMameSaisons() {
     return p;
   };
 
-  const makeOrder = (d, forcePatience) => {
+  const makeOrder = (d, forcePatience, originsOverride) => {
+    // On peut imposer la liste d'origines : au démarrage d'une partie, `activeOrigins`
+    // contient encore celles de la run précédente (Lune, Mars, exo-grains).
+    const pool = originsOverride || activeOrigins;
     const roll = Math.random();
-    const want = roll < 0.55 ? pick(activeOrigins).id : roll < 0.85 ? null : "blend";
+    const want = roll < 0.55 ? pick(pool).id : roll < 0.85 ? null : "blend";
     const level = Math.floor(Math.random() * 3);
     const kg = d <= 4 ? pick([1, 1, 2, 2, 3]) : pick([2, 2, 3, 3, 4]);
     let perKg;
@@ -1090,7 +1094,9 @@ function MameMameSaisons() {
     setPrices((() => { const p = {}; activeOrigins.forEach((o) => { p[o.id] = Math.max(4, Math.round(o.base * rnd(0.75, 1.35))); }); return p; })());
     setOrders([]);
     // deux commandes de départ, générées avec compteur propre
-    setTimeout(() => setOrders(Array.from({ length: 2 + mLvl("carnet") }, () => makeOrder(1, false))), 0);
+    // Les premières commandes n'utilisent que les origines réellement disponibles au départ.
+    const startOrigins = [...BASE_ORIGINS, GEISHA];
+    setTimeout(() => setOrders(Array.from({ length: 2 + mLvl("carnet") }, () => makeOrder(1, false, startOrigins))), 0);
     setScreen("game");
   };
 
@@ -1783,7 +1789,7 @@ function MameMameSaisons() {
         const cand = newRoasted.filter((l) => lotMatches(l, ord)).sort((a, b) => b.quality - a.quality)[0];
         if (!cand) return true;
         const gain = Math.round(ord.pay * qPayMult(cand.quality) * (1 + rl("pourboire") * 0.05));
-        cand.kg = r1(cand.kg - ord.kg);
+        newRoasted = newRoasted.map((l) => (l.id === cand.id ? { ...l, kg: r1(l.kg - ord.kg) } : l));
         autoGain += gain; autoServed += 1;
         return false;
       });
@@ -2141,7 +2147,15 @@ function MameMameSaisons() {
             }
           }
           if (step.id === "spec") { setMoney((mo) => mo - 60); setSpec({ amount: 60 }); }
-          if (step.id === "roast") { const best = Object.entries(profiles).sort((a, b) => b[1] - a[1])[0]; if (best) autoRoast(best[0].split("|")[0] || activeOrigins[0].id, 1); }
+          if (step.id === "roast") {
+            // Les profils sont indexés par NIVEAU de cuisson (0/1/2), pas par origine.
+            // On prend le meilleur niveau, puis une origine réellement en stock.
+            const bestLevel = Object.entries(profiles).sort((a, b) => b[1] - a[1])[0];
+            const need = era === 3 ? 8 : era === 2 ? 4 : 2;
+            const src = activeOrigins.filter((o) => (green[o.id] || 0) >= need)
+              .sort((a, b) => (green[b.id] || 0) - (green[a.id] || 0))[0];
+            if (bestLevel && src) autoRoast(src.id, Number(bestLevel[0]));
+          }
         });
         SFX.success(opts.sfx);
         return { ...g, trust: g.trust + 1, unread: false,
