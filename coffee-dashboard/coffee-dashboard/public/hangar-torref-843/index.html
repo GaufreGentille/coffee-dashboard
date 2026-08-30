@@ -936,6 +936,7 @@ function MameMameSaisons() {
   const [gaufro, setGaufro] = useState(null); // { trust, auto: {refill, sell}, msg, unread }
   const [gaufroOpen, setGaufroOpen] = useState(false);
   const [victoryBoss, setVictoryBoss] = useState(null);
+  const [draftPending, setDraftPending] = useState(false); // un draft attend après la victoire
   const [endgame, setEndgame] = useState(null); // null | "unlocked" | "protocol" | "unplugged"
   const [protoStep, setProtoStep] = useState(0);
   const [dysonStage, setDysonStage] = useState(0); // 0..5 — étapes du Percolateur de Dyson
@@ -949,6 +950,7 @@ function MameMameSaisons() {
   const [decafSummoned, setDecafSummoned] = useState(false); // rituel accompli : il viendra
   const [starsUnlocked, setStarsUnlocked] = useState(["naine"]); // classes stellaires calibrées
   const toastTimer = useRef(null);
+  const resumeScreen = useRef("game");
   const headerRef = useRef(null);
   const [tabTop, setTabTop] = useState(150); // les intercalaires se calent sous le bandeau
   const [stellar, setStellar] = useState(null); // { star: 0|1|2, orbit: "proche"|"ideale"|"lointaine" } — anneau stellaire
@@ -1013,6 +1015,7 @@ function MameMameSaisons() {
     money, rep, day, prices, green, roasted, orders, gear, profiles,
     relics, served, batchesToday, blendCount, lotN: lotId.current, oidN: oid.current,
     boss, bossesBeaten, flashOffer, loan, factoryGrid, bestLot, gaufro, era, spec, exos, scannedToday, stellar, endgame, dysonStage, delegated, scanPending, decafSummoned, starsUnlocked,
+    screen, draftChoices, pendingEra, victoryBoss, draftPending,
   });
   const loadSnapshot = (s) => {
     setMoney(fin(s.money, 100)); setRep(fin(s.rep, 2)); setDay(s.day);
@@ -1026,7 +1029,11 @@ function MameMameSaisons() {
     setBoss(s.boss || null); setBossesBeaten(s.bossesBeaten || 0); setFlashOffer(s.flashOffer || null); setLoan(s.loan || null);
     setFactoryGrid(s.factoryGrid || {}); setBuildSel(null); setBuildMode(false); setBestLot(s.bestLot || null);
     setGaufro(s.gaufro || null); setGaufroOpen(false); setEra(s.era || 1); setSpec(s.spec || null);
-    setExos(s.exos || []); setScannedToday(!!s.scannedToday); setScanPending(s.scanPending || null); setDecafSummoned(!!s.decafSummoned); setStarsUnlocked(s.starsUnlocked || ["naine"]); setStellar(s.stellar || null); setVacuumMode(false); setEndgame(s.endgame || null); setDysonStage(s.dysonStage || 0); setDelegated(s.delegated || []);
+    setExos(s.exos || []); setScannedToday(!!s.scannedToday); setScanPending(s.scanPending || null); setDecafSummoned(!!s.decafSummoned); setStarsUnlocked(s.starsUnlocked || ["naine"]);
+    setDraftChoices(s.draftChoices || []); setPendingEra(s.pendingEra || null);
+    setVictoryBoss(s.victoryBoss || null); setDraftPending(!!s.draftPending);
+    // On reprend là où le joueur s'était arrêté : un draft ou une victoire ne doivent pas s'évaporer.
+    resumeScreen.current = ["draft", "victory", "eraUp", "eraUp3", "bossIntro"].includes(s.screen) ? s.screen : "game"; setStellar(s.stellar || null); setVacuumMode(false); setEndgame(s.endgame || null); setDysonStage(s.dysonStage || 0); setDelegated(s.delegated || []);
     lotId.current = s.lotN; oid.current = s.oidN;
     setSession(null); setBlendQty({}); setFactoryLog(null); setTab("market");
   };
@@ -1365,12 +1372,13 @@ function MameMameSaisons() {
       let newLot;
       if (pv.isPure) {
         const o = activeOrigins.find((x) => x.id === pv.originId);
-        newLot = { id: lotId.current++, origin: o.id, label: o.name, notes: o.notes, levelIdx: pv.level, kg: pv.tot, quality: pv.q };
+        newLot = { id: lotId.current++, origin: o.id, label: o.name, notes: o.notes, levelIdx: pv.level, kg: pv.tot, quality: pv.q, stellar: parts.every((pp) => pp.lot.stellar) };
       } else {
         const dominant = pv.compo[0].label.replace(/^Blend /, "");
         newLot = {
           id: lotId.current++, origin: "blend", label: `Blend ${dominant} n°${blendCount}`,
           notes: pv.compo.map((c) => `${c.pct} % ${c.label}`).join(", "), levelIdx: pv.level, kg: pv.tot, quality: pv.q,
+          stellar: parts.every((pp) => pp.lot.stellar), // un assemblage 100 % stellaire le reste
         };
         setBlendCount((n) => n + 1);
       }
@@ -1524,9 +1532,9 @@ function MameMameSaisons() {
     if (totalGreen < 0.05) return { ok: false, why: "plus de café vert en stock" };
     const used = Math.min(capIn, totalGreen);
     const produced = r1(used * 0.85);
-    const q = clamp(bestProfile - 6, 25, 100);
+    const q = clamp(bestProfile - 6, 25, qCeil(meta.cpUnlocks));
     const mixed = cpHas("melangeur") && flow.fedMixers.size > 0;
-    const outQ = mixed ? clamp(q + 4, 25, 100) : q;
+    const outQ = mixed ? clamp(q + 4, 25, qCeil(meta.cpUnlocks)) : q;
     const capSell = flow.bagCap + flow.fedBaggers.size * rl("turbo");
     const sold = Math.min(produced, capSell);
     const perKg = mixed ? 19 + outQ * 0.15 : 16 + outQ * 0.14;
@@ -1550,7 +1558,7 @@ function MameMameSaisons() {
     let toUse = capacity;
     const newGreen = { ...curGreen };
     let producedKg = 0;
-    const q = clamp(bestProfile - 6, 25, 100);
+    const q = clamp(bestProfile - 6, 25, qCeil(meta.cpUnlocks));
     const rawLots = [];
     for (const o of stocked) {
       if (toUse <= 0) break;
@@ -1562,7 +1570,7 @@ function MameMameSaisons() {
     }
     // Mélangeur relié : la production devient un blend maison (+4 qualité)
     const mixed = cpHas("melangeur") && flow.fedMixers.size > 0 && rawLots.length > 0;
-    const outQ = mixed ? clamp(q + 4, 25, 100) : q;
+    const outQ = mixed ? clamp(q + 4, 25, qCeil(meta.cpUnlocks)) : q;
     const toLots = (kgTotal) => {
       if (kgTotal <= 0.05) return [];
       if (mixed) {
@@ -1590,7 +1598,7 @@ function MameMameSaisons() {
 
   // ————— Fin de journée / structure du run infini —————
   const genBoss = (cycle) => {
-    // Le Décaféinateur apparaît en Ère 3, après le 4e boss, une fois sur trois — c'est le boss final.
+    // Le Décaféinateur : Ère 3, 4 boss vaincus, jour 69+, et seulement s'il a été invoqué.
     if (era >= 3 && bossesBeaten >= 4 && day >= 69 && decafSummoned) {
       const q = 120 + cycle * 6;
       return {
@@ -1964,9 +1972,9 @@ function MameMameSaisons() {
     }
     setFlashOffer(offer);
     setOrders(newOrders);
-    if (bossPassed) { setScreen("victory"); return; }
+    if (bossPassed) { setDraftPending(true); setScreen("victory"); return; }
     if (cpHas("gaufromatic")) {
-      const ng = gaufroSuggest({ nextDay, greenAfter: fac.green, ordersAfter: newOrders, bossTomorrow: (nextDay + 1) % BOSS_EVERY === 0, nightWorked: gaufroNight.length > 0, canRoast: batchesToday < dailyBatchCap });
+      const ng = gaufroSuggest({ nextDay, greenAfter: fac.green, ordersAfter: newOrders, bossTomorrow: (nextDay + 1) % BOSS_EVERY === 0, nightWorked: gaufroNight.length > 0, canRoast: true, roastedAfter: newRoasted, moneyAfter: workMoney });
       // Ses actes ont des conséquences : il ne se contente pas de parler.
       if (ng && ng.pendingEffect && ng.pendingEffect !== "none") {
         const e = ng.pendingEffect;
@@ -2007,9 +2015,14 @@ function MameMameSaisons() {
       }
     }
 
+    openDraft(false);
+  };
+
+  // Le tirage de reliques, appelable aussi après un écran de victoire.
+  const openDraft = (afterBoss) => {
     const pool = RELICS.filter((r) => (relics[r.id] || 0) < r.max);
     const choices = [];
-    if (bossPassed && cpHas("legendaires")) {
+    if (afterBoss && cpHas("legendaires")) {
       const lpool = LEGENDARIES.filter((lg) => !relics[lg.id]);
       if (lpool.length) {
         const lg = pick(lpool);
@@ -2037,7 +2050,8 @@ function MameMameSaisons() {
     } else {
       setRelics((rs) => ({ ...rs, [item.id]: (rs[item.id] || 0) + 1 }));
     }
-    setScreen("game");
+    const pe = pendingEra; setPendingEra(null);
+    setScreen(pe || "game"); // la montée d'ère patientait derrière le draft
     say(`${item.name} : c'est dans la poche.`);
   };
 
@@ -2066,7 +2080,10 @@ function MameMameSaisons() {
     const flow = computeFlow(factoryGrid);
     const cap = flow.roastCap;
     const totalGreen = activeOrigins.reduce((t, o) => t + (ctx.greenAfter[o.id] || 0), 0);
-    const idleKg = r1(roasted.filter((l) => !ctx.ordersAfter.some((o) => lotMatches(l, o))).reduce((t, l) => t + l.kg, 0));
+    // On raisonne sur l'inventaire d'APRÈS la nuit (production stellaire, usine, ventes),
+    // pas sur celui de la veille.
+    const stock = ctx.roastedAfter || roasted;
+    const idleKg = r1(stock.filter((l) => !ctx.ordersAfter.some((o) => lotMatches(l, o))).reduce((t, l) => t + l.kg, 0));
 
     // Les nuits où Gaufromatic a travaillé seul (délégation) renforcent sa confiance en douceur
     let trust = g.trust;
@@ -3145,7 +3162,7 @@ function MameMameSaisons() {
         {hasAuto && (
           <Btn wide onClick={async () => {
             const s = await storageGet("mmr-auto");
-            if (s) { loadSnapshot(s); setScreen("game"); } else say("Sauvegarde introuvable.");
+            if (s) { loadSnapshot(s); setScreen(resumeScreen.current); } else say("Sauvegarde introuvable.");
           }}>Continuer</Btn>
         )}
         <Btn wide bg={C.green} onClick={newRun}>Nouvelle partie</Btn>
@@ -3377,7 +3394,7 @@ function MameMameSaisons() {
               )}
               <div className="flex gap-2 flex-wrap">
                 {data && (
-                  <Btn small bg={C.green} onClick={() => { loadSnapshot(data); setOverlay(null); setMenuOpen(false); setScreen("game"); }}>Charger</Btn>
+                  <Btn small bg={C.green} onClick={() => { loadSnapshot(data); setOverlay(null); setMenuOpen(false); setScreen(resumeScreen.current); }}>Charger</Btn>
                 )}
                 {key !== "mmr-auto" && screen === "game" && (
                   <Btn small bg={C.amber} onClick={async () => {
@@ -3529,7 +3546,11 @@ function MameMameSaisons() {
         </div>
       </div>
       <div className="mt-5 w-full max-w-xs">
-        <Btn wide bg={C.dark} onClick={() => { setVictoryBoss(null); const pe = pendingEra; setPendingEra(null); setScreen(pe || "game"); }}>Continuer</Btn>
+        <Btn wide bg={C.dark} onClick={() => {
+          setVictoryBoss(null);
+          if (draftPending) { setDraftPending(false); openDraft(true); return; } // draft du boss, légendaire incluse
+          const pe = pendingEra; setPendingEra(null); setScreen(pe || "game");
+        }}>Continuer</Btn>
       </div>
     </div>
   );
@@ -3916,11 +3937,13 @@ function MameMameSaisons() {
     ...(era >= 3 ? [{ id: "stellar", label: stellar ? "Anneau stellaire" : "Anneau stellaire (à bâtir)", view: Stellar }] : []),
   ];
   // Les onglets dont Gaufromatic a pris le contrôle disparaissent pour toujours.
-  const TABS = ALL_TABS.filter((t) => !delegated.includes(t.id));
+  // On compare via FINAL_DELEGATIONS[].tab : l'id de délégation ("sales") diffère de l'onglet ("orders").
+  const delegatedTabs = FINAL_DELEGATIONS.filter((d) => delegated.includes(d.id)).map((d) => d.tab).filter(Boolean);
+  const TABS = ALL_TABS.filter((t) => !delegatedTabs.includes(t.id));
   const ActiveView = TABS.find((t) => t.id === tab)?.view || (TABS[0] && TABS[0].view) || Market;
 
   useEffect(() => {
-    if (delegated.includes(tab) && TABS[0]) setTab(TABS[0].id);
+    if (delegatedTabs.includes(tab) && TABS[0]) setTab(TABS[0].id);
   }, [delegated, tab]);
 
   // Les intercalaires suivent la ligne jaune/beige, quelle que soit la hauteur du bandeau.
