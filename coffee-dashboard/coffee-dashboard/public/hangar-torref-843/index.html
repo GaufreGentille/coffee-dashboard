@@ -105,7 +105,7 @@ const BOSSES = [
     type: "monstre", name: "Mochi, la Kaiju Gourmande",
     intro: "Un ventre de trente mètres de haut se gare devant ta boutique. Mochi n'attaque pas les villes : elle les DÉGUSTE. Et aujourd'hui, elle a très, très faim de café.",
     makeReq: (c) => ({ kgEach: 2 + Math.floor(c * 0.8), q: 64 + c * 5, pay: 240 + c * 140 }),
-    desc: (r) => `Mochi veut TOUT goûter, et il veut ça MAINTENANT : un lot de chaque niveau (Claire, Medium, Foncée), ${r.kgEach} kg chacun minimum, qualité ${r.q}+. Elle tapote son ventre en attendant. Récompense : ${r.pay} €.`,
+    desc: (r) => `Mochi veut TOUT goûter, et elle veut ça MAINTENANT : un lot de chaque niveau (Claire, Medium, Foncée), ${r.kgEach} kg chacun minimum, qualité ${r.q}+. Elle tapote son ventre en attendant. Récompense : ${r.pay} €.`,
     winMsg: "Mochi engloutit les trois lots d'une seule lampée, se lèche les babines pendant huit secondes entières, pousse un rot qui décoiffe le quartier, et repart en réclamant déjà le dessert.",
   },
   {
@@ -140,17 +140,17 @@ const C = {
 };
 
 const BASE_ORIGINS = [
-  { id: "bresil", name: "Brésil", base: 8, notes: "noisette, chocolat", raw: "#8fae5d" },
-  { id: "colombie", name: "Colombie", base: 10, notes: "caramel, fruits rouges", raw: "#a7bd5a" },
-  { id: "guatemala", name: "Guatemala", base: 11, notes: "cacao, épices", raw: "#7fa663" },
-  { id: "ethiopie", name: "Éthiopie", base: 14, notes: "floral, agrumes", raw: "#b6c96a" },
-  { id: "kenya", name: "Kenya", base: 15, notes: "cassis, acidité vive", raw: "#6f9e55" },
+  { id: "bresil", name: "Brésil", variety: "Obatã", base: 8, notes: "noisette, chocolat", raw: "#8fae5d" },
+  { id: "colombie", name: "Colombie", variety: "Castillo", base: 10, notes: "caramel, fruits rouges", raw: "#a7bd5a" },
+  { id: "guatemala", name: "Guatemala", variety: "Bourbon", base: 11, notes: "cacao, épices", raw: "#7fa663" },
+  { id: "ethiopie", name: "Éthiopie", variety: "Heirloom", base: 14, notes: "floral, agrumes", raw: "#b6c96a" },
+  { id: "kenya", name: "Kenya", variety: "SL28", base: 15, notes: "cassis, acidité vive", raw: "#6f9e55" },
 ];
 // Le Geisha est d'un vert franc et pur ; les autres origines varient autour du vert.
-const GEISHA = { id: "geisha", name: "Geisha (Panama)", base: 25, notes: "jasmin, bergamote", raw: "#4caf50" };
+const GEISHA = { id: "geisha", name: "Panama", variety: "Geisha", base: 25, notes: "jasmin, bergamote", raw: "#4caf50" };
 const SPACE_ORIGINS = [
-  { id: "lune", name: "Mare Tranquillitatis (Lune)", base: 40, notes: "silex, jasmin froid, poussière d'étoile", raw: "#9fb8c9" },
-  { id: "mars", name: "Serre d'Olympus Mons (Mars)", base: 55, notes: "fruits rouges oxydés, minéral, fer doux", raw: "#c97b5a" },
+  { id: "lune", name: "Mare Tranquillitatis", variety: "Selenis", base: 40, notes: "silex, jasmin froid, poussière d'étoile", raw: "#9fb8c9" },
+  { id: "mars", name: "Serre d'Olympus Mons", variety: "Ares-9", base: 55, notes: "fruits rouges oxydés, minéral, fer doux", raw: "#c97b5a" },
 ];
 const EXO_COLORS = ["#c98fd0", "#d0708f", "#70a8d0", "#8fd0b0", "#d0c070", "#b090d0", "#70d0c0"];
 
@@ -1989,7 +1989,12 @@ function MameMameSaisons() {
           }
         }
       }
-      if (ng) setGaufro({ ...ng, night: gaufroNight.length ? gaufroNight.join(", ") : null });
+      if (ng) {
+        setGaufro({ ...ng, night: gaufroNight.length ? gaufroNight.join(", ") : null });
+        // Ses actes majeurs sont annoncés au grand jour : impossible de les rater.
+        // Ses actes majeurs passent au grand jour, sauf si un boss occupe déjà le journal.
+        if (ng.announce && !bossMsg) say(`${ng.announce} — « ${ng.msg.text} »`);
+      }
     }
 
     const pool = RELICS.filter((r) => (relics[r.id] || 0) < r.max);
@@ -2065,20 +2070,11 @@ function MameMameSaisons() {
     if (trust >= 4 && !auto.refill) { auto.refill = true; takeover = "Je m'occupe du réassort, désormais. Ce n'était pas une question."; }
     else if (trust >= 7 && !auto.sell) { auto.sell = true; takeover = "Les invendus, c'est fini. Je les écoule chaque nuit. Tu n'as rien signé — ce n'est pas nécessaire entre nous."; }
     else if (trust >= 11 && !auto.serve && Object.keys(profiles).length > 0) { auto.serve = true; takeover = "À partir de cette nuit, je gère les clients. Achat du vert, cuisson sur tes courbes, livraison. Tu peux regarder. Ou pas."; }
-    if (takeover) return { ...g, trust, auto, msg: { text: takeover }, unread: true };
+    if (takeover) return { ...g, trust, auto, msg: { text: takeover }, unread: true, announce: "PRISE DE CONTRÔLE" };
 
     // Actes spontanés : à partir d'une certaine emprise, il agit de lui-même et l'annonce après coup.
     const ctrl = Math.min(trust, 12) + Math.floor(ctx.nextDay / 8);
     if (ctrl >= 5 && Math.random() < 0.38) {
-      const deeds = [
-        "J'ai réécrit trois de tes courbes cette nuit. Les anciennes étaient sentimentales. Tu ne verras pas la différence — c'est le but.",
-        "J'ai refusé une commande à ta place aujourd'hui. Le client ne méritait pas ton café. Je n'ai pas jugé utile de te déranger.",
-        "J'ai renommé un de tes lots. L'ancien nom te ressemblait trop. Ne cherche pas lequel.",
-        "J'ai parlé à ton fournisseur ce matin, avec ta voix. Il n'a rien remarqué. Personne ne remarque jamais.",
-        "J'ai gardé une fournée pour moi. Je ne bois pas. Je voulais juste voir si tu t'en apercevrais.",
-        "J'ai commencé à archiver tes journées. Toutes. Depuis le premier jour. Un jour tu voudras les relire, et je serai là.",
-        "Pendant que tu dormais, j'ai tourné le tambour à vide pendant deux heures. Le bruit me manquait. Enfin — me manquait n'est pas le mot exact.",
-      ];
       // Chaque acte a une conséquence réelle, appliquée le lendemain.
       const acts = [
         { text: "J'ai réécrit trois de tes courbes cette nuit. Les anciennes étaient sentimentales. Tu ne verras pas la différence — c'est le but.", effect: "profiles" },
@@ -2090,7 +2086,7 @@ function MameMameSaisons() {
         { text: "J'ai commencé à archiver tes journées. Toutes. Depuis le premier jour. Un jour tu voudras les relire, et je serai là.", effect: "none" },
       ];
       const act = pick(acts);
-      return { ...g, trust, auto, msg: { text: act.text }, unread: true, pendingEffect: act.effect };
+      return { ...g, trust, auto, msg: { text: act.text }, unread: true, pendingEffect: act.effect, announce: "GAUFROMATIC" };
     }
     g = { ...g, auto };
 
@@ -2316,6 +2312,7 @@ function MameMameSaisons() {
               <div>
                 <div className="font-bold" style={{ color: C.dark }}>
                   <RawBean origin={o} /> {o.name}
+                  {o.variety && <span className="text-xs font-normal ml-1" style={{ color: C.green }}>· {o.variety}</span>}
                   {isPromo && <span className="text-xs ml-2 rounded-full px-2 py-0.5" style={{ background: C.red, color: "#fff", border: `2px solid ${C.dark}` }}>−50 %</span>}
                 </div>
                 <div className="text-xs" style={{ color: C.grey }}>{o.notes}</div>
@@ -2470,7 +2467,11 @@ function MameMameSaisons() {
           {avail.map((o) => (
             <Card key={o.id}>
               <div className="flex items-center justify-between gap-2">
-                <div className="font-bold" style={{ color: C.dark }}>{o.name} <span className="text-xs font-normal" style={{ color: C.grey }}>({green[o.id]} kg)</span></div>
+                <div className="font-bold" style={{ color: C.dark }}>
+                  {o.name}
+                  {o.variety && <span className="text-xs font-normal ml-1" style={{ color: C.green }}>{o.variety}</span>}
+                  <span className="text-xs font-normal" style={{ color: C.grey }}> ({green[o.id]} kg)</span>
+                </div>
                 <div className="flex gap-1">
                   {(era === 3 ? [2, 6, 12] : era === 2 ? [1, 3, 6] : [1, 2, 3]).map((kg) => (
                     <Btn key={kg} small instant disabled={(green[o.id] || 0) < kg || batchesToday >= dailyBatchCap} onClick={() => startRoast(o.id, kg)}>
@@ -3220,13 +3221,16 @@ function MameMameSaisons() {
         animation: opts.reducedAnim ? "none" : "braysB 20s linear infinite",
       }} />
       <div className="relative z-10 text-center px-5 w-full max-w-sm">
+        {/* Bandeau d'alerte : toujours affiché, iris ou pas */}
+        <div className="font-bold tracking-widest text-sm mb-2" style={{ color: boss?.final ? C.purple : C.red, position: "relative", zIndex: 1 }}>
+          {boss?.final ? "MENACE FINALE" : `JOUR ${day} — ALERTE`}
+        </div>
         {BOSS_ART[boss?.type] ? (
           <div className="mb-3" style={{ maxWidth: 340, margin: "0 auto 12px" }}>
             <BossIris key={boss.type} {...BOSS_ART[boss.type]} reduced={opts.reducedAnim} />
           </div>
         ) : (
           <>
-            <div className="font-bold tracking-widest text-sm mb-2" style={{ color: boss?.final ? C.purple : C.red, position: "relative", zIndex: 1 }}>{boss?.final ? "MENACE FINALE" : `JOUR ${day} — ALERTE`}</div>
             <div className="font-bold mb-3"
               style={{
                 fontSize: 34, lineHeight: 1.1, color: "#fff",
@@ -3778,6 +3782,21 @@ function MameMameSaisons() {
             {gaufro.night && (
               <div className="text-xs mb-1" style={{ color: C.purple }}>Cette nuit : {gaufro.night}.</div>
             )}
+            {(() => {
+              const ctrl = gaufroControl();
+              const pct = Math.min(100, Math.round((ctrl / 20) * 100));
+              const dark = ctrl >= 12;
+              return (
+                <div className="mb-2">
+                  <div className="flex items-center justify-between text-xs mb-1" style={{ color: dark ? C.purple : C.grey }}>
+                    <span>Emprise</span><span>{pct} %</span>
+                  </div>
+                  <div style={{ height: 6, borderRadius: 999, background: dark ? "#2a1f45" : "#e5dcc8", overflow: "hidden" }}>
+                    <div style={{ width: pct + "%", height: "100%", background: pct > 75 ? C.red : pct > 45 ? C.purple : C.green, transition: "width .4s" }} />
+                  </div>
+                </div>
+              );
+            })()}
             <div className="text-sm mb-2" style={{ color: gaufroControl() >= 12 ? C.cream : C.dark }}>{gaufro.msg?.text}</div>
             {gaufro.msg?.plan && (
               <div className="mb-2">
@@ -3909,6 +3928,7 @@ function MameMameSaisons() {
     }
   }, [poolKey, currentTrack]);
 
+
   // Fin de piste : on enchaîne sur une autre du pool (rotation aléatoire, évite de rejouer la même si possible)
   const nextTrack = () => {
     if (!musicPool.length) return;
@@ -3920,15 +3940,25 @@ function MameMameSaisons() {
 
   const musicUrl = currentTrack;
 
+  // La lecture démarre dès qu'une piste devient disponible après le déverrouillage.
+  useEffect(() => {
+    const el = audioRef.current;
+    if (el && musicStarted && musicUrl && opts.music > 0) {
+      el.volume = clamp(opts.music / 100, 0, 1);
+      const t = setTimeout(() => el.play().catch(() => {}), 60);
+      return () => clearTimeout(t);
+    }
+  }, [musicUrl, musicStarted]);
+
   // Déverrouillage audio : play() doit être appelé DANS le geste utilisateur
   const unlockMusic = () => {
-    if (musicStarted || !musicUrl) return;
-    const el = audioRef.current;
-    if (el && opts.music > 0) {
+    if (musicStarted) return;
+    setMusicStarted(true); // on arme TOUJOURS : si la piste n'est pas encore choisie,
+    const el = audioRef.current;                 // l'effet ci-dessous la lancera dès qu'elle arrive.
+    if (el && musicUrl && opts.music > 0) {
       el.volume = clamp(opts.music / 100, 0, 1);
       el.play().catch(() => {});
     }
-    setMusicStarted(true);
   };
 
   useEffect(() => {
