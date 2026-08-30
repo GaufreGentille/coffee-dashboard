@@ -946,6 +946,8 @@ function MameMameSaisons() {
   const [scanPending, setScanPending] = useState(null); // { cost } — balayage lancé, résultat au matin
   const [decafSummoned, setDecafSummoned] = useState(false); // rituel accompli : il viendra
   const [starsUnlocked, setStarsUnlocked] = useState(["naine"]); // classes stellaires calibrées
+  const headerRef = useRef(null);
+  const [tabTop, setTabTop] = useState(150); // les intercalaires se calent sous le bandeau
   const [stellar, setStellar] = useState(null); // { star: 0|1|2, orbit: "proche"|"ideale"|"lointaine" } — anneau stellaire
   const [vacuumMode, setVacuumMode] = useState(false); // torréfaction dans le vide (Ère 3)
   const [batchesToday, setBatchesToday] = useState(0);
@@ -3899,6 +3901,22 @@ function MameMameSaisons() {
     if (delegated.includes(tab) && TABS[0]) setTab(TABS[0].id);
   }, [delegated, tab]);
 
+  // Les intercalaires suivent la ligne jaune/beige, quelle que soit la hauteur du bandeau.
+  useEffect(() => {
+    const el = headerRef.current;
+    if (!el) return;
+    const measure = () => {
+      const r = el.getBoundingClientRect();
+      setTabTop(Math.max(60, Math.round(r.bottom + 10)));
+    };
+    measure();
+    let ro = null;
+    if (typeof ResizeObserver !== "undefined") { ro = new ResizeObserver(measure); ro.observe(el); }
+    window.addEventListener("resize", measure);
+    window.addEventListener("scroll", measure, true);
+    return () => { if (ro) ro.disconnect(); window.removeEventListener("resize", measure); window.removeEventListener("scroll", measure, true); };
+  }, [screen, era, boss, loan, flashOffer, relics]);
+
   const audioRef = useRef(null);
   const [musicStarted, setMusicStarted] = useState(false);
   const [deadTracks, setDeadTracks] = useState({}); // pistes en 404, exclues des playlists
@@ -4003,7 +4021,6 @@ function MameMameSaisons() {
         .mmr-tabbar {
           position: fixed !important;
           left: max(0px, calc(50vw - 14rem)) !important;
-          top: 150px !important;
           transform: none !important;
         }
         @media (min-width: 640px) {
@@ -4054,7 +4071,7 @@ function MameMameSaisons() {
 
         {screen === "game" && (
           <>
-            <div className="p-3 pb-2" style={{ background: era === 3 ? "#1a1433" : era === 2 ? C.dark : C.yellow, borderBottom: `3px solid ${C.dark}`, transition: "background .6s" }}>
+            <div ref={headerRef} className="p-3 pb-2" style={{ background: era === 3 ? "#1a1433" : era === 2 ? C.dark : C.yellow, borderBottom: `3px solid ${C.dark}`, transition: "background .6s" }}>
               <div className="flex items-center justify-between">
                 <div>
                   <div className="font-bold text-lg" style={{ color: era >= 2 ? C.yellow : C.dark }}><BeanIcon fill={era >= 2 ? C.yellow : C.dark} /> Jour {day}{era === 3 ? " · Ère 3" : era === 2 ? " · Ère 2" : ""}</div>
@@ -4108,7 +4125,7 @@ function MameMameSaisons() {
 
             {/* Intercalaires verticaux, façon onglets de classeur, sur le bord droit */}
             <div className="mmr-tabbar" style={{
-              display: "flex", flexDirection: "column", gap: 7, zIndex: 40,
+              display: "flex", flexDirection: "column", gap: 7, zIndex: 40, top: tabTop,
             }}>
               {TABS.map((t) => {
                 const on = tab === t.id;
