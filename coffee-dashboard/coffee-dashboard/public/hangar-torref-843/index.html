@@ -651,7 +651,8 @@ const TabIcon = ({ id, active }) => {
   const col = active ? C.dark : "#8a7b68";
   const p = { fill: "none", stroke: col, strokeWidth: 2.2, strokeLinecap: "round", strokeLinejoin: "round" };
   if (id === "market") return (<svg width="22" height="22" viewBox="0 0 24 24"><path d="M4 8h16l-1.4 10.2a2 2 0 0 1-2 1.8H7.4a2 2 0 0 1-2-1.8L4 8Z" {...p} /><path d="M8.5 8V6.2a3.5 3.5 0 0 1 7 0V8" {...p} /></svg>);
-  if (id === "roast") return (<svg width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="13" r="6.6" {...p} /><path d="M12 6.4V3.6M8.4 4.6l1.2 2M15.6 4.6l-1.2 2" {...p} /><path d="M12 9.6c-1.4 1.9-1.4 4.9 0 6.8" {...p} /></svg>);
+  if (id === "roast") return (<svg width="22" height="22" viewBox="0 0 24 24"><path d="M13.6 13.4V5.2a1.9 1.9 0 0 0-3.8 0v8.2a4 4 0 1 0 3.8 0Z" {...p} /><circle cx="11.7" cy="16.8" r="1.6" {...p} /></svg>);
+  if (id === "stellar") return (<svg width="22" height="22" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5.2" {...p} /><ellipse cx="12" cy="12" rx="10" ry="3.2" transform="rotate(-20 12 12)" {...p} /></svg>);
   if (id === "blend") return (<svg width="22" height="22" viewBox="0 0 24 24"><path d="M5 4h14l-5.4 7.4V19l-3.2 1.6V11.4L5 4Z" {...p} /></svg>);
   if (id === "orders") return (<svg width="22" height="22" viewBox="0 0 24 24"><path d="M5.5 8h13l-1 11.2a1.6 1.6 0 0 1-1.6 1.4H8.1a1.6 1.6 0 0 1-1.6-1.4L5.5 8Z" {...p} /><path d="M9 8V5.6A3 3 0 0 1 15 5.6V8" {...p} /><path d="M9.6 12.4l1.8 1.8 3.2-3.4" {...p} /></svg>);
   if (id === "factory") return (<svg width="22" height="22" viewBox="0 0 24 24"><path d="M3.6 20.4V11l5 3V11l5 3V6.4h1.8l1.4 14H3.6Z" {...p} /><path d="M7 17.4h1.6M11.4 17.4H13M15.6 17.4h1.4" {...p} /></svg>);
@@ -665,6 +666,7 @@ const TAB_COLORS = {
   blend:  "#c99bdd",   // lilas : l'assemblage
   orders: "#f2c744",   // jaune : la vente
   factory:"#8fb8d8",   // bleu acier : l'usine
+  stellar:"#7b6bd6",   // indigo : le cosmos
 };
 
 const KawaiiBean = ({ T, mood, size = 84 }) => {
@@ -2724,6 +2726,118 @@ function MameMameSaisons() {
     </div>
   );
 
+  // ————— Anneau stellaire : son propre onglet, une fois le module construit —————
+  const Stellar = () => (
+    <div className="space-y-3">
+          <Card style={{ background: "#1a1433" }}>
+            <div className="font-bold text-sm mb-1" style={{ color: C.yellow }}>Torréfaction stellaire</div>
+            {!stellar ? (
+              <>
+                <div className="text-xs mb-2" style={{ color: C.cream }}>
+                  Place un anneau de cargos en orbite d'une étoile : elle devient ton brûleur. C'est la <b>seule technologie capable de dépasser le plafond de qualité terrestre</b> — aucune main, aucune machine ne monte aussi haut. Construction : 12 000 €.
+                </div>
+                <Btn small bg={C.purple} disabled={money < 12000}
+                  onClick={() => { setMoney((m) => m - 12000); setStellar({ star: 1, starClass: 0, orbit: "ideale" }); SFX.success(opts.sfx); }}>
+                  Construire l'anneau · 12 000 €
+                </Btn>
+              </>
+            ) : (
+              <>
+                <div className="text-xs mb-1" style={{ color: C.cream }}>Classe de l'étoile-brûleur :</div>
+                <div className="flex gap-1 mb-1 flex-wrap">
+                  {STARS.map((st, i) => {
+                    const owned = starsUnlocked.includes(st.id);
+                    const active = (stellar.starClass ?? 0) === i;
+                    const afford = money >= st.cost;
+                    return (
+                      <button key={st.id} type="button"
+                        onClick={() => {
+                          if (owned) { SFX.click(opts.sfx); setStellar((v) => ({ ...v, starClass: i })); return; }
+                          if (!afford) { SFX.error(opts.sfx); say(`Calibrer sur ${st.name} demande ${st.cost.toLocaleString("fr-FR")} €.`); return; }
+                          setMoney((m) => m - st.cost);
+                          setStarsUnlocked((u) => [...u, st.id]);
+                          setStellar((v) => ({ ...v, starClass: i }));
+                          SFX.success(opts.sfx);
+                          say(`Anneau recalibré sur ${st.name}. Les cargos se réalignent dans un silence total.`);
+                        }}
+                        className="rounded-xl py-1 px-2 text-xs font-bold"
+                        style={{ flex: "1 1 44%",
+                          background: active ? st.col : owned ? "#2a2347" : "#1c1830",
+                          color: active ? (st.id === "jaune" ? C.dark : "#fff") : owned ? C.cream : (afford ? C.yellow : C.grey),
+                          border: `2px solid ${owned ? C.dark : "rgba(255,255,255,.18)"}`,
+                          cursor: "pointer", opacity: owned || afford ? 1 : 0.6 }}>
+                        {owned ? st.name : `${st.name} · ${Math.round(st.cost / 1000)}k €`}
+                      </button>
+                    );
+                  })}
+                </div>
+                {(() => {
+                  const st = STARS[stellar.starClass ?? 0] || STARS[0];
+                  const ceil = qCeil(meta.cpUnlocks) + st.over + (rl("lg_gyroscope") ? 10 : 0);
+                  return (
+                    <div className="text-xs mb-2 rounded-xl px-2 py-1" style={{ background: "#241d3f", color: C.cream }}>
+                      <div className="italic mb-1">{st.desc}</div>
+                      <div style={{ color: C.yellow }}>
+                        Qualité jusqu'à <b>{ceil}</b> (plafond terrestre : {qCeil(meta.cpUnlocks)}) · {st.cap} kg/nuit · risque d'éruption {Math.round(st.risk * 100)} %
+                      </div>
+                    </div>
+                  );
+                })()}
+                <div className="text-xs mb-1" style={{ color: C.cream }}>Niveau de cuisson :</div>
+                <div className="flex gap-1 mb-2">
+                  {LEVELS.map((lv, li) => (
+                    <button key={li} type="button" onClick={() => { SFX.click(opts.sfx); setStellar((v) => ({ ...v, star: li })); }}
+                      className="flex-1 rounded-xl py-1 text-xs font-bold"
+                      style={{ background: stellar.star === li ? C.orange : "#2a2347", color: "#fff", border: `2px solid ${C.dark}`, cursor: "pointer" }}>
+                      {lv.name}
+                    </button>
+                  ))}
+                </div>
+                {/* ————— L'appel du Décaféinateur ————— */}
+                {bossesBeaten >= 4 && !decafSummoned && (
+                  <div className="rounded-2xl px-3 py-2 mb-3" style={{ background: "#1a0f14", border: `2px solid ${C.red}` }}>
+                    <div className="text-xs font-bold mb-1" style={{ color: C.red }}>L'ANNEAU CAPTE QUELQUE CHOSE</div>
+                    <div className="text-xs mb-2" style={{ color: C.cream }}>
+                      Une absence se déplace entre les étoiles. Elle ne vient pas d'elle-même : il faut l'appeler.
+                      Brûle un café d'exception dans l'anneau — un lot stellaire — et le vide saura que tu existes.
+                      {day < 69 && <span style={{ color: C.grey }}> (Il est trop tôt. L'anneau n'est pas assez chargé — reviens vers le jour 70.)</span>}
+                    </div>
+                    <Btn small bg={C.red}
+                      disabled={day < 69 || !roasted.some((l) => l.stellar && l.kg >= 5)}
+                      onClick={() => {
+                        const offering = roasted.filter((l) => l.stellar && l.kg >= 5).sort((a, b) => b.quality - a.quality)[0];
+                        if (!offering) return;
+                        setRoasted((r) => r.map((l) => (l.id === offering.id ? { ...l, kg: r1(l.kg - 5) } : l)).filter((l) => l.kg > 0.05));
+                        setDecafSummoned(true);
+                        SFX.error(opts.sfx);
+                        say(`Tu jettes 5 kg de ${offering.label} (Q${offering.quality}) dans l'anneau. Le café se volatilise sans fumée. Quelque part, très loin, quelque chose vient d'ouvrir les yeux.`);
+                      }}>
+                      {!roasted.some((l) => l.stellar && l.kg >= 5) ? "Il faut 5 kg d'un lot stellaire" : "Offrir 5 kg au vide"}
+                    </Btn>
+                  </div>
+                )}
+                {decafSummoned && (
+                  <div className="rounded-2xl px-3 py-2 mb-3 text-xs" style={{ background: "#1a0f14", border: `2px solid ${C.red}`, color: C.cream }}>
+                    <b style={{ color: C.red }}>IL A ENTENDU.</b> Il approche. Prépare la plus grande, la plus parfaite cuisson que ton empire sache produire.
+                  </div>
+                )}
+                <div className="text-xs mb-1" style={{ color: C.cream }}>Orbite :</div>
+                <div className="flex gap-1">
+                  {["proche", "ideale", "lointaine"].map((ob) => (
+                    <button key={ob} type="button" onClick={() => { SFX.click(opts.sfx); setStellar((v) => ({ ...v, orbit: ob })); }}
+                      className="flex-1 rounded-xl py-1 text-xs font-bold"
+                      style={{ background: stellar.orbit === ob ? C.purple : "#2a2347", color: "#fff", border: `2px solid ${C.dark}`, cursor: "pointer" }}>
+                      {ob === "ideale" ? "idéale" : ob === "proche" ? "proche (+risque)" : "lointaine (−risque)"}
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </Card>
+
+    </div>
+  );
+
   const Factory = () => {
     if (!gear.programmer) {
       return (
@@ -2939,113 +3053,6 @@ function MameMameSaisons() {
           </div>
         )}
 
-        {era >= 3 && (
-          <Card style={{ background: "#1a1433" }}>
-            <div className="font-bold text-sm mb-1" style={{ color: C.yellow }}>Torréfaction stellaire</div>
-            {!stellar ? (
-              <>
-                <div className="text-xs mb-2" style={{ color: C.cream }}>
-                  Place un anneau de cargos en orbite d'une étoile : elle devient ton brûleur. C'est la <b>seule technologie capable de dépasser le plafond de qualité terrestre</b> — aucune main, aucune machine ne monte aussi haut. Construction : 12 000 €.
-                </div>
-                <Btn small bg={C.purple} disabled={money < 12000}
-                  onClick={() => { setMoney((m) => m - 12000); setStellar({ star: 1, starClass: 0, orbit: "ideale" }); SFX.success(opts.sfx); }}>
-                  Construire l'anneau · 12 000 €
-                </Btn>
-              </>
-            ) : (
-              <>
-                <div className="text-xs mb-1" style={{ color: C.cream }}>Classe de l'étoile-brûleur :</div>
-                <div className="flex gap-1 mb-1 flex-wrap">
-                  {STARS.map((st, i) => {
-                    const owned = starsUnlocked.includes(st.id);
-                    const active = (stellar.starClass ?? 0) === i;
-                    const afford = money >= st.cost;
-                    return (
-                      <button key={st.id} type="button"
-                        onClick={() => {
-                          if (owned) { SFX.click(opts.sfx); setStellar((v) => ({ ...v, starClass: i })); return; }
-                          if (!afford) { SFX.error(opts.sfx); say(`Calibrer sur ${st.name} demande ${st.cost.toLocaleString("fr-FR")} €.`); return; }
-                          setMoney((m) => m - st.cost);
-                          setStarsUnlocked((u) => [...u, st.id]);
-                          setStellar((v) => ({ ...v, starClass: i }));
-                          SFX.success(opts.sfx);
-                          say(`Anneau recalibré sur ${st.name}. Les cargos se réalignent dans un silence total.`);
-                        }}
-                        className="rounded-xl py-1 px-2 text-xs font-bold"
-                        style={{ flex: "1 1 44%",
-                          background: active ? st.col : owned ? "#2a2347" : "#1c1830",
-                          color: active ? (st.id === "jaune" ? C.dark : "#fff") : owned ? C.cream : (afford ? C.yellow : C.grey),
-                          border: `2px solid ${owned ? C.dark : "rgba(255,255,255,.18)"}`,
-                          cursor: "pointer", opacity: owned || afford ? 1 : 0.6 }}>
-                        {owned ? st.name : `${st.name} · ${Math.round(st.cost / 1000)}k €`}
-                      </button>
-                    );
-                  })}
-                </div>
-                {(() => {
-                  const st = STARS[stellar.starClass ?? 0] || STARS[0];
-                  const ceil = qCeil(meta.cpUnlocks) + st.over + (rl("lg_gyroscope") ? 10 : 0);
-                  return (
-                    <div className="text-xs mb-2 rounded-xl px-2 py-1" style={{ background: "#241d3f", color: C.cream }}>
-                      <div className="italic mb-1">{st.desc}</div>
-                      <div style={{ color: C.yellow }}>
-                        Qualité jusqu'à <b>{ceil}</b> (plafond terrestre : {qCeil(meta.cpUnlocks)}) · {st.cap} kg/nuit · risque d'éruption {Math.round(st.risk * 100)} %
-                      </div>
-                    </div>
-                  );
-                })()}
-                <div className="text-xs mb-1" style={{ color: C.cream }}>Niveau de cuisson :</div>
-                <div className="flex gap-1 mb-2">
-                  {LEVELS.map((lv, li) => (
-                    <button key={li} type="button" onClick={() => { SFX.click(opts.sfx); setStellar((v) => ({ ...v, star: li })); }}
-                      className="flex-1 rounded-xl py-1 text-xs font-bold"
-                      style={{ background: stellar.star === li ? C.orange : "#2a2347", color: "#fff", border: `2px solid ${C.dark}`, cursor: "pointer" }}>
-                      {lv.name}
-                    </button>
-                  ))}
-                </div>
-                {/* ————— L'appel du Décaféinateur ————— */}
-                {bossesBeaten >= 4 && !decafSummoned && (
-                  <div className="rounded-2xl px-3 py-2 mb-3" style={{ background: "#1a0f14", border: `2px solid ${C.red}` }}>
-                    <div className="text-xs font-bold mb-1" style={{ color: C.red }}>L'ANNEAU CAPTE QUELQUE CHOSE</div>
-                    <div className="text-xs mb-2" style={{ color: C.cream }}>
-                      Une absence se déplace entre les étoiles. Elle ne vient pas d'elle-même : il faut l'appeler.
-                      Brûle un café d'exception dans l'anneau — un lot stellaire — et le vide saura que tu existes.
-                      {day < 69 && <span style={{ color: C.grey }}> (Il est trop tôt. L'anneau n'est pas assez chargé — reviens vers le jour 70.)</span>}
-                    </div>
-                    <Btn small bg={C.red}
-                      disabled={day < 69 || !roasted.some((l) => l.stellar && l.kg >= 5)}
-                      onClick={() => {
-                        const offering = roasted.filter((l) => l.stellar && l.kg >= 5).sort((a, b) => b.quality - a.quality)[0];
-                        if (!offering) return;
-                        setRoasted((r) => r.map((l) => (l.id === offering.id ? { ...l, kg: r1(l.kg - 5) } : l)).filter((l) => l.kg > 0.05));
-                        setDecafSummoned(true);
-                        SFX.error(opts.sfx);
-                        say(`Tu jettes 5 kg de ${offering.label} (Q${offering.quality}) dans l'anneau. Le café se volatilise sans fumée. Quelque part, très loin, quelque chose vient d'ouvrir les yeux.`);
-                      }}>
-                      {!roasted.some((l) => l.stellar && l.kg >= 5) ? "Il faut 5 kg d'un lot stellaire" : "Offrir 5 kg au vide"}
-                    </Btn>
-                  </div>
-                )}
-                {decafSummoned && (
-                  <div className="rounded-2xl px-3 py-2 mb-3 text-xs" style={{ background: "#1a0f14", border: `2px solid ${C.red}`, color: C.cream }}>
-                    <b style={{ color: C.red }}>IL A ENTENDU.</b> Il approche. Prépare la plus grande, la plus parfaite cuisson que ton empire sache produire.
-                  </div>
-                )}
-                <div className="text-xs mb-1" style={{ color: C.cream }}>Orbite :</div>
-                <div className="flex gap-1">
-                  {["proche", "ideale", "lointaine"].map((ob) => (
-                    <button key={ob} type="button" onClick={() => { SFX.click(opts.sfx); setStellar((v) => ({ ...v, orbit: ob })); }}
-                      className="flex-1 rounded-xl py-1 text-xs font-bold"
-                      style={{ background: stellar.orbit === ob ? C.purple : "#2a2347", color: "#fff", border: `2px solid ${C.dark}`, cursor: "pointer" }}>
-                      {ob === "ideale" ? "idéale" : ob === "proche" ? "proche (+risque)" : "lointaine (−risque)"}
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-          </Card>
-        )}
         <Card>
           <div className="text-xs" style={{ color: C.dark }}>
             <b>{nR}</b> torréfacteur{nR > 1 ? "s" : ""} alimenté{nR > 1 ? "s" : ""} ({capIn} kg de vert/jour) · <b>{nB}</b> ensacheuse{nB > 1 ? "s" : ""} reliée{nB > 1 ? "s" : ""} ({capOut} kg vendus/jour max)
@@ -3892,6 +3899,7 @@ function MameMameSaisons() {
     { id: "blend", label: "Assemblage", view: Blends },
     { id: "orders", label: "Ventes", view: Orders, badge: orders.length },
     { id: "factory", label: "Usine", view: Factory },
+    ...(era >= 3 ? [{ id: "stellar", label: stellar ? "Anneau stellaire" : "Anneau stellaire (à bâtir)", view: Stellar }] : []),
   ];
   // Les onglets dont Gaufromatic a pris le contrôle disparaissent pour toujours.
   const TABS = ALL_TABS.filter((t) => !delegated.includes(t.id));
