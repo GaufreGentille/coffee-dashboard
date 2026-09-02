@@ -29,6 +29,16 @@ export const PROFILS = [
 
 const BITRATE_PLANCHER = 500_000;
 
+/** Modes testes par la sonde, du plus leger au plus exigeant. */
+const MODES_SONDE = [
+  { label: '720p30', w: 1280, h: 720, fps: 30 },
+  { label: '720p60', w: 1280, h: 720, fps: 60 },
+  { label: '1080p30', w: 1920, h: 1080, fps: 30 },
+  { label: '1080p60', w: 1920, h: 1080, fps: 60 },
+  { label: '1440p30', w: 2560, h: 1440, fps: 30 },
+  { label: '2160p30', w: 3840, h: 2160, fps: 30 },
+];
+
 export const ARBITRAGES = [
   { id: 'maintain-framerate', label: 'Fluidite', detail: 'garde la cadence, baisse la definition' },
   { id: 'maintain-resolution', label: 'Nettete', detail: 'garde la definition, lache des images' },
@@ -72,6 +82,7 @@ export default function StudioCam({ onStreamReady, onProfilChange }) {
   const [veilleActive, setVeilleActive] = useState(false);
   const [panneauOuvert, setPanneauOuvert] = useState(false);
   const [bascule, setBascule] = useState(false);
+  const [sonde, setSonde] = useState(null);
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -143,11 +154,13 @@ export default function StudioCam({ onStreamReady, onProfilChange }) {
     if (caps?.zoom) setZoom(piste.getSettings().zoom ?? caps.zoom.min);
   }, []);
 
-  const contraintesVideo = useCallback((p, deviceId) => {
+  const contraintesVideo = useCallback((p, deviceId, exigeant) => {
     const base = {
       width: { ideal: p.w },
       height: { ideal: p.h },
-      frameRate: { ideal: p.fps },
+      // en mode exigeant on impose un plancher : le navigateur doit obeir
+      // ou refuser franchement, ce qui vaut mieux qu'une promesse non tenue
+      frameRate: exigeant && !p.adaptatif ? { min: p.fps - 2, ideal: p.fps } : { ideal: p.fps },
     };
     return deviceId ? { ...base, deviceId: { exact: deviceId } } : { ...base, facingMode: { ideal: 'environment' } };
   }, []);
@@ -177,16 +190,29 @@ export default function StudioCam({ onStreamReady, onProfilChange }) {
           streamRef.current.getTracks().forEach((t) => t.stop());
           streamRef.current = null;
         }
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: contraintesVideo(p, deviceId),
-          audio: {
-            echoCancellation: false,
-            noiseSuppression: false,
-            autoGainControl: false,
-            channelCount: { ideal: 1 },
-            sampleRate: { ideal: 48000 },
-          },
-        });
+        const audio = {
+          echoCancellation: false,
+          noiseSuppression: false,
+          autoGainControl: false,
+          channelCount: { ideal: 1 },
+          sampleRate: { ideal: 48000 },
+        };
+
+        let stream;
+        let replie = false;
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: contraintesVideo(p, deviceId, true),
+            audio,
+          });
+        } catch (dur) {
+          if (dur?.name !== 'OverconstrainedError') throw dur;
+          replie = true;
+          stream = await navigator.mediaDevices.getUserMedia({
+            video: contraintesVideo(p, deviceId, false),
+            audio,
+          });
+        }
         streamRef.current = stream;
         if (videoRef.current) videoRef.current.srcObject = stream;
 
@@ -201,7 +227,11 @@ export default function StudioCam({ onStreamReady, onProfilChange }) {
         brancherVumetre(stream);
         await prendreWakeLock();
         setPhase('ready');
-        setTimeout(() => verifierEcart(p), 1400);
+        if (replie) {
+          setEcart(`Ton appareil a refuse ${p.fps} images par seconde en ${p.h}p. Il n'expose pas ce mode.`);
+        } else {
+          setTimeout(() => verifierEcart(p), 1400);
+        }
 
         if (onStreamReady) onStreamReady(stream, parametresEncodage(p, arbitrage));
       } catch (e) {
@@ -223,6 +253,17 @@ export default function StudioCam({ onStreamReady, onProfilChange }) {
       if (!piste) return;
       setBascule(true);
       setEcart(null);
+
+      // changer de cadence demande un autre mode capteur : applyConstraints
+      // ne suffit presque jamais, on relance la piste directement
+      const fpsCourant = Math.round(piste.getSettings().frameRate || 0);
+      if (!p.adaptatif && Math.abs(fpsCourant - p.fps) > 5) {
+        await demarrer(cameraActive, p);
+        setBascule(false);
+        if (onProfilChange) onProfilChange(parametresEncodage(p, arbitrage));
+        return;
+      }
+
       try {
         await piste.applyConstraints({
           width: { ideal: p.w },
@@ -258,6 +299,47 @@ export default function StudioCam({ onStreamReady, onProfilChange }) {
     }, 1000);
     return () => clearInterval(id);
   }, [phase]);
+
+  /* ---------- sonde des modes reellement disponibles ---------- */
+  const lancerSonde = useCallback(async () => {
+    setSonde({ enCours: true, resultats: [] });
+    const resultats = [];
+    const etaitOuverte = !!streamRef.current;
+    const deviceId = cameraActive;
+
+    // la camera ne peut pas etre ouverte deux fois sur iOS
+    if (etaitOuverte) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+      await new Promise((r) => setTimeout(r, 400));
+    }
+
+    for (const m of MODES_SONDE) {
+      const video = {
+        width: { exact: m.w },
+        height: { exact: m.h },
+        frameRate: { exact: m.fps },
+        ...(deviceId ? { deviceId: { exact: deviceId } } : { facingMode: { ideal: 'environment' } }),
+      };
+      try {
+        const s = await navigator.mediaDevices.getUserMedia({ video, audio: false });
+        const r = s.getVideoTracks()[0].getSettings();
+        resultats.push({
+          label: m.label,
+          ok: true,
+          reel: `${r.width}x${r.height} ${Math.round(r.frameRate || 0)} fps`,
+        });
+        s.getTracks().forEach((t) => t.stop());
+      } catch (e) {
+        resultats.push({ label: m.label, ok: false, reel: e?.name === 'OverconstrainedError' ? 'non expose' : e?.name });
+      }
+      setSonde({ enCours: true, resultats: [...resultats] });
+      await new Promise((r) => setTimeout(r, 300));
+    }
+
+    setSonde({ enCours: false, resultats });
+    if (etaitOuverte) await demarrer(deviceId);
+  }, [cameraActive, demarrer]);
 
   const basculerTorch = useCallback(async () => {
     const piste = streamRef.current?.getVideoTracks()[0];
@@ -407,6 +489,28 @@ export default function StudioCam({ onStreamReady, onProfilChange }) {
               </div>
 
               {ecart && <p className="sc-ecart">{ecart}</p>}
+
+              <div className="sc-groupe">
+                <div className="sc-ligne-titre">
+                  <p className="sc-titre-groupe">Modes reellement exposes</p>
+                  <button className="sc-lien" onClick={lancerSonde} disabled={sonde?.enCours} type="button">
+                    {sonde?.enCours ? 'test en cours' : 'Sonder'}
+                  </button>
+                </div>
+                {sonde?.resultats?.length > 0 && (
+                  <ul className="sc-sonde">
+                    {sonde.resultats.map((r) => (
+                      <li key={r.label} className={r.ok ? 'est-ok' : 'est-ko'}>
+                        <span>{r.label}</span>
+                        <span>{r.reel}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                {sonde && !sonde.enCours && (
+                  <p className="sc-aide">La camera se rouvre automatiquement a la fin du test.</p>
+                )}
+              </div>
 
               <dl className="sc-infos">
                 <div>
@@ -588,6 +692,20 @@ const CSS = `
   margin: 0; padding: 0.6rem 0.7rem; font-size: 0.78rem; line-height: 1.45;
   border-left: 2px solid var(--sc-ambre); background: rgba(240, 168, 40, 0.08); color: var(--sc-texte);
 }
+.sc-ligne-titre { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
+.sc-lien {
+  background: none; border: none; padding: 0; cursor: pointer;
+  color: var(--sc-ambre); font: inherit; font-size: 0.78rem; text-decoration: underline;
+}
+.sc-lien:disabled { color: var(--sc-doux); text-decoration: none; }
+.sc-sonde { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.2rem; }
+.sc-sonde li {
+  display: flex; justify-content: space-between; gap: 0.8rem;
+  font-size: 0.78rem; font-variant-numeric: tabular-nums;
+  padding: 0.3rem 0.4rem; border-left: 2px solid transparent; background: rgba(242, 237, 228, 0.04);
+}
+.sc-sonde li.est-ok { border-left-color: var(--sc-vif); }
+.sc-sonde li.est-ko { border-left-color: rgba(242, 237, 228, 0.2); color: var(--sc-doux); }
 .sc-infos { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem 1.2rem; margin: 0; }
 .sc-infos dt { font-size: 0.72rem; color: var(--sc-doux); margin: 0 0 0.15rem; }
 .sc-infos dd { margin: 0; font-size: 0.92rem; font-variant-numeric: tabular-nums; }
