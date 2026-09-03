@@ -34,6 +34,7 @@ export default function StudioView() {
   const [etat, setEtat] = useState('veille'); // veille | negociation | connecte | perdu
   const [note, setNote] = useState(null);
   const [sonBloque, setSonBloque] = useState(false);
+  const [entrant, setEntrant] = useState(null);
 
   const videoRef = useRef(null);
   const pcRef = useRef(null);
@@ -64,10 +65,19 @@ export default function StudioView() {
         pcRef.current = pc;
 
         pc.ontrack = (e) => {
-          if (videoRef.current && videoRef.current.srcObject !== e.streams[0]) {
-            videoRef.current.srcObject = e.streams[0];
-            videoRef.current.play().catch(() => setSonBloque(true));
-          }
+          const v = videoRef.current;
+          if (!v || v.srcObject === e.streams[0]) return;
+          v.srcObject = e.streams[0];
+          // OBS autorise la lecture automatique avec le son, un onglet normal non :
+          // on tente avec, et on retombe en muet plutot que de rester noir
+          v.muted = false;
+          v.play()
+            .then(() => setSonBloque(false))
+            .catch(() => {
+              v.muted = true;
+              setSonBloque(true);
+              v.play().catch(() => {});
+            });
         };
 
         pc.onconnectionstatechange = () => {
@@ -126,8 +136,36 @@ export default function StudioView() {
     };
   }, [code, repondre, fermerPc]);
 
+  /* combien d'images arrivent vraiment */
+  useEffect(() => {
+    if (etat !== 'connecte') return undefined;
+    let precedent = null;
+    const id = setInterval(async () => {
+      const pc = pcRef.current;
+      if (!pc) return;
+      const rapport = await pc.getStats();
+      let entree = null;
+      rapport.forEach((r) => {
+        if (r.type === 'inbound-rtp' && r.kind === 'video') entree = r;
+      });
+      if (!entree) return;
+      const images = precedent ? entree.framesDecoded - precedent.framesDecoded : null;
+      precedent = entree;
+      setEntrant({
+        largeur: entree.frameWidth,
+        hauteur: entree.frameHeight,
+        fps: entree.framesPerSecond,
+        gelee: images === 0,
+      });
+    }, 2000);
+    return () => clearInterval(id);
+  }, [etat]);
+
   const activerSon = () => {
-    videoRef.current?.play().then(() => setSonBloque(false)).catch(() => {});
+    const v = videoRef.current;
+    if (!v) return;
+    v.muted = false;
+    v.play().then(() => setSonBloque(false)).catch(() => {});
   };
 
   if (!code) {
@@ -166,6 +204,13 @@ export default function StudioView() {
           {etat === 'negociation' && 'Connexion en cours'}
           {etat === 'perdu' && 'Flux interrompu, en attente'}
           {note && <em className="sv-note">{note}</em>}
+        </div>
+      )}
+
+      {etat === 'connecte' && entrant?.gelee && (
+        <div className="sv-etat">
+          <span className="sv-pastille sv-negociation" />
+          Connexion etablie mais aucune image ne decode
         </div>
       )}
 
