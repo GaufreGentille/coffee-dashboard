@@ -1,4 +1,16 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import {
+  obtenirIceServers,
+  poster,
+  lire,
+  effacer,
+  attendreIce,
+  nouvelleSession,
+  genererCode,
+  codeMemorise,
+  memoriserCode,
+  lireStats,
+} from '../studio/lien';
 
 /**
  * StudioCam
@@ -24,7 +36,8 @@ export const PROFILS = [
   { id: '720p30', label: '720p30', detail: 'le plus stable en mobilite', w: 1280, h: 720, fps: 30, bitrateMax: 2_500_000 },
   { id: '720p60', label: '720p60', detail: 'mouvement fluide, definition sobre', w: 1280, h: 720, fps: 60, bitrateMax: 4_000_000 },
   { id: '1080p30', label: '1080p30', detail: 'detail fin sur plan pose', w: 1920, h: 1080, fps: 30, bitrateMax: 4_500_000 },
-  { id: '1080p60', label: '1080p60', detail: 'exige un tres bon reseau', w: 1920, h: 1080, fps: 60, bitrateMax: 7_000_000 },
+  { id: '1080p60', label: '1080p60', detail: 'rarement expose aux pages web', w: 1920, h: 1080, fps: 60, bitrateMax: 7_000_000 },
+  { id: '1440p30', label: '1440p30', detail: 'marge pour recadrer dans OBS', w: 2560, h: 1440, fps: 30, bitrateMax: 6_500_000 },
 ];
 
 const BITRATE_PLANCHER = 500_000;
@@ -83,12 +96,20 @@ export default function StudioCam({ onStreamReady, onProfilChange }) {
   const [panneauOuvert, setPanneauOuvert] = useState(false);
   const [bascule, setBascule] = useState(false);
   const [sonde, setSonde] = useState(null);
+  const [code, setCode] = useState(() => codeMemorise() || '');
+  const [etatLien, setEtatLien] = useState('inactif'); // inactif | appel | connecte | echec
+  const [noteLien, setNoteLien] = useState(null);
+  const [statsLien, setStatsLien] = useState(null);
+  const [codeCopie, setCodeCopie] = useState(false);
 
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const wakeLockRef = useRef(null);
   const audioCtxRef = useRef(null);
   const rafRef = useRef(null);
+  const pcRef = useRef(null);
+  const sessionRef = useRef(null);
+  const statsRef = useRef(null);
 
   const profil = PROFILS.find((p) => p.id === profilId) || PROFILS[0];
 
@@ -123,7 +144,11 @@ export default function StudioCam({ onStreamReady, onProfilChange }) {
 
   /* ---------- vumetre ---------- */
   const brancherVumetre = useCallback((stream) => {
-    if (audioCtxRef.current) return;
+    // un nouveau flux veut un nouvel analyseur : l'ancien mesurait une piste morte
+    if (rafRef.current) cancelAnimationFrame(rafRef.current);
+    audioCtxRef.current?.close().catch(() => {});
+    audioCtxRef.current = null;
+    setNiveauAudio(0);
     const piste = stream.getAudioTracks()[0];
     if (!piste) return;
     const Ctx = window.AudioContext || window.webkitAudioContext;
@@ -172,8 +197,10 @@ export default function StudioCam({ onStreamReady, onProfilChange }) {
     const s = piste.getSettings();
     setReglages(s);
     const fpsReel = s.frameRate ? Math.round(s.frameRate) : null;
+    // en portrait la largeur et la hauteur sont inversees : on compare le petit cote
+    const petitCote = s.width && s.height ? Math.min(s.width, s.height) : null;
     const manques = [];
-    if (s.height && s.height < p.h) manques.push(`${s.height}p au lieu de ${p.h}p`);
+    if (petitCote && petitCote < p.h) manques.push(`${petitCote}p au lieu de ${p.h}p`);
     if (fpsReel && fpsReel < p.fps - 5) manques.push(`${fpsReel} fps au lieu de ${p.fps}`);
     setEcart(manques.length && !p.adaptatif ? `Ton appareil livre ${manques.join(' et ')}.` : null);
   }, []);
@@ -215,6 +242,17 @@ export default function StudioCam({ onStreamReady, onProfilChange }) {
         }
         streamRef.current = stream;
         if (videoRef.current) videoRef.current.srcObject = stream;
+
+        // diffusion en cours : on substitue les pistes sans renegocier,
+        // le PC ne voit qu'un bref arret sur image au lieu d'un ecran noir
+        if (pcRef.current) {
+          const emetteurs = pcRef.current.getSenders();
+          for (const piste of stream.getTracks()) {
+            const e = emetteurs.find((x) => x.track?.kind === piste.kind);
+            if (e) await e.replaceTrack(piste);
+          }
+          await appliquerEncodage(p, arbitrage);
+        }
 
         const pisteVideo = stream.getVideoTracks()[0];
         lireCapacites(pisteVideo);
@@ -285,9 +323,10 @@ export default function StudioCam({ onStreamReady, onProfilChange }) {
   const changerArbitrage = useCallback(
     (id) => {
       setArbitrage(id);
+      appliquerEncodage(profil, id);
       if (onProfilChange) onProfilChange(parametresEncodage(profil, id));
     },
-    [profil, onProfilChange]
+    [profil, onProfilChange, appliquerEncodage]
   );
 
   /* ---------- telemetrie ---------- */
@@ -299,6 +338,106 @@ export default function StudioCam({ onStreamReady, onProfilChange }) {
     }, 1000);
     return () => clearInterval(id);
   }, [phase]);
+
+  /* ---------- publication ---------- */
+  const appliquerEncodage = useCallback(async (p, arb) => {
+    const pc = pcRef.current;
+    if (!pc) return;
+    const emetteur = pc.getSenders().find((s) => s.track?.kind === 'video');
+    if (!emetteur) return;
+    const params = emetteur.getParameters();
+    if (!params.encodings?.length) params.encodings = [{}];
+    Object.assign(params.encodings[0], parametresEncodage(p, arb).encodings[0]);
+    params.degradationPreference = arb;
+    try {
+      await emetteur.setParameters(params);
+    } catch {
+      // Safari refuse encore degradationPreference : on garde au moins le plafond
+      delete params.degradationPreference;
+      try {
+        await emetteur.setParameters(params);
+      } catch {
+        /* tant pis */
+      }
+    }
+  }, []);
+
+  const couperDiffusion = useCallback(() => {
+    pcRef.current?.close();
+    pcRef.current = null;
+    sessionRef.current = null;
+    statsRef.current = null;
+    setStatsLien(null);
+    setEtatLien('inactif');
+    setNoteLien(null);
+  }, []);
+
+  const diffuser = useCallback(async () => {
+    if (!streamRef.current || !code) return;
+    setEtatLien('appel');
+    setNoteLien(null);
+    pcRef.current?.close();
+
+    try {
+      const { iceServers, relais, motif } = await obtenirIceServers();
+      if (!relais) setNoteLien(`relais indisponible (${motif || 'inconnu'})`);
+
+      const pc = new RTCPeerConnection({ iceServers, bundlePolicy: 'max-bundle' });
+      pcRef.current = pc;
+      streamRef.current.getTracks().forEach((t) => pc.addTrack(t, streamRef.current));
+      await appliquerEncodage(profil, arbitrage);
+
+      pc.onconnectionstatechange = () => {
+        if (pcRef.current !== pc) return;
+        const e = pc.connectionState;
+        if (e === 'connected') setEtatLien('connecte');
+        else if (e === 'failed' || e === 'closed') {
+          setEtatLien('echec');
+          setNoteLien('connexion perdue');
+        }
+      };
+
+      const offre = await pc.createOffer();
+      await pc.setLocalDescription(offre);
+      await attendreIce(pc);
+
+      const session = nouvelleSession();
+      sessionRef.current = session;
+      await effacer(code, 'reponse'); // ne pas relire une vieille reponse
+      await poster(code, 'offre', session, pc.localDescription);
+
+      const debut = Date.now();
+      while (Date.now() - debut < 45_000) {
+        await new Promise((r) => setTimeout(r, 1500));
+        if (pcRef.current !== pc) return;
+        const rep = await lire(code, 'reponse');
+        if (rep && rep.session === session) {
+          await pc.setRemoteDescription(rep.sdp);
+          return;
+        }
+      }
+      setEtatLien('echec');
+      setNoteLien("le PC n'a pas repondu. La page de reception est-elle ouverte ?");
+    } catch (e) {
+      setEtatLien('echec');
+      setNoteLien(String(e?.message || e));
+    }
+  }, [code, profil, arbitrage, appliquerEncodage]);
+
+  /* releve du debit reel une fois connecte */
+  useEffect(() => {
+    if (etatLien !== 'connecte') return undefined;
+    const id = setInterval(async () => {
+      const pc = pcRef.current;
+      if (!pc) return;
+      const s = await lireStats(pc, statsRef.current);
+      if (s) {
+        statsRef.current = s;
+        setStatsLien(s);
+      }
+    }, 2000);
+    return () => clearInterval(id);
+  }, [etatLien]);
 
   /* ---------- sonde des modes reellement disponibles ---------- */
   const lancerSonde = useCallback(async () => {
@@ -324,10 +463,14 @@ export default function StudioCam({ onStreamReady, onProfilChange }) {
       try {
         const s = await navigator.mediaDevices.getUserMedia({ video, audio: false });
         const r = s.getVideoTracks()[0].getSettings();
+        const fps = Math.round(r.frameRate || 0);
+        const petitCote = Math.min(r.width || 0, r.height || 0);
+        // Safari accepte la demande puis livre autre chose : on juge sur le resultat
+        const tenu = petitCote >= m.h && fps >= m.fps - 5;
         resultats.push({
           label: m.label,
-          ok: true,
-          reel: `${r.width}x${r.height} ${Math.round(r.frameRate || 0)} fps`,
+          ok: tenu,
+          reel: tenu ? `${petitCote}p ${fps} fps` : `livre ${petitCote}p ${fps} fps`,
         });
         s.getTracks().forEach((t) => t.stop());
       } catch (e) {
@@ -365,6 +508,11 @@ export default function StudioCam({ onStreamReady, onProfilChange }) {
   }, []);
 
   const arreter = useCallback(() => {
+    pcRef.current?.close();
+    pcRef.current = null;
+    sessionRef.current = null;
+    setEtatLien('inactif');
+    setStatsLien(null);
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -388,6 +536,11 @@ export default function StudioCam({ onStreamReady, onProfilChange }) {
 
   const audioOk = niveauAudio > 0.02;
   const fpsReel = reglages?.frameRate ? Math.round(reglages.frameRate) : null;
+  const petitCote = reglages?.width && reglages?.height ? Math.min(reglages.width, reglages.height) : null;
+  const modeRefuse = (id) => {
+    const r = sonde?.resultats?.find((x) => x.label === id);
+    return r ? !r.ok : false;
+  };
 
   return (
     <div className="sc-root">
@@ -413,14 +566,51 @@ export default function StudioCam({ onStreamReady, onProfilChange }) {
             {PROFILS.map((p) => (
               <button
                 key={p.id}
-                className={`sc-profil ${profilId === p.id ? 'est-actif' : ''}`}
+                className={`sc-profil ${profilId === p.id ? 'est-actif' : ''} ${modeRefuse(p.id) ? 'est-refuse' : ''}`}
                 onClick={() => setProfilId(p.id)}
+                disabled={modeRefuse(p.id)}
                 type="button"
               >
                 <strong>{p.label}</strong>
-                <span>{p.detail}</span>
+                <span>{modeRefuse(p.id) ? 'non expose par cet appareil' : p.detail}</span>
               </button>
             ))}
+          </div>
+
+          <div className="sc-groupe">
+            <p className="sc-titre-groupe">Code du studio</p>
+            {code ? (
+              <div className="sc-code">
+                <span>{code}</span>
+                <button
+                  className="sc-lien"
+                  type="button"
+                  onClick={() => {
+                    navigator.clipboard?.writeText(code);
+                    setCodeCopie(true);
+                    setTimeout(() => setCodeCopie(false), 1500);
+                  }}
+                >
+                  {codeCopie ? 'copie' : 'copier'}
+                </button>
+              </div>
+            ) : (
+              <button
+                className="sc-action"
+                type="button"
+                onClick={() => {
+                  const c = genererCode();
+                  setCode(c);
+                  memoriserCode(c);
+                }}
+              >
+                Generer un code
+              </button>
+            )}
+            <p className="sc-aide">
+              C'est lui qui relie le telephone au PC. Saisis le une fois sur la page de
+              reception, il sera retenu des deux cotes.
+            </p>
           </div>
 
           <button className="sc-demarrer" onClick={() => demarrer(null)} disabled={phase === 'starting'} type="button">
@@ -438,7 +628,7 @@ export default function StudioCam({ onStreamReady, onProfilChange }) {
           <div className="sc-barre-haut">
             <span className="sc-etat">
               <i className="sc-point" />
-              {reglages?.height ? `${reglages.height}p` : '...'}
+              {petitCote ? `${petitCote}p` : '...'}
               {fpsReel ? `${fpsReel}` : ''}
             </span>
             <div className="sc-vumetre" aria-label="niveau du micro">
@@ -460,9 +650,9 @@ export default function StudioCam({ onStreamReady, onProfilChange }) {
                   {PROFILS.map((p) => (
                     <button
                       key={p.id}
-                      className={`sc-pastille ${profilId === p.id ? 'est-actif' : ''}`}
+                      className={`sc-pastille ${profilId === p.id ? 'est-actif' : ''} ${modeRefuse(p.id) ? 'est-refuse' : ''}`}
                       onClick={() => changerProfil(p.id)}
-                      disabled={bascule}
+                      disabled={bascule || modeRefuse(p.id)}
                       type="button"
                     >
                       {p.label}
@@ -515,7 +705,7 @@ export default function StudioCam({ onStreamReady, onProfilChange }) {
               <dl className="sc-infos">
                 <div>
                   <dt>Capture</dt>
-                  <dd>{reglages ? `${reglages.width}x${reglages.height}` : '...'}</dd>
+                  <dd>{petitCote ? `${petitCote}p` : '...'}</dd>
                 </div>
                 <div>
                   <dt>Cadence</dt>
@@ -564,10 +754,27 @@ export default function StudioCam({ onStreamReady, onProfilChange }) {
           )}
 
           <div className="sc-barre-bas">
-            <button className="sc-diffuser" type="button" disabled>
-              Lancer la diffusion
+            <button
+              className={`sc-diffuser ${etatLien === 'connecte' ? 'est-en-direct' : ''}`}
+              type="button"
+              disabled={!code || etatLien === 'appel'}
+              onClick={etatLien === 'inactif' || etatLien === 'echec' ? diffuser : couperDiffusion}
+            >
+              {etatLien === 'inactif' && 'Lancer la diffusion'}
+              {etatLien === 'appel' && 'Connexion au PC'}
+              {etatLien === 'connecte' && 'Arreter la diffusion'}
+              {etatLien === 'echec' && 'Reessayer'}
             </button>
-            <span className="sc-attente">appairage a brancher</span>
+            {statsLien?.debit ? (
+              <span className="sc-attente">
+                {(statsLien.debit / 1_000_000).toFixed(1)} Mbps envoyes
+                {statsLien.hauteur ? ` en ${Math.min(statsLien.largeur, statsLien.hauteur)}p` : ''}
+                {statsLien.fps ? ` a ${Math.round(statsLien.fps)} fps` : ''}
+                {statsLien.limite && statsLien.limite !== 'none' ? ` (bride par ${statsLien.limite})` : ''}
+              </span>
+            ) : (
+              <span className="sc-attente">{noteLien || (code ? 'pret' : 'genere un code avant de diffuser')}</span>
+            )}
           </div>
         </>
       )}
@@ -636,6 +843,8 @@ const CSS = `
 }
 .sc-profil strong { font-size: 0.98rem; color: var(--sc-texte); font-weight: 600; font-variant-numeric: tabular-nums; }
 .sc-profil span { font-size: 0.72rem; line-height: 1.3; }
+.sc-profil.est-refuse { opacity: 0.42; cursor: not-allowed; }
+.sc-pastille.est-refuse { opacity: 0.35; text-decoration: line-through; }
 .sc-profil.est-actif { border-color: var(--sc-ambre); background: rgba(240, 168, 40, 0.1); }
 .sc-demarrer {
   padding: 1.15rem; background: var(--sc-ambre); color: #17140f;
@@ -711,6 +920,13 @@ const CSS = `
 .sc-infos dd { margin: 0; font-size: 0.92rem; font-variant-numeric: tabular-nums; }
 .sc-champ { display: flex; flex-direction: column; gap: 0.4rem; font-size: 0.8rem; color: var(--sc-doux); }
 .sc-champ input { width: 100%; accent-color: var(--sc-ambre); }
+.sc-code {
+  display: flex; align-items: center; justify-content: space-between; gap: 0.6rem;
+  padding: 0.7rem 0.8rem; background: rgba(242, 237, 228, 0.06);
+  border: 1px solid var(--sc-trait); border-radius: 3px;
+}
+.sc-code span { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.9rem; letter-spacing: 0.04em; word-break: break-all; }
+.sc-diffuser.est-en-direct { background: #d2603f; color: #fff; }
 .sc-actions { display: flex; flex-direction: column; gap: 0.45rem; }
 .sc-action {
   padding: 0.7rem; background: transparent; border: 1px solid var(--sc-trait); border-radius: 3px;
