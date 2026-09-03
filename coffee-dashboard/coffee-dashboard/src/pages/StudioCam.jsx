@@ -172,6 +172,28 @@ export default function StudioCam({ onStreamReady, onProfilChange }) {
     boucle();
   }, []);
 
+  const appliquerEncodage = useCallback(async (p, arb) => {
+    const pc = pcRef.current;
+    if (!pc) return;
+    const emetteur = pc.getSenders().find((s) => s.track?.kind === 'video');
+    if (!emetteur) return;
+    const params = emetteur.getParameters();
+    if (!params.encodings?.length) params.encodings = [{}];
+    Object.assign(params.encodings[0], parametresEncodage(p, arb).encodings[0]);
+    params.degradationPreference = arb;
+    try {
+      await emetteur.setParameters(params);
+    } catch {
+      // Safari refuse encore degradationPreference : on garde au moins le plafond
+      delete params.degradationPreference;
+      try {
+        await emetteur.setParameters(params);
+      } catch {
+        /* tant pis */
+      }
+    }
+  }, []);
+
   /* ---------- lecture des capacites ---------- */
   const lireCapacites = useCallback((piste) => {
     const caps = typeof piste.getCapabilities === 'function' ? piste.getCapabilities() : null;
@@ -340,28 +362,6 @@ export default function StudioCam({ onStreamReady, onProfilChange }) {
   }, [phase]);
 
   /* ---------- publication ---------- */
-  const appliquerEncodage = useCallback(async (p, arb) => {
-    const pc = pcRef.current;
-    if (!pc) return;
-    const emetteur = pc.getSenders().find((s) => s.track?.kind === 'video');
-    if (!emetteur) return;
-    const params = emetteur.getParameters();
-    if (!params.encodings?.length) params.encodings = [{}];
-    Object.assign(params.encodings[0], parametresEncodage(p, arb).encodings[0]);
-    params.degradationPreference = arb;
-    try {
-      await emetteur.setParameters(params);
-    } catch {
-      // Safari refuse encore degradationPreference : on garde au moins le plafond
-      delete params.degradationPreference;
-      try {
-        await emetteur.setParameters(params);
-      } catch {
-        /* tant pis */
-      }
-    }
-  }, []);
-
   const couperDiffusion = useCallback(() => {
     pcRef.current?.close();
     pcRef.current = null;
