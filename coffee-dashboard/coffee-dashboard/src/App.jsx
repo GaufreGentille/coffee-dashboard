@@ -1,4 +1,11 @@
-import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo, useLayoutEffect } from 'react'
+import { Canvas, useFrame } from '@react-three/fiber'
+import { ContactShadows } from '@react-three/drei'
+import * as THREE from 'three'
+import gsap from 'gsap'
+import { ScrollTrigger } from 'gsap/ScrollTrigger'
+
+gsap.registerPlugin(ScrollTrigger)
 import HarvestPanel from './components/HarvestPanel';
 import InstaVeillePanel from './components/InstaVeillePanel'
 
@@ -652,98 +659,197 @@ function GGCursor() {
   </>;
 }
 
-function GGCoffeeVisual({ progress }) {
-  const pos = progress * (GG_PROCESS_STAGES.length - 1);
-  const local = pos - Math.floor(pos);
-  const pulse = 1 + Math.sin(progress * Math.PI * 8) * .006;
+function ggStageWindow(position, center, radius=1) {
+  return ggClamp(1 - Math.abs(position - center) / radius);
+}
 
-  const op = i => ggOpacityForStage(pos,i);
-  const skinSpread = 28 + ggSmooth(ggClamp(pos-.55)) * 76;
-  const skinTurn = 5 + ggSmooth(ggClamp(pos-.6)) * 19;
-  const beanTurn = -6 + progress*12;
+function GGBean3D({ side=1, progress=0, roast=0, opacity=1 }) {
+  const group = useRef(null);
+  const green = useMemo(() => new THREE.Color('#7d8c59'), []);
+  const brown = useMemo(() => new THREE.Color('#4a2417'), []);
+  const beanColor = useMemo(() => green.clone().lerp(brown, roast), [green, brown, roast]);
+  const creaseColor = roast > .5 ? '#c77e55' : '#465238';
+  const groove = useMemo(() => {
+    const curve = new THREE.CatmullRomCurve3([
+      new THREE.Vector3(-0.02, .72, .335),
+      new THREE.Vector3(.05, .36, .37),
+      new THREE.Vector3(-.035, .02, .39),
+      new THREE.Vector3(.045, -.34, .37),
+      new THREE.Vector3(-.015, -.72, .335),
+    ]);
+    return new THREE.TubeGeometry(curve, 32, .025, 8, false);
+  }, []);
 
-  return <div className="ggc-object" style={{'--ggc-progress':progress, transform:`translate3d(0,${Math.sin(progress*Math.PI*5)*5}px,0) scale(${pulse}) rotate(${beanTurn*.05}deg)`}}>
-    <svg viewBox="0 0 720 720" role="img" aria-label="Transformation d'une cerise de café pendant le procédé lavé">
-      <defs>
-        <radialGradient id="cherry" cx="32%" cy="24%" r="75%"><stop offset="0" stopColor="#ff7650"/><stop offset=".36" stopColor="#d94c2f"/><stop offset=".75" stopColor="#9f2e20"/><stop offset="1" stopColor="#641b17"/></radialGradient>
-        <radialGradient id="cherryHi" cx="50%" cy="50%" r="50%"><stop offset="0" stopColor="#fff" stopOpacity=".58"/><stop offset="1" stopColor="#fff" stopOpacity="0"/></radialGradient>
-        <linearGradient id="mucilage" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#f5d88a"/><stop offset=".5" stopColor="#dba84f"/><stop offset="1" stopColor="#b4762c"/></linearGradient>
-        <linearGradient id="parchment" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#f1d7a1"/><stop offset=".55" stopColor="#d9b776"/><stop offset="1" stopColor="#aa814b"/></linearGradient>
-        <linearGradient id="green" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#b4bd78"/><stop offset=".5" stopColor="#7f8e56"/><stop offset="1" stopColor="#515f38"/></linearGradient>
-        <radialGradient id="roast" cx="34%" cy="24%" r="77%"><stop stopColor="#a85b31"/><stop offset=".42" stopColor="#6c321f"/><stop offset="1" stopColor="#2a130f"/></radialGradient>
-        <linearGradient id="leaf" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#9aa86a"/><stop offset="1" stopColor="#344d36"/></linearGradient>
-        <filter id="softShadow" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="28" stdDeviation="24" floodColor="#150b08" floodOpacity=".24"/></filter>
-        <filter id="skinTexture" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency=".018" numOctaves="2" seed="3" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="3"/></filter>
-        <filter id="blur10"><feGaussianBlur stdDeviation="10"/></filter>
-      </defs>
+  useFrame((state) => {
+    if (!group.current) return;
+    const t = state.clock.elapsedTime;
+    group.current.rotation.y = side * .2 + Math.sin(t * .38 + side) * .045 + progress * side * .18;
+    group.current.rotation.z = side * .11;
+  });
 
-      <ellipse cx="360" cy="592" rx="166" ry="36" fill="#28130e" opacity={.12 + progress*.10} filter="url(#blur10)" />
+  return <group ref={group} position={[side * .43, -.02, .02]} scale={[.66, .95, .5]}>
+    <mesh castShadow receiveShadow>
+      <sphereGeometry args={[1, 80, 80]} />
+      <meshPhysicalMaterial color={beanColor} roughness={roast > .5 ? .42 : .62} metalness={0} clearcoat={roast * .7} clearcoatRoughness={.3} transparent opacity={opacity} />
+    </mesh>
+    <mesh geometry={groove} scale={[1,1,1.02]}>
+      <meshStandardMaterial color={creaseColor} roughness={.82} transparent opacity={opacity * .82} />
+    </mesh>
+    <mesh position={[-.26,.18,.44]} scale={[.16,.42,.03]} rotation={[0,0,side*.25]}>
+      <sphereGeometry args={[1,32,32]} />
+      <meshBasicMaterial color="#ffffff" transparent opacity={opacity * (roast > .5 ? .055 : .12)} />
+    </mesh>
+  </group>;
+}
 
-      {/* 01 — whole cherry */}
-      <g opacity={op(0)} filter="url(#softShadow)">
-        <path d="M354 111 C474 94 564 193 558 327 C552 472 466 572 360 579 C251 573 166 470 162 328 C159 191 246 95 354 111 Z" fill="url(#cherry)" filter="url(#skinTexture)"/>
-        <path d="M360 122 C349 230 348 385 361 561" fill="none" stroke="#671b18" strokeWidth="8" strokeLinecap="round" opacity=".56"/>
-        <ellipse cx="285" cy="216" rx="90" ry="125" fill="url(#cherryHi)" transform="rotate(24 285 216)" opacity=".54"/>
-        <path d="M356 114 C348 74 369 44 390 24" fill="none" stroke="#50603d" strokeWidth="18" strokeLinecap="round"/>
-        <path d="M385 48 C439 20 487 42 504 82 C456 98 410 86 385 48 Z" fill="url(#leaf)"/>
-        <path d="M395 52 C430 61 456 68 488 78" fill="none" stroke="#c9d49c" strokeWidth="2" opacity=".52"/>
-      </g>
+function GGBubbles({ opacity=0 }) {
+  const bubbles = useRef([]);
+  const seeds = useMemo(() => [
+    [-1.15,-.85,.1,.08],[-.92,.36,.56,.055],[-.68,.92,-.12,.07],[-.18,-1.12,.48,.045],
+    [.22,.95,.38,.055],[.64,-.94,.3,.08],[.92,.16,.5,.048],[1.18,.76,.05,.065],
+    [1.1,-.52,-.08,.052],[-1.28,.04,.25,.06],[.42,.34,.88,.034],[-.38,.12,.92,.04]
+  ], []);
+  useFrame((state) => {
+    const t = state.clock.elapsedTime;
+    bubbles.current.forEach((m,i) => {
+      if (!m) return;
+      const base = seeds[i];
+      m.position.y = base[1] + Math.sin(t * (1.1 + i*.035) + i) * .15;
+      m.scale.setScalar(base[3] * (1 + Math.sin(t*1.6+i)*.12));
+    });
+  });
+  return <group visible={opacity > .01}>
+    {seeds.map((b,i)=><mesh key={i} ref={el=>bubbles.current[i]=el} position={[b[0],b[1],b[2]]}>
+      <sphereGeometry args={[1,20,20]} />
+      <meshPhysicalMaterial color="#fffaf0" roughness={.05} transmission={.2} transparent opacity={opacity * .5} />
+    </mesh>)}
+  </group>;
+}
 
-      {/* 02 — depulping */}
-      <g opacity={op(1)} filter="url(#softShadow)">
-        <path d="M336 144 C252 142 184 222 184 336 C184 446 247 526 327 535 C289 454 289 222 336 144 Z" fill="url(#cherry)" transform={`translate(${-skinSpread} 0) rotate(${-skinTurn} 340 340)`}/>
-        <path d="M384 144 C468 142 536 222 536 336 C536 446 473 526 393 535 C431 454 431 222 384 144 Z" fill="url(#cherry)" transform={`translate(${skinSpread} 0) rotate(${skinTurn} 380 340)`}/>
-        <ellipse cx="360" cy="350" rx="137" ry="205" fill="url(#mucilage)" opacity=".42"/>
-        <path d="M360 183 C441 182 489 250 485 350 C481 453 429 520 360 522 C291 520 239 453 235 350 C231 250 279 182 360 183 Z" fill="url(#parchment)"/>
-        <path d="M362 201 C350 281 349 421 362 506" fill="none" stroke="#87633a" strokeWidth="6" opacity=".58"/>
-      </g>
+function GGWaterRings({ opacity=0 }) {
+  const a = useRef(null), b = useRef(null), c = useRef(null);
+  useFrame((state) => {
+    const t = state.clock.elapsedTime;
+    [a,b,c].forEach((r,i) => {
+      if (!r.current) return;
+      r.current.rotation.z = t * (.08 + i*.025) * (i%2?1:-1);
+      const s = 1 + Math.sin(t*.9+i)*.04;
+      r.current.scale.setScalar(s);
+    });
+  });
+  const Mat = () => <meshPhysicalMaterial color="#dcebed" roughness={.05} transmission={.55} thickness={.12} transparent opacity={opacity * .38} />;
+  return <group rotation={[Math.PI/2.7,0,.08]} visible={opacity>.01}>
+    <mesh ref={a}><torusGeometry args={[1.45,.026,12,120]} /><Mat/></mesh>
+    <mesh ref={b} scale={[.83,.83,.83]} position={[0,0,.08]}><torusGeometry args={[1.45,.018,12,120]} /><Mat/></mesh>
+    <mesh ref={c} scale={[1.18,1.18,1.18]} position={[0,0,-.08]}><torusGeometry args={[1.45,.014,12,120]} /><Mat/></mesh>
+  </group>;
+}
 
-      {/* 03 — fermentation */}
-      <g opacity={op(2)}>
-        <ellipse cx="360" cy="360" rx="232" ry="236" fill="#e7b85f" opacity=".08" stroke="#fff" strokeOpacity=".32"/>
-        <ellipse cx="360" cy="360" rx="196" ry="199" fill="#fff" opacity=".08"/>
-        <path d="M360 181 C439 181 486 248 482 349 C478 451 428 518 360 520 C292 518 242 451 238 349 C234 248 281 181 360 181 Z" fill="url(#parchment)" filter="url(#softShadow)"/>
-        <path d="M362 202 C350 283 350 420 362 501" fill="none" stroke="#8b683f" strokeWidth="6" opacity=".52"/>
-        {[ [214,250,12],[496,290,8],[226,430,7],[484,445,15],[311,150,6],[410,555,10],[172,360,9],[550,382,7] ].map((b,i)=><circle key={i} className="ggc-bubble" cx={b[0]} cy={b[1]} r={b[2]} fill="#fff" fillOpacity=".12" stroke="#fff" strokeOpacity=".54" style={{animationDelay:`${i*.17}s`}} />)}
-      </g>
+function GGCherry3D({ progress }) {
+  const root = useRef(null);
+  const stem = useRef(null);
+  const position = progress * 6;
+  const cherryOpacity = ggClamp(1 - Math.max(0, position-.42)/.9);
+  const split = ggSmooth(ggClamp((position-.55)/.8));
+  const pulpOpacity = ggStageWindow(position, 1.15, 1.05);
+  const fermentOpacity = ggStageWindow(position, 2, .82);
+  const washOpacity = ggStageWindow(position, 3, .76);
+  const parchmentOpacity = ggClamp(1 - Math.max(0, position-4.55)/.65) * ggClamp((position-.55)/.7);
+  const greenReveal = ggSmooth(ggClamp((position-4.35)/.85));
+  const roast = ggSmooth(ggClamp((position-5.05)/.95));
+  const beanOpacity = greenReveal;
+  const beanSpread = .08 + greenReveal * .16;
 
-      {/* 04 — washing */}
-      <g opacity={op(3)}>
-        <path d="M360 181 C439 181 486 248 482 349 C478 451 428 518 360 520 C292 518 242 451 238 349 C234 248 281 181 360 181 Z" fill="url(#parchment)" filter="url(#softShadow)"/>
-        <path d="M362 202 C350 283 350 420 362 501" fill="none" stroke="#8b683f" strokeWidth="6" opacity=".52"/>
-        <path className="ggc-water" d="M145 267 C248 204 469 216 566 285" fill="none" stroke="#dfe8e8" strokeWidth="12" strokeLinecap="round" opacity=".7"/>
-        <path className="ggc-water ggc-water-2" d="M160 414 C260 471 467 475 555 407" fill="none" stroke="#eef4f3" strokeWidth="7" strokeLinecap="round" opacity=".62"/>
-        <circle cx="194" cy="220" r="10" fill="#fff" opacity=".72"/><circle cx="532" cy="458" r="7" fill="#fff" opacity=".55"/>
-      </g>
+  useFrame((state) => {
+    if (!root.current) return;
+    const t = state.clock.elapsedTime;
+    root.current.rotation.y = -.26 + progress * .68 + Math.sin(t*.27)*.035;
+    root.current.rotation.x = .06 + Math.sin(t*.23)*.018;
+    root.current.position.y = Math.sin(t*.45)*.035;
+    if (stem.current) stem.current.rotation.z = -.22 + Math.sin(t*.55)*.025;
+  });
 
-      {/* 05 — drying */}
-      <g opacity={op(4)}>
-        <g opacity=".26" stroke="#f5dfbd" strokeWidth="2">
-          {[-150,-100,-50,0,50,100,150].map((n,i)=><line key={`v${i}`} x1={360+n} y1="126" x2={360+n} y2="585"/>)}
-          {[-140,-90,-40,10,60,110,160].map((n,i)=><line key={`h${i}`} x1="165" y1={350+n} x2="555" y2={350+n}/>)}
-        </g>
-        <circle cx="360" cy="350" r="225" fill="none" stroke="#eeb563" strokeWidth="2" strokeDasharray="8 20" opacity=".4"/>
-        <path d="M360 181 C439 181 486 248 482 349 C478 451 428 518 360 520 C292 518 242 451 238 349 C234 248 281 181 360 181 Z" fill="url(#parchment)" filter="url(#softShadow)"/>
-        <path d="M362 202 C350 283 350 420 362 501" fill="none" stroke="#80603d" strokeWidth="7" opacity=".58"/>
-      </g>
+  return <group ref={root} scale={[1.24,1.24,1.24]}>
+    {/* intact cherry body */}
+    <mesh castShadow receiveShadow scale={[1.02,1.16,1]} visible={cherryOpacity>.01}>
+      <sphereGeometry args={[1.12,96,96]} />
+      <meshPhysicalMaterial color="#8f1e17" roughness={.22} clearcoat={1} clearcoatRoughness={.14} sheen={.35} sheenColor="#e8643a" transparent opacity={cherryOpacity} />
+    </mesh>
+    <mesh position={[-.33,.34,1.02]} scale={[.2,.5,.03]} rotation={[0,0,-.45]} visible={cherryOpacity>.01}>
+      <sphereGeometry args={[1,40,40]} />
+      <meshBasicMaterial color="#ffd9c8" transparent opacity={cherryOpacity*.18} />
+    </mesh>
 
-      {/* 06 — green coffee */}
-      <g opacity={op(5)} filter="url(#softShadow)" transform={`rotate(${beanTurn} 360 350)`}>
-        <path d="M360 174 C450 174 503 250 495 349 C487 457 428 526 360 529 C292 526 233 457 225 349 C217 250 270 174 360 174 Z" fill="url(#green)"/>
-        <path d="M364 196 C349 281 349 430 364 509" fill="none" stroke="#465435" strokeWidth="10" strokeLinecap="round" opacity=".76"/>
-        <ellipse cx="302" cy="260" rx="60" ry="105" fill="#fff" opacity=".08" transform="rotate(22 302 260)"/>
-      </g>
+    {/* stem */}
+    <group ref={stem} position={[.04,1.23,0]} visible={cherryOpacity>.05}>
+      <mesh rotation={[0,0,-.2]} position={[.02,.36,0]} castShadow>
+        <cylinderGeometry args={[.065,.09,.82,20]} />
+        <meshStandardMaterial color="#4c5b2f" roughness={.78} transparent opacity={cherryOpacity} />
+      </mesh>
+      <mesh position={[.12,.74,0]} rotation={[0,.1,.52]} scale={[.46,.16,.035]}>
+        <sphereGeometry args={[1,28,28]} />
+        <meshStandardMaterial color="#5d7138" roughness={.7} transparent opacity={cherryOpacity*.9} />
+      </mesh>
+    </group>
 
-      {/* 07 — roasted */}
-      <g opacity={op(6)} filter="url(#softShadow)" transform={`rotate(${beanTurn} 360 350)`}>
-        <path d="M360 174 C450 174 503 250 495 349 C487 457 428 526 360 529 C292 526 233 457 225 349 C217 250 270 174 360 174 Z" fill="url(#roast)"/>
-        <path d="M365 197 C340 274 349 349 358 381 C369 421 366 467 354 510" fill="none" stroke="#d59b72" strokeWidth="9" strokeLinecap="round" opacity=".72"/>
-        <ellipse cx="302" cy="250" rx="68" ry="115" fill="#fff" opacity=".075" transform="rotate(24 302 250)"/>
-        <path d="M230 394 C281 490 409 547 483 424" fill="none" stroke="#170b09" strokeWidth="2" opacity=".25"/>
-      </g>
-    </svg>
+    {/* peel halves leaving frame */}
+    <group visible={split>.02}>
+      <mesh position={[-split*1.58,0,.05]} rotation={[0,-split*.58,-split*.22]} scale={[.62,1.05,.55]} castShadow>
+        <sphereGeometry args={[1.02,72,72]} />
+        <meshPhysicalMaterial color="#a62c20" side={THREE.DoubleSide} roughness={.28} clearcoat={.72} transparent opacity={split*(1-ggClamp((position-1.55)/.65))*.95} />
+      </mesh>
+      <mesh position={[split*1.58,0,.05]} rotation={[0,split*.58,split*.22]} scale={[.62,1.05,.55]} castShadow>
+        <sphereGeometry args={[1.02,72,72]} />
+        <meshPhysicalMaterial color="#7f1714" side={THREE.DoubleSide} roughness={.3} clearcoat={.65} transparent opacity={split*(1-ggClamp((position-1.55)/.65))*.95} />
+      </mesh>
+    </group>
+
+    {/* pulp / mucilage */}
+    <mesh castShadow scale={[.82,1.02,.72]} visible={pulpOpacity>.01}>
+      <sphereGeometry args={[1.06,72,72]} />
+      <meshPhysicalMaterial color="#d7a73e" roughness={.34} transmission={.08} thickness={.22} clearcoat={.35} transparent opacity={pulpOpacity*.76} />
+    </mesh>
+    <mesh scale={[.75,.95,.66]} visible={(pulpOpacity+fermentOpacity)>.01}>
+      <sphereGeometry args={[1,64,64]} />
+      <meshPhysicalMaterial color="#f0d99b" roughness={.16} transmission={.32} thickness={.18} transparent opacity={Math.max(pulpOpacity*.28,fermentOpacity*.18)} />
+    </mesh>
+
+    {/* parchment */}
+    <mesh castShadow scale={[.69,.98,.57]} visible={parchmentOpacity>.01}>
+      <sphereGeometry args={[1,72,72]} />
+      <meshStandardMaterial color="#d8bd82" roughness={.72} transparent opacity={parchmentOpacity*.96} />
+    </mesh>
+
+    <GGBubbles opacity={fermentOpacity} />
+    <GGWaterRings opacity={washOpacity} />
+
+    {/* pair of seeds */}
+    <group scale={[1+roast*.08,1+roast*.08,1+roast*.08]} position={[0,0,greenReveal*.03]}>
+      <group position={[-beanSpread,0,0]}><GGBean3D side={-1} progress={progress} roast={roast} opacity={beanOpacity}/></group>
+      <group position={[beanSpread,0,0]}><GGBean3D side={1} progress={progress} roast={roast} opacity={beanOpacity}/></group>
+    </group>
+
+    {/* orange GG accent appears only near final roast */}
+    <mesh position={[0,-1.54,-.1]} rotation={[Math.PI/2,0,0]} visible={roast>.08}>
+      <ringGeometry args={[1.02,1.035,128]} />
+      <meshBasicMaterial color={GG_ORANGE} transparent opacity={roast*.34} side={THREE.DoubleSide} />
+    </mesh>
+  </group>;
+}
+
+function GGThreeScene({ progress }) {
+  return <div className="ggc-3d-canvas" aria-hidden="true">
+    <Canvas shadows dpr={[1,1.8]} camera={{ position:[0,0.05,6.3], fov:34 }} gl={{ antialias:true, alpha:true, powerPreference:'high-performance' }}>
+      <ambientLight intensity={.85 - progress*.25} color={progress>.7 ? '#f6cab0' : '#fff6eb'} />
+      <directionalLight castShadow position={[3.8,5.2,5.5]} intensity={2.35} color={progress>.72 ? '#f5a166' : '#fff1d7'} shadow-mapSize-width={1024} shadow-mapSize-height={1024} />
+      <pointLight position={[-4,-1.5,2.5]} intensity={1.3} color="#da5d16" distance={9} />
+      <pointLight position={[3,-2,1]} intensity={.55 + progress*.7} color="#a06dd0" distance={8} />
+      <GGCherry3D progress={progress} />
+      <ContactShadows position={[0,-1.7,0]} opacity={.28} scale={5.2} blur={2.9} far={4.5} color={progress>.72 ? '#120806' : '#71513c'} />
+    </Canvas>
   </div>;
 }
+
 
 function HomePage({ setTab, setShowMusic }) {
   const onNavigate = (id) => setTab(id === 'market' ? 'news' : id);
@@ -751,26 +857,23 @@ function HomePage({ setTab, setShowMusic }) {
   const journeyRef = useRef(null);
   const [progress, setProgress] = useState(0);
 
-  useEffect(() => {
-    let raf = 0;
-    const update = () => {
-      raf = 0;
-      const el = journeyRef.current;
-      if (!el) return;
-      const rect = el.getBoundingClientRect();
-      const travel = Math.max(1, el.offsetHeight - innerHeight);
-      const p = ggClamp(-rect.top / travel);
-      setProgress(prev => Math.abs(prev-p) > .001 ? p : prev);
-    };
-    const onScroll = () => { if(!raf) raf=requestAnimationFrame(update); };
-    update();
-    addEventListener('scroll',onScroll,{passive:true});
-    addEventListener('resize',onScroll,{passive:true});
-    return ()=>{ removeEventListener('scroll',onScroll); removeEventListener('resize',onScroll); if(raf) cancelAnimationFrame(raf); };
-  },[]);
+  useLayoutEffect(() => {
+    const el = journeyRef.current;
+    if (!el) return;
+    const ctx = gsap.context(() => {
+      ScrollTrigger.create({
+        trigger: el,
+        start: 'top top',
+        end: 'bottom bottom',
+        scrub: true,
+        invalidateOnRefresh: true,
+        onUpdate: self => setProgress(self.progress),
+      });
+    }, el);
+    requestAnimationFrame(() => ScrollTrigger.refresh());
+    return () => ctx.revert();
+  }, []);
 
-  const position = progress * (GG_PROCESS_STAGES.length - 1);
-  const activeIndex = Math.min(GG_PROCESS_STAGES.length - 1, Math.round(position));
   const bg = useMemo(()=>ggColorAt(progress),[progress]);
   const dark = progress > .68;
   const text = dark ? '#f6eee8' : '#1d1815';
@@ -779,44 +882,24 @@ function HomePage({ setTab, setShowMusic }) {
   return <div className={`ggc-page ${dark?'is-dark':''}`} style={{backgroundColor:bg,color:text,'--ggc-soft':soft,'--ggc-orange':GG_ORANGE}}>
     <GGCursor />
 
-    <header className="ggc-nav">
-      <button className="ggc-logo" onClick={()=>window.scrollTo({top:0,behavior:'smooth'})} data-cursor="active">GG</button>
-      <nav>
-        <button onClick={()=>onNavigate('news')}>Actus</button>
-        <button onClick={()=>onNavigate('science')}>Science</button>
-        <button onClick={()=>onNavigate('harvest')}>Origines</button>
-        <button onClick={()=>onNavigate('reddit')}>Communauté</button>
-        <button onClick={onMusic}>Musique</button>
-      </nav>
+    <header className="ggc-nav ggc-nav-minimal">
+      <button className="ggc-brand-home" onClick={()=>window.scrollTo({top:0,behavior:'smooth'})} data-cursor="active" aria-label="Retour à l'accueil">
+        <strong>GG</strong>
+        <span>veille · science · culture café</span>
+      </button>
     </header>
 
     <section className="ggc-journey" ref={journeyRef}>
       <div className="ggc-sticky">
         <div className="ggc-ambient ggc-ambient-a" />
         <div className="ggc-ambient ggc-ambient-b" />
-        <div className="ggc-stage-copy">
-          <div className="ggc-step">PROCESSUS LAVÉ · {String(activeIndex+1).padStart(2,'0')}/{String(GG_PROCESS_STAGES.length).padStart(2,'0')}</div>
-          <h1>{GG_PROCESS_STAGES[activeIndex].label}</h1>
-          <p>{GG_PROCESS_STAGES[activeIndex].detail}</p>
-        </div>
-
-        <GGCoffeeVisual progress={progress} />
-
-        <div className="ggc-progress" aria-hidden="true">
-          <div className="ggc-progress-track"><i style={{height:`${progress*100}%`}} /></div>
-          {GG_PROCESS_STAGES.map((stage,i)=><span key={stage.key} className={i===activeIndex?'active':''}>{stage.label}</span>)}
-        </div>
-
-        <div className={`ggc-scroll-hint ${progress>.05?'hide':''}`}><span>↓</span> faire défiler</div>
-        <div className="ggc-stage-number">{String(activeIndex+1).padStart(2,'0')}</div>
+        <GGThreeScene progress={progress} />
+        <div className="ggc-progress-min" aria-hidden="true"><i style={{height:`${progress*100}%`}} /></div>
+        <div className={`ggc-scroll-arrow ${progress>.05?'hide':''}`} aria-hidden="true">↓</div>
       </div>
     </section>
 
-    <section className="ggc-universes">
-      <div className="ggc-universe-head">
-        <span>GG</span>
-        <h2>Choisir un univers.</h2>
-      </div>
+    <section className="ggc-universes ggc-universes-minimal">
       <div className="ggc-category-grid">
         {GG_HOME_CATEGORIES.map(item=><button key={item.id} className="ggc-category" onClick={()=>item.id==='music'?onMusic():onNavigate(item.id)} data-cursor="active">
           <span className="ggc-category-icon"><GGCategoryIcon type={item.icon}/></span>
@@ -824,7 +907,6 @@ function HomePage({ setTab, setShowMusic }) {
           <span className="ggc-arrow">↗</span>
         </button>)}
       </div>
-      <div className="ggc-footer-line"><span>GaufreGentille</span><i/><span>veille · café · culture</span></div>
     </section>
   </div>;
 }
@@ -1373,6 +1455,39 @@ export default function App() {
   .ggc-stage-copy{bottom:58px}.ggc-stage-copy p{max-width:230px}.ggc-scroll-hint{bottom:18px}
   .ggc-category-grid{grid-template-columns:1fr}.ggc-category{min-height:136px}.ggc-universes{padding-left:18px;padding-right:18px}.ggc-universe-head{margin-bottom:44px}
 }
+
+
+/* GG V3 — minimal scroll story + procedural 3D */
+.ggc-cursor{width:14px;height:14px;background:rgba(218,93,22,.12);border-color:rgba(218,93,22,.48);backdrop-filter:blur(1.5px)}
+.ggc-cursor.is-active{width:24px;height:24px;background:rgba(218,93,22,.1);border-color:rgba(218,93,22,.72)}
+.ggc-cursor-dot{width:2px;height:2px}
+.ggc-nav-minimal{height:72px;justify-content:flex-start;pointer-events:none}
+.ggc-brand-home{display:flex;align-items:center;gap:16px;border:0;background:transparent;padding:8px 0;cursor:none;pointer-events:auto;text-align:left}
+.ggc-brand-home strong{font:800 27px/1 Manrope,sans-serif;letter-spacing:-.08em;color:var(--ggc-orange)}
+.ggc-brand-home span{font-size:9px;line-height:1;text-transform:uppercase;letter-spacing:.16em;font-weight:750;color:currentColor;opacity:.54;transition:opacity .2s}
+.ggc-brand-home:hover span{opacity:.82}
+.ggc-journey{height:700vh}
+.ggc-3d-canvas{width:min(76vw,980px);height:min(82vh,860px);position:relative;z-index:4;pointer-events:none;filter:saturate(1.04)}
+.ggc-3d-canvas canvas{display:block;width:100%!important;height:100%!important}
+.ggc-progress-min{position:absolute;z-index:12;right:clamp(18px,3vw,44px);top:50%;transform:translateY(-50%);width:1px;height:min(22vh,178px);background:currentColor;opacity:.2;border-radius:999px;overflow:hidden}
+.ggc-progress-min i{position:absolute;left:0;top:0;width:100%;background:var(--ggc-orange);border-radius:999px;opacity:1}
+.ggc-scroll-arrow{position:absolute;z-index:12;left:50%;bottom:25px;transform:translateX(-50%);font-size:17px;color:var(--ggc-orange);opacity:.72;transition:opacity .3s,transform .3s;animation:ggcArrow 1.7s ease-in-out infinite}
+.ggc-scroll-arrow.hide{opacity:0;transform:translate(-50%,8px)}
+@keyframes ggcArrow{0%,100%{translate:0 0}50%{translate:0 5px}}
+.ggc-universes-minimal{padding-top:clamp(120px,14vw,210px)}
+.ggc-universes-minimal .ggc-category-grid{max-width:1400px;margin:0 auto}
+
+@media(max-width:900px){
+  .ggc-3d-canvas{width:min(102vw,820px);height:min(76vh,720px)}
+  .ggc-brand-home{gap:11px}.ggc-brand-home span{font-size:8px;letter-spacing:.12em}
+  .ggc-progress-min{right:14px;height:132px}
+}
+@media(max-width:560px){
+  .ggc-nav-minimal{height:62px}.ggc-brand-home strong{font-size:24px}.ggc-brand-home span{max-width:155px;line-height:1.35}
+  .ggc-journey{height:620vh}.ggc-3d-canvas{width:116vw;height:68vh}
+  .ggc-scroll-arrow{bottom:16px}
+}
+
 @media(prefers-reduced-motion:reduce){.ggc-page *{scroll-behavior:auto!important;animation:none!important;transition-duration:.01ms!important}.ggc-cursor,.ggc-cursor-dot{display:none}}
       `}</style>
 
