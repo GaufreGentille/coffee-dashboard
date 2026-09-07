@@ -803,60 +803,94 @@ function GGProcessIllustration2D({ progress }) {
 function HomePage({ setTab, setShowMusic }) {
   const onNavigate = (id) => setTab(id === 'market' ? 'news' : id);
   const onMusic = () => { setShowMusic(true); setTab('news'); };
-  const journeyRef = useRef(null);
-  const [progress, setProgress] = useState(0);
+  const scrollToUniverses = () => document.getElementById('ks-universes')?.scrollIntoView({ behavior:'smooth', block:'start' });
 
-  useLayoutEffect(() => {
-    const el = journeyRef.current;
-    if (!el) return;
-    const ctx = gsap.context(() => {
-      ScrollTrigger.create({
-        trigger: el,
-        start: 'top top',
-        end: 'bottom bottom',
-        scrub: true,
-        invalidateOnRefresh: true,
-        onUpdate: self => setProgress(self.progress),
-      });
-    }, el);
-    requestAnimationFrame(() => ScrollTrigger.refresh());
-    return () => ctx.revert();
-  }, []);
+  const tiles = [
+    { id:'news',      label:'Actualités', image:'https://images.unsplash.com/photo-1504711434969-e33886168f5c?auto=format&fit=crop&w=1200&q=85' },
+    { id:'harvest',   label:'Origines',   image:'https://images.unsplash.com/photo-1442512595331-e89e73853f31?auto=format&fit=crop&w=1200&q=85' },
+    { id:'science',   label:'Science',    image:'https://images.unsplash.com/photo-1532187863486-abf9dbad1b69?auto=format&fit=crop&w=1200&q=85' },
+    { id:'gear',      label:'Matériel',   image:'https://images.unsplash.com/photo-1611854779393-1b2da9d400fe?auto=format&fit=crop&w=1200&q=85' },
+    { id:'market',    label:'Marché',     image:'https://images.unsplash.com/photo-1447933601403-0c6688de566e?auto=format&fit=crop&w=1200&q=85' },
+    { id:'reddit',    label:'Communauté', image:'https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=1200&q=85' },
+    { id:'instagram', label:'Instagram',  image:'https://images.unsplash.com/photo-1442512595331-e89e73853f31?auto=format&fit=crop&w=1200&q=85', position:'center 70%' },
+    { id:'music',     label:'Musique',    image:'https://images.unsplash.com/photo-1461360228754-6e81c478b882?auto=format&fit=crop&w=1200&q=85' },
+    { id:'game',      label:'Jeu',        image:'https://images.unsplash.com/photo-1664729313017-3f1627e22785?auto=format&fit=crop&w=1200&q=85', href:'https://kissasoko.netlify.app/hangar-torref-843/' },
+  ];
 
-  const bg = useMemo(()=>ggColorAt(progress),[progress]);
-  const dark = progress > .68;
-  const text = dark ? '#f6eee8' : '#1d1815';
-  const soft = dark ? 'rgba(246,238,232,.62)' : 'rgba(29,24,21,.56)';
+  const openTile = (tile) => {
+    if (tile.id === 'music') return onMusic();
+    if (tile.href) return;
+    onNavigate(tile.id);
+  };
 
-  return <div className={`ggc-page ${dark?'is-dark':''}`} style={{backgroundColor:bg,color:text,'--ggc-soft':soft,'--ggc-orange':GG_ORANGE}}>
+  return <div className="ks-home" style={{'--ks-orange':GG_ORANGE}}>
     <GGCursor />
 
-    <header className="ggc-nav ggc-nav-minimal">
-      <button className="ggc-brand-home" onClick={()=>window.scrollTo({top:0,behavior:'smooth'})} data-cursor="active" aria-label="Retour à l'accueil">
-        <strong>GG</strong>
-        <span>veille · science · culture café</span>
+    <header className="ks-home-nav">
+      <button className="ks-logo" onClick={()=>window.scrollTo({top:0,behavior:'smooth'})} data-cursor="active" aria-label="Kissa Soko, retour en haut de page">
+        <span>KISSA</span><span>SŌKO<i>.</i></span>
+      </button>
+      <button className="ks-menu-button" onClick={scrollToUniverses} data-cursor="active" aria-label="Voir les univers">
+        <span></span><span></span>
       </button>
     </header>
 
-    <section className="ggc-journey" ref={journeyRef}>
-      <div className="ggc-sticky">
-        <div className="ggc-ambient ggc-ambient-a" />
-        <div className="ggc-ambient ggc-ambient-b" />
-        <GGProcessIllustration2D progress={progress} />
-        <div className="ggc-progress-min" aria-hidden="true"><i style={{height:`${progress*100}%`}} /></div>
-        <div className={`ggc-scroll-arrow ${progress>.05?'hide':''}`} aria-hidden="true">↓</div>
-      </div>
-    </section>
+    <main>
+      <section className="ks-hero">
+        <img className="ks-hero-botanical" src="/kissa-hero-botanical.png" alt="Branche de caféier avec feuilles, fleurs blanches et cerises rouges" />
 
-    <section className="ggc-universes ggc-universes-minimal">
-      <div className="ggc-category-grid">
-        {GG_HOME_CATEGORIES.map(item=><button key={item.id} className="ggc-category" onClick={()=>item.id==='music'?onMusic():onNavigate(item.id)} data-cursor="active">
-          <span className="ggc-category-icon"><GGCategoryIcon type={item.icon}/></span>
-          <strong>{item.label}</strong>
-          <span className="ggc-arrow">↗</span>
-        </button>)}
-      </div>
-    </section>
+        <div className="ks-hero-copy">
+          <p className="ks-eyebrow">LE CAFÉ<br/>SOUS TOUTES SES FORMES</p>
+          <h1><span>GOOD</span><span>COFFEE</span><span>GO FURTHER</span></h1>
+          <button className="ks-explore" onClick={scrollToUniverses} data-cursor="active">
+            <i>→</i><span>EXPLORER</span>
+          </button>
+        </div>
+
+        <nav className="ks-hero-links" aria-label="Accès rapide">
+          <button onClick={()=>onNavigate('news')}>ACTUALITÉS</button>
+          <button onClick={()=>onNavigate('science')}>SCIENCE</button>
+          <button onClick={()=>onNavigate('harvest')}>ORIGINES</button>
+          <button onClick={()=>onNavigate('gear')}>MATÉRIEL</button>
+          <button onClick={()=>onNavigate('market')}>MARCHÉ</button>
+          <button onClick={()=>onNavigate('reddit')}>COMMUNAUTÉ</button>
+        </nav>
+      </section>
+
+      <section className="ks-universes" id="ks-universes">
+        <div className="ks-tile-grid">
+          {tiles.map((tile, i) => {
+            const content = <>
+              <span className="ks-tile-photo" style={{backgroundImage:`url(${tile.image})`, backgroundPosition:tile.position || 'center'}} />
+              <span className="ks-tile-shade" />
+              <strong>{tile.label}</strong>
+              <span className="ks-tile-arrow">→</span>
+              <span className="ks-tile-index">{String(i+1).padStart(2,'0')}</span>
+            </>;
+
+            return tile.href ? (
+              <a key={tile.id} className="ks-tile" href={tile.href} data-cursor="active" aria-label={`Ouvrir ${tile.label}`}>
+                {content}
+              </a>
+            ) : (
+              <button key={tile.id} className="ks-tile" onClick={()=>openTile(tile)} data-cursor="active" aria-label={`Ouvrir ${tile.label}`}>
+                {content}
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      <section className="ks-closing">
+        <img className="ks-closing-botanical" src="/kissa-bottom-botanical.png" alt="" aria-hidden="true" />
+        <div className="ks-closing-copy">
+          <p className="ks-closing-kicker">PLUS QU’UNE BOISSON</p>
+          <h2>Le café comme<br/>terrain de jeu<span>.</span></h2>
+          <p>Origines, science, matériel, marché, culture et création. Kissa Soko rassemble tout ce qui fait bouger le café aujourd’hui.</p>
+          <button onClick={()=>onNavigate('news')} className="ks-closing-link" data-cursor="active"><i></i><span>EN SAVOIR PLUS</span><b>→</b></button>
+        </div>
+      </section>
+    </main>
   </div>;
 }
 
@@ -1300,7 +1334,7 @@ export default function App() {
   return (
     <div style={{ background:T.bg, minHeight:'100vh', color:T.text, fontFamily:"DM Sans,Inter,-apple-system,system-ui,sans-serif", fontWeight:500, fontSize:17, transition:'background 0.3s, color 0.3s', position:'relative', backgroundImage:`radial-gradient(circle at 15% -10%, ${BRAND.orange}0c, transparent 28%), radial-gradient(circle at 95% 8%, ${BRAND.purple}0b, transparent 24%)` }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,wght@0,700;0,800;1,700;1,800&family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
         @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
         @keyframes spin{to{transform:rotate(360deg)}}
         @keyframes beanFloat{0%,100%{translate:0 0}50%{translate:0 -13px}}
@@ -1442,6 +1476,64 @@ export default function App() {
   .ggc-nav-minimal{height:62px}.ggc-brand-home strong{font-size:24px}.ggc-brand-home span{max-width:155px;line-height:1.35}
   .ggc-journey{height:620vh}.ggc-2d-stage{width:min(88vw,520px)}
   .ggc-scroll-arrow{bottom:16px}
+}
+
+
+
+/* KISSA SOKO — editorial homepage */
+.ks-home{--ks-paper:#f7f2e9;--ks-ink:#07172b;--ks-soft:#6f716d;min-height:100vh;background:
+  radial-gradient(circle at 72% 5%,rgba(255,255,255,.95),transparent 33%),
+  radial-gradient(circle at 8% 15%,rgba(255,255,255,.72),transparent 31%),
+  linear-gradient(180deg,#faf6ef 0%,var(--ks-paper) 48%,#f5eee5 100%);
+  color:var(--ks-ink);position:relative;overflow:hidden;cursor:none}
+.ks-home button,.ks-home a{font-family:'DM Sans',Inter,sans-serif}
+.ks-home-nav{height:102px;max-width:1440px;margin:0 auto;padding:24px clamp(24px,4.5vw,68px);display:flex;align-items:flex-start;justify-content:space-between;position:absolute;inset:0 0 auto;z-index:30;pointer-events:none}
+.ks-logo{border:0;background:transparent;color:var(--ks-ink);padding:0;display:flex;flex-direction:column;align-items:flex-start;cursor:none;pointer-events:auto;font-family:'Bodoni Moda',Georgia,serif!important;font-style:italic;font-weight:800;font-size:clamp(27px,3vw,43px);line-height:.7;letter-spacing:-.075em}
+.ks-logo i{font-style:normal;color:var(--ks-orange);font-family:'DM Sans',sans-serif;margin-left:3px}
+.ks-menu-button{width:47px;height:47px;border-radius:50%;border:0;background:var(--ks-ink);display:grid;place-content:center;gap:6px;cursor:none;pointer-events:auto;box-shadow:0 11px 24px rgba(7,23,43,.12);transition:transform .25s ease,background .25s ease}
+.ks-menu-button span{display:block;width:17px;height:1.5px;border-radius:2px;background:#fff}.ks-menu-button:hover{transform:scale(1.06);background:#132942}
+
+.ks-hero{min-height:min(790px,92vh);max-width:1440px;margin:0 auto;position:relative;padding:clamp(120px,12vh,170px) clamp(24px,4.5vw,68px) 62px;display:flex;align-items:center;isolation:isolate}
+.ks-hero:after{content:'';position:absolute;left:clamp(24px,4.5vw,68px);right:clamp(24px,4.5vw,68px);bottom:0;height:1px;background:linear-gradient(90deg,rgba(7,23,43,.12),rgba(7,23,43,.02) 70%,transparent)}
+.ks-hero-copy{position:relative;z-index:5;width:min(69%,900px);padding-bottom:30px}
+.ks-eyebrow{font:600 11px/1.65 'DM Sans',sans-serif;letter-spacing:.28em;color:#6d747a;margin:0 0 23px;text-transform:uppercase}
+.ks-hero h1{font-family:'Bodoni Moda',Georgia,serif;font-style:italic;font-weight:800;font-size:clamp(68px,9.2vw,148px);line-height:.76;letter-spacing:-.075em;margin:0;color:var(--ks-ink);text-wrap:balance}
+.ks-hero h1 span{display:block;white-space:nowrap}
+.ks-explore{margin-top:42px;border:0;background:transparent;color:var(--ks-ink);padding:0;display:flex;align-items:center;gap:18px;cursor:none;font-size:10px;font-weight:700;letter-spacing:.24em}
+.ks-explore i{font-style:normal;width:43px;height:43px;border-radius:50%;display:grid;place-items:center;background:var(--ks-orange);color:#fff;font-size:19px;letter-spacing:0;box-shadow:0 9px 22px rgba(218,93,22,.2);transition:transform .25s ease}
+.ks-explore:hover i{transform:translateX(4px)}
+.ks-hero-botanical{position:absolute;z-index:2;right:clamp(-58px,-2vw,-10px);top:-10px;width:min(57vw,760px);max-height:94%;object-fit:contain;object-position:top right;pointer-events:none;filter:saturate(.9) contrast(.98)}
+.ks-hero-links{position:absolute;z-index:6;right:clamp(25px,5vw,80px);top:116px;display:flex;flex-direction:column;gap:9px;align-items:flex-start;padding-left:18px;border-left:1px solid rgba(7,23,43,.28)}
+.ks-hero-links button{border:0;background:transparent;color:var(--ks-ink);font-size:9px;font-weight:600;letter-spacing:.23em;cursor:none;opacity:.63;padding:0;transition:opacity .2s,color .2s,transform .2s}.ks-hero-links button:hover{opacity:1;color:var(--ks-orange);transform:translateX(3px)}
+
+.ks-universes{max-width:1440px;margin:0 auto;padding:28px clamp(24px,4.5vw,68px) 76px;position:relative;z-index:10}
+.ks-tile-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.ks-tile{height:clamp(220px,23vw,320px);position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.56);border-radius:12px;background:#20170f;color:#fff;text-decoration:none;text-align:left;cursor:none;padding:0;display:block;box-shadow:0 8px 24px rgba(44,28,18,.055);transition:transform .32s cubic-bezier(.2,.8,.2,1),box-shadow .32s ease}
+.ks-tile-photo,.ks-tile-shade{position:absolute;inset:0}.ks-tile-photo{background-size:cover;background-position:center;transform:scale(1.015);filter:saturate(.82) contrast(1.04);transition:transform .65s cubic-bezier(.2,.8,.2,1),filter .35s ease}
+.ks-tile-shade{background:linear-gradient(180deg,rgba(7,12,16,.02) 15%,rgba(10,9,8,.12) 45%,rgba(10,8,7,.78) 100%)}
+.ks-tile strong{position:absolute;z-index:3;left:24px;bottom:25px;color:#fff;font:700 clamp(18px,1.6vw,25px)/1 'DM Sans',sans-serif;letter-spacing:-.025em;text-shadow:0 2px 16px rgba(0,0,0,.32)}
+.ks-tile-arrow{position:absolute;z-index:3;left:23px;top:23px;width:35px;height:35px;border:1px solid rgba(255,255,255,.78);border-radius:50%;display:grid;place-items:center;font-size:15px;transition:background .25s,color .25s,transform .25s}
+.ks-tile-index{position:absolute;z-index:3;right:20px;top:20px;font-size:8px;letter-spacing:.2em;font-weight:700;opacity:.56}
+.ks-tile:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(44,28,18,.13)}.ks-tile:hover .ks-tile-photo{transform:scale(1.065);filter:saturate(.95) contrast(1.04)}.ks-tile:hover .ks-tile-arrow{background:var(--ks-orange);border-color:var(--ks-orange);transform:translateX(3px)}
+
+.ks-closing{max-width:1440px;min-height:520px;margin:0 auto;padding:88px clamp(24px,4.5vw,68px) 95px;position:relative;display:flex;align-items:center;overflow:hidden;border-top:1px solid rgba(7,23,43,.08)}
+.ks-closing:before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 74% 38%,rgba(255,255,255,.96),transparent 32%);pointer-events:none}
+.ks-closing-copy{position:relative;z-index:4;width:min(48%,600px)}
+.ks-closing-kicker{font-size:9px;font-weight:600;letter-spacing:.28em;color:#7c7b76;margin-bottom:19px}
+.ks-closing h2{font-family:'Bodoni Moda',Georgia,serif;font-weight:800;font-size:clamp(51px,6.5vw,92px);line-height:.87;letter-spacing:-.055em;margin:0;color:var(--ks-ink)}
+.ks-closing h2 span{color:var(--ks-orange)}
+.ks-closing-copy>p:not(.ks-closing-kicker){max-width:480px;margin-top:25px;color:#34404b;font:500 16px/1.65 'DM Sans',sans-serif}
+.ks-closing-link{margin-top:30px;border:0;background:transparent;padding:0;display:flex;align-items:center;gap:15px;color:var(--ks-ink);cursor:none;font-size:9px;font-weight:700;letter-spacing:.23em}.ks-closing-link i{display:block;width:64px;height:1px;background:rgba(7,23,43,.42)}.ks-closing-link b{font-size:16px;color:var(--ks-orange);font-weight:400;letter-spacing:0;transition:transform .2s}.ks-closing-link:hover b{transform:translateX(4px)}
+.ks-closing-botanical{position:absolute;z-index:2;right:-16px;bottom:-2px;width:min(66vw,840px);height:auto;pointer-events:none;filter:saturate(.88) contrast(.98)}
+
+@media(max-width:980px){
+  .ks-hero{min-height:720px;align-items:flex-end;padding-bottom:74px}.ks-hero-copy{width:76%}.ks-hero h1{font-size:clamp(62px,11vw,108px)}.ks-hero-botanical{width:67vw;right:-80px;top:0;opacity:.9}.ks-hero-links{display:none}
+  .ks-tile-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ks-tile{height:300px}.ks-closing-copy{width:58%}.ks-closing-botanical{width:72vw;right:-120px}
+}
+@media(max-width:640px){
+  .ks-home{cursor:auto}.ks-home .ggc-cursor,.ks-home .ggc-cursor-dot{display:none}.ks-home-nav{height:78px;padding:18px}.ks-menu-button{width:42px;height:42px}
+  .ks-hero{min-height:650px;padding:112px 18px 54px;align-items:flex-end}.ks-hero-copy{width:100%;padding-bottom:0}.ks-eyebrow{font-size:9px;margin-bottom:17px}.ks-hero h1{font-size:clamp(52px,17.5vw,80px);line-height:.79;letter-spacing:-.065em}.ks-hero-botanical{width:93vw;right:-30vw;top:-18px;opacity:.68}.ks-explore{margin-top:28px}.ks-hero:after{left:18px;right:18px}
+  .ks-universes{padding:16px 18px 54px}.ks-tile-grid{grid-template-columns:1fr;gap:9px}.ks-tile{height:235px;border-radius:10px}.ks-tile strong{font-size:21px}.ks-closing{min-height:500px;padding:66px 18px 76px;align-items:flex-start}.ks-closing-copy{width:87%}.ks-closing h2{font-size:clamp(48px,14vw,68px)}.ks-closing-copy>p:not(.ks-closing-kicker){font-size:14px;max-width:88%}.ks-closing-botanical{width:105vw;right:-50vw;bottom:-10px;opacity:.62}
 }
 
 @media(prefers-reduced-motion:reduce){.ggc-page *{scroll-behavior:auto!important;animation:none!important;transition-duration:.01ms!important}.ggc-cursor,.ggc-cursor-dot{display:none}}
