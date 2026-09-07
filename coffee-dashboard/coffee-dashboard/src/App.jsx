@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import HarvestPanel from './components/HarvestPanel';
 import InstaVeillePanel from './components/InstaVeillePanel'
 
@@ -563,111 +563,270 @@ const TABS = [
 ]
 
 
-const HOME_MODULES = [
-  { id:'news',      icon:'◫', eyebrow:'Le briefing', title:'Actualites', copy:'Les infos cafe qui meritent vraiment ton attention.', accent:BRAND.amber },
-  { id:'science',   icon:'⌁', eyebrow:'Papiers & recherche', title:'Science', copy:'PubMed, fermentation, extraction et nouveaux travaux.', accent:'#7a8fb5' },
-  { id:'gear',      icon:'⌘', eyebrow:'Nouveautes', title:'Ca fait du bruit', copy:'Machines, moulins, drippers et objets qui agitent le cafe.', accent:BRAND.orange },
-  { id:'harvest',   icon:'◎', eyebrow:'Saisonnalite', title:'Origines', copy:'Un coup d oeil aux recoltes et aux zones a surveiller.', accent:'#7a9e78' },
-  { id:'instagram', icon:'◇', eyebrow:'Radar visuel', title:'Instagram', copy:'Ta veille de comptes, marques, producteurs et tendances.', accent:BRAND.purple },
-  { id:'reddit',    icon:'✦', eyebrow:'Signaux faibles', title:'Communaute', copy:'Ce qui circule, se discute et commence a faire du bruit.', accent:BRAND.yellow },
-]
+const GG_GG_ORANGE = '#da5d16';
 
-function CoffeeScene3D({ T }) {
-  const bean = (x,y,r,s,delay,color=BRAND.orange) => (
-    <div className="gg-bean" style={{ left:x, top:y, transform:`rotate(${r}deg) scale(${s})`, animationDelay:delay, background:`linear-gradient(145deg, ${color}, #6d2d13 68%, #30150d)` }}>
-      <span />
-    </div>
-  )
-  return (
-    <div className="gg-scene" aria-label="Illustration 3D cafe">
-      <div className="gg-glow gg-glow-a" />
-      <div className="gg-glow gg-glow-b" />
-      <div className="gg-orbit gg-orbit-one" />
-      <div className="gg-orbit gg-orbit-two" />
-      <div className="gg-cup-shadow" />
-      <div className="gg-cup-wrap">
-        <div className="gg-cup-handle" />
-        <div className="gg-cup">
-          <div className="gg-cup-rim"><div className="gg-coffee"><i /><i /><i /></div></div>
-          <div className="gg-cup-mark">GG</div>
-        </div>
-        <div className="gg-saucer" />
-      </div>
-      {bean('9%','17%',-26,.78,'-.3s',BRAND.amber)}
-      {bean('74%','10%',28,.96,'-.8s',BRAND.orange)}
-      {bean('82%','62%',-16,.72,'-1.2s',BRAND.purple)}
-      {bean('18%','72%',20,.62,'-.5s','#a46b3d')}
-      <div className="gg-float-card gg-float-card-a"><span style={{color:BRAND.yellow}}>●</span> veille active</div>
-      <div className="gg-float-card gg-float-card-b">coffee intelligence</div>
-    </div>
-  )
+const GG_PROCESS_GG_PROCESS_STAGES = [
+  { key:'cherry',       label:'Cerise',       detail:'La matière première.',                    bg:'#f5f0e9' },
+  { key:'depulp',       label:'Dépulpage',    detail:'La peau et la pulpe sont retirées.',      bg:'#eee4d6' },
+  { key:'fermentation', label:'Fermentation', detail:'Le mucilage se dégrade progressivement.', bg:'#dfd0bc' },
+  { key:'wash',         label:'Lavage',       detail:'Le grain est nettoyé à l’eau.',           bg:'#c9b9a3' },
+  { key:'drying',       label:'Séchage',      detail:'Le café sèche jusqu’à être stabilisé.',   bg:'#aa8464' },
+  { key:'green',        label:'Café vert',    detail:'Le grain est prêt à être torréfié.',      bg:'#694936' },
+  { key:'roast',        label:'Torréfaction', detail:'La chaleur transforme le grain.',         bg:'#271510' },
+];
+
+const GG_HOME_GG_HOME_CATEGORIES = [
+  { id:'news',      label:'Actualités',  icon:'news' },
+  { id:'science',   label:'Science',     icon:'science' },
+  { id:'harvest',   label:'Origines',    icon:'origins' },
+  { id:'gear',      label:'Matériel',    icon:'gear' },
+  { id:'instagram', label:'Instagram',   icon:'instagram' },
+  { id:'reddit',    label:'Communauté',  icon:'community' },
+  { id:'music',     label:'Musique',     icon:'music' },
+  { id:'market',    label:'Market pulse',icon:'market' },
+];
+
+const ggClamp = (n, min=0, max=1) => Math.min(max, Math.max(min, n));
+const ggSmooth = t => t * t * (3 - 2 * t);
+
+function ggHexToRgb(hex) {
+  const h = hex.replace('#','');
+  return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+}
+function ggRgbToHex([r,g,b]) {
+  return `#${[r,g,b].map(v => Math.round(v).toString(16).padStart(2,'0')).join('')}`;
+}
+function ggMixColor(a,b,t){
+  const aa=ggHexToRgb(a), bb=ggHexToRgb(b);
+  return ggRgbToHex(aa.map((v,i)=>v+(bb[i]-v)*t));
+}
+function ggColorAt(progress){
+  const pos = progress * (GG_PROCESS_STAGES.length - 1);
+  const i = Math.min(GG_PROCESS_STAGES.length - 2, Math.floor(pos));
+  const t = ggSmooth(pos - i);
+  return ggMixColor(GG_PROCESS_STAGES[i].bg, GG_PROCESS_STAGES[i+1].bg, t);
+}
+function ggOpacityForStage(pos, index){
+  return ggClamp(1 - Math.abs(pos - index));
 }
 
-function HomePage({ T, setTab, news, sci, sciItems, community, gear, gearItems, markets, dateStr, lastRefresh, setShowMusic }) {
-  const top = news?.[0]
-  const stats = [
-    {label:'actus', value:news.length || '—'},
-    {label:'science', value:(sciItems.length || sci.length || '—')},
-    {label:'communaute', value:community.length || '—'},
-    {label:'gear', value:(gearItems.length || gear.length || '—')},
-  ]
-  return (
-    <div className="gg-home">
-      <section className="gg-home-hero">
-        <div className="gg-home-copy">
-          <div className="gg-kicker"><span className="gg-live-dot" /> KISSA SŌKO · PERSONAL COFFEE DESK</div>
-          <div className="gg-hello">Bonjour Raphaël.</div>
-          <h1>Ton café.<br/><span>Tout ce qui bouge autour.</span></h1>
-          <p>Actualites, science, materiel, origines et signaux faibles. Un cockpit personnel pour garder une longueur d avance sans ouvrir quinze onglets.</p>
-          <div className="gg-home-actions">
-            <button className="gg-primary" onClick={()=>setTab('news')}>Voir le briefing <b>↗</b></button>
-            <button className="gg-secondary" onClick={()=>setTab('harvest')}>Explorer les origines</button>
-          </div>
-          <div className="gg-home-meta">
-            <span>{dateStr}</span><i />
-            <span>{lastRefresh ? `mis a jour ${lastRefresh}` : 'mise a jour en cours'}</span>
-          </div>
-        </div>
-        <CoffeeScene3D T={T} />
-      </section>
+function GGCategoryIcon({ type }) {
+  const common = { fill:'none', stroke:'currentColor', strokeWidth:1.7, strokeLinecap:'round', strokeLinejoin:'round' };
+  return <svg viewBox="0 0 24 24" aria-hidden="true" {...common}>
+    {type==='news' && <><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M8 8h8M8 12h4M8 16h8M15 12h1"/></>}
+    {type==='science' && <><path d="M9 3h6M10 3v5l-5 9a2 2 0 0 0 1.8 3h10.4A2 2 0 0 0 19 17l-5-9V3"/><path d="M8 14h8"/></>}
+    {type==='origins' && <><path d="M19 4C11 4 5 8 5 15c0 3 2 5 5 5 7 0 10-8 9-16Z"/><path d="M6 18c4-5 7-7 11-9"/></>}
+    {type==='gear' && <><path d="M7 6h10l-1.3 8.2a4 4 0 0 1-7.4 0L7 6Z"/><path d="M5 6h14M12 14v6M9 20h6"/></>}
+    {type==='instagram' && <><rect x="4" y="4" width="16" height="16" rx="5"/><circle cx="12" cy="12" r="3.2"/><circle cx="17.3" cy="6.8" r=".7" fill="currentColor" stroke="none"/></>}
+    {type==='community' && <><circle cx="9" cy="9" r="3"/><circle cx="17" cy="10" r="2"/><path d="M3.5 20c.7-4 2.8-6 5.5-6s4.8 2 5.5 6M14.5 15c2.9-.6 5.2 1 6 4"/></>}
+    {type==='music' && <><path d="M9 18V6l9-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="15.5" cy="16" r="2.5"/></>}
+    {type==='market' && <><path d="M5 19V12M10 19V8M15 19V14M20 19V5"/></>}
+  </svg>;
+}
 
-      <section className="gg-stat-row">
-        {stats.map((s,i)=><div className="gg-stat" key={i}><strong>{s.value}</strong><span>{s.label}</span></div>)}
-        <button className="gg-music-quick" onClick={()=>setShowMusic(v=>!v)}><span>♪</span><div><b>Midnight radio</b><small>ouvrir les playlists</small></div></button>
-      </section>
+function GGCursor() {
+  const cursorRef = useRef(null);
+  const dotRef = useRef(null);
+  const [active, setActive] = useState(false);
 
-      <section className="gg-home-grid">
-        <div className="gg-today-card">
-          <div className="gg-section-label"><span>Aujourd hui</span><button onClick={()=>setTab('news')}>Tout voir ↗</button></div>
-          {top ? <a href={top.url} target="_blank" rel="noopener noreferrer" className="gg-top-story">
-            <div className="gg-story-img" style={{backgroundImage:`linear-gradient(180deg, transparent, rgba(9,9,13,.78)), url(${IMG[0]})`}}>
-              <div><small>{top.source || 'Kissa Soko'}</small><strong>{top.title}</strong></div>
-            </div>
-            <p>{top.summary || top.desc || top.description || 'Le sujet a ouvrir en premier dans ton briefing du jour.'}</p>
-          </a> : <div className="gg-skeleton-home">Le briefing se prepare…</div>}
+  useEffect(() => {
+    if (window.matchMedia('(pointer: coarse)').matches) return;
+    let tx = innerWidth/2, ty = innerHeight/2, x=tx, y=ty, raf;
+    const move = e => { tx=e.clientX; ty=e.clientY; };
+    const over = e => setActive(Boolean(e.target.closest('a,button,[data-cursor="active"]')));
+    const tick = () => {
+      x += (tx-x)*.16; y += (ty-y)*.16;
+      if(cursorRef.current) cursorRef.current.style.transform=`translate3d(${x}px,${y}px,0) translate(-50%,-50%)`;
+      if(dotRef.current) dotRef.current.style.transform=`translate3d(${tx}px,${ty}px,0) translate(-50%,-50%)`;
+      raf=requestAnimationFrame(tick);
+    };
+    addEventListener('pointermove',move,{passive:true});
+    addEventListener('pointerover',over,{passive:true});
+    tick();
+    return ()=>{ removeEventListener('pointermove',move); removeEventListener('pointerover',over); cancelAnimationFrame(raf); };
+  },[]);
+
+  return <>
+    <div ref={cursorRef} className={`ggc-cursor ${active?'is-active':''}`} />
+    <div ref={dotRef} className="ggc-cursor-dot" />
+  </>;
+}
+
+function GGCoffeeVisual({ progress }) {
+  const pos = progress * (GG_PROCESS_STAGES.length - 1);
+  const local = pos - Math.floor(pos);
+  const pulse = 1 + Math.sin(progress * Math.PI * 8) * .006;
+
+  const op = i => ggOpacityForStage(pos,i);
+  const skinSpread = 28 + ggSmooth(ggClamp(pos-.55)) * 76;
+  const skinTurn = 5 + ggSmooth(ggClamp(pos-.6)) * 19;
+  const beanTurn = -6 + progress*12;
+
+  return <div className="ggc-object" style={{'--ggc-progress':progress, transform:`translate3d(0,${Math.sin(progress*Math.PI*5)*5}px,0) scale(${pulse}) rotate(${beanTurn*.05}deg)`}}>
+    <svg viewBox="0 0 720 720" role="img" aria-label="Transformation d'une cerise de café pendant le procédé lavé">
+      <defs>
+        <radialGradient id="cherry" cx="32%" cy="24%" r="75%"><stop offset="0" stopColor="#ff7650"/><stop offset=".36" stopColor="#d94c2f"/><stop offset=".75" stopColor="#9f2e20"/><stop offset="1" stopColor="#641b17"/></radialGradient>
+        <radialGradient id="cherryHi" cx="50%" cy="50%" r="50%"><stop offset="0" stopColor="#fff" stopOpacity=".58"/><stop offset="1" stopColor="#fff" stopOpacity="0"/></radialGradient>
+        <linearGradient id="mucilage" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#f5d88a"/><stop offset=".5" stopColor="#dba84f"/><stop offset="1" stopColor="#b4762c"/></linearGradient>
+        <linearGradient id="parchment" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#f1d7a1"/><stop offset=".55" stopColor="#d9b776"/><stop offset="1" stopColor="#aa814b"/></linearGradient>
+        <linearGradient id="green" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#b4bd78"/><stop offset=".5" stopColor="#7f8e56"/><stop offset="1" stopColor="#515f38"/></linearGradient>
+        <radialGradient id="roast" cx="34%" cy="24%" r="77%"><stop stopColor="#a85b31"/><stop offset=".42" stopColor="#6c321f"/><stop offset="1" stopColor="#2a130f"/></radialGradient>
+        <linearGradient id="leaf" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#9aa86a"/><stop offset="1" stopColor="#344d36"/></linearGradient>
+        <filter id="softShadow" x="-30%" y="-30%" width="160%" height="180%"><feDropShadow dx="0" dy="28" stdDeviation="24" floodColor="#150b08" floodOpacity=".24"/></filter>
+        <filter id="skinTexture" x="-20%" y="-20%" width="140%" height="140%"><feTurbulence type="fractalNoise" baseFrequency=".018" numOctaves="2" seed="3" result="noise"/><feDisplacementMap in="SourceGraphic" in2="noise" scale="3"/></filter>
+        <filter id="blur10"><feGaussianBlur stdDeviation="10"/></filter>
+      </defs>
+
+      <ellipse cx="360" cy="592" rx="166" ry="36" fill="#28130e" opacity={.12 + progress*.10} filter="url(#blur10)" />
+
+      {/* 01 — whole cherry */}
+      <g opacity={op(0)} filter="url(#softShadow)">
+        <path d="M354 111 C474 94 564 193 558 327 C552 472 466 572 360 579 C251 573 166 470 162 328 C159 191 246 95 354 111 Z" fill="url(#cherry)" filter="url(#skinTexture)"/>
+        <path d="M360 122 C349 230 348 385 361 561" fill="none" stroke="#671b18" strokeWidth="8" strokeLinecap="round" opacity=".56"/>
+        <ellipse cx="285" cy="216" rx="90" ry="125" fill="url(#cherryHi)" transform="rotate(24 285 216)" opacity=".54"/>
+        <path d="M356 114 C348 74 369 44 390 24" fill="none" stroke="#50603d" strokeWidth="18" strokeLinecap="round"/>
+        <path d="M385 48 C439 20 487 42 504 82 C456 98 410 86 385 48 Z" fill="url(#leaf)"/>
+        <path d="M395 52 C430 61 456 68 488 78" fill="none" stroke="#c9d49c" strokeWidth="2" opacity=".52"/>
+      </g>
+
+      {/* 02 — depulping */}
+      <g opacity={op(1)} filter="url(#softShadow)">
+        <path d="M336 144 C252 142 184 222 184 336 C184 446 247 526 327 535 C289 454 289 222 336 144 Z" fill="url(#cherry)" transform={`translate(${-skinSpread} 0) rotate(${-skinTurn} 340 340)`}/>
+        <path d="M384 144 C468 142 536 222 536 336 C536 446 473 526 393 535 C431 454 431 222 384 144 Z" fill="url(#cherry)" transform={`translate(${skinSpread} 0) rotate(${skinTurn} 380 340)`}/>
+        <ellipse cx="360" cy="350" rx="137" ry="205" fill="url(#mucilage)" opacity=".42"/>
+        <path d="M360 183 C441 182 489 250 485 350 C481 453 429 520 360 522 C291 520 239 453 235 350 C231 250 279 182 360 183 Z" fill="url(#parchment)"/>
+        <path d="M362 201 C350 281 349 421 362 506" fill="none" stroke="#87633a" strokeWidth="6" opacity=".58"/>
+      </g>
+
+      {/* 03 — fermentation */}
+      <g opacity={op(2)}>
+        <ellipse cx="360" cy="360" rx="232" ry="236" fill="#e7b85f" opacity=".08" stroke="#fff" strokeOpacity=".32"/>
+        <ellipse cx="360" cy="360" rx="196" ry="199" fill="#fff" opacity=".08"/>
+        <path d="M360 181 C439 181 486 248 482 349 C478 451 428 518 360 520 C292 518 242 451 238 349 C234 248 281 181 360 181 Z" fill="url(#parchment)" filter="url(#softShadow)"/>
+        <path d="M362 202 C350 283 350 420 362 501" fill="none" stroke="#8b683f" strokeWidth="6" opacity=".52"/>
+        {[ [214,250,12],[496,290,8],[226,430,7],[484,445,15],[311,150,6],[410,555,10],[172,360,9],[550,382,7] ].map((b,i)=><circle key={i} className="ggc-bubble" cx={b[0]} cy={b[1]} r={b[2]} fill="#fff" fillOpacity=".12" stroke="#fff" strokeOpacity=".54" style={{animationDelay:`${i*.17}s`}} />)}
+      </g>
+
+      {/* 04 — washing */}
+      <g opacity={op(3)}>
+        <path d="M360 181 C439 181 486 248 482 349 C478 451 428 518 360 520 C292 518 242 451 238 349 C234 248 281 181 360 181 Z" fill="url(#parchment)" filter="url(#softShadow)"/>
+        <path d="M362 202 C350 283 350 420 362 501" fill="none" stroke="#8b683f" strokeWidth="6" opacity=".52"/>
+        <path className="ggc-water" d="M145 267 C248 204 469 216 566 285" fill="none" stroke="#dfe8e8" strokeWidth="12" strokeLinecap="round" opacity=".7"/>
+        <path className="ggc-water ggc-water-2" d="M160 414 C260 471 467 475 555 407" fill="none" stroke="#eef4f3" strokeWidth="7" strokeLinecap="round" opacity=".62"/>
+        <circle cx="194" cy="220" r="10" fill="#fff" opacity=".72"/><circle cx="532" cy="458" r="7" fill="#fff" opacity=".55"/>
+      </g>
+
+      {/* 05 — drying */}
+      <g opacity={op(4)}>
+        <g opacity=".26" stroke="#f5dfbd" strokeWidth="2">
+          {[-150,-100,-50,0,50,100,150].map((n,i)=><line key={`v${i}`} x1={360+n} y1="126" x2={360+n} y2="585"/>)}
+          {[-140,-90,-40,10,60,110,160].map((n,i)=><line key={`h${i}`} x1="165" y1={350+n} x2="555" y2={350+n}/>)}
+        </g>
+        <circle cx="360" cy="350" r="225" fill="none" stroke="#eeb563" strokeWidth="2" strokeDasharray="8 20" opacity=".4"/>
+        <path d="M360 181 C439 181 486 248 482 349 C478 451 428 518 360 520 C292 518 242 451 238 349 C234 248 281 181 360 181 Z" fill="url(#parchment)" filter="url(#softShadow)"/>
+        <path d="M362 202 C350 283 350 420 362 501" fill="none" stroke="#80603d" strokeWidth="7" opacity=".58"/>
+      </g>
+
+      {/* 06 — green coffee */}
+      <g opacity={op(5)} filter="url(#softShadow)" transform={`rotate(${beanTurn} 360 350)`}>
+        <path d="M360 174 C450 174 503 250 495 349 C487 457 428 526 360 529 C292 526 233 457 225 349 C217 250 270 174 360 174 Z" fill="url(#green)"/>
+        <path d="M364 196 C349 281 349 430 364 509" fill="none" stroke="#465435" strokeWidth="10" strokeLinecap="round" opacity=".76"/>
+        <ellipse cx="302" cy="260" rx="60" ry="105" fill="#fff" opacity=".08" transform="rotate(22 302 260)"/>
+      </g>
+
+      {/* 07 — roasted */}
+      <g opacity={op(6)} filter="url(#softShadow)" transform={`rotate(${beanTurn} 360 350)`}>
+        <path d="M360 174 C450 174 503 250 495 349 C487 457 428 526 360 529 C292 526 233 457 225 349 C217 250 270 174 360 174 Z" fill="url(#roast)"/>
+        <path d="M365 197 C340 274 349 349 358 381 C369 421 366 467 354 510" fill="none" stroke="#d59b72" strokeWidth="9" strokeLinecap="round" opacity=".72"/>
+        <ellipse cx="302" cy="250" rx="68" ry="115" fill="#fff" opacity=".075" transform="rotate(24 302 250)"/>
+        <path d="M230 394 C281 490 409 547 483 424" fill="none" stroke="#170b09" strokeWidth="2" opacity=".25"/>
+      </g>
+    </svg>
+  </div>;
+}
+
+function HomePage({ setTab, setShowMusic }) {
+  const onNavigate = (id) => setTab(id === 'market' ? 'news' : id);
+  const onMusic = () => { setShowMusic(true); setTab('news'); };
+  const journeyRef = useRef(null);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    let raf = 0;
+    const update = () => {
+      raf = 0;
+      const el = journeyRef.current;
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      const travel = Math.max(1, el.offsetHeight - innerHeight);
+      const p = ggClamp(-rect.top / travel);
+      setProgress(prev => Math.abs(prev-p) > .001 ? p : prev);
+    };
+    const onScroll = () => { if(!raf) raf=requestAnimationFrame(update); };
+    update();
+    addEventListener('scroll',onScroll,{passive:true});
+    addEventListener('resize',onScroll,{passive:true});
+    return ()=>{ removeEventListener('scroll',onScroll); removeEventListener('resize',onScroll); if(raf) cancelAnimationFrame(raf); };
+  },[]);
+
+  const position = progress * (GG_PROCESS_STAGES.length - 1);
+  const activeIndex = Math.min(GG_PROCESS_STAGES.length - 1, Math.round(position));
+  const bg = useMemo(()=>ggColorAt(progress),[progress]);
+  const dark = progress > .68;
+  const text = dark ? '#f6eee8' : '#1d1815';
+  const soft = dark ? 'rgba(246,238,232,.62)' : 'rgba(29,24,21,.56)';
+
+  return <div className={`ggc-page ${dark?'is-dark':''}`} style={{backgroundColor:bg,color:text,'--ggc-soft':soft,'--ggc-orange':GG_ORANGE}}>
+    <GGCursor />
+
+    <header className="ggc-nav">
+      <button className="ggc-logo" onClick={()=>window.scrollTo({top:0,behavior:'ggSmooth'})} data-cursor="active">GG</button>
+      <nav>
+        <button onClick={()=>onNavigate('news')}>Actus</button>
+        <button onClick={()=>onNavigate('science')}>Science</button>
+        <button onClick={()=>onNavigate('harvest')}>Origines</button>
+        <button onClick={()=>onNavigate('reddit')}>Communauté</button>
+        <button onClick={onMusic}>Musique</button>
+      </nav>
+    </header>
+
+    <section className="ggc-journey" ref={journeyRef}>
+      <div className="ggc-sticky">
+        <div className="ggc-ambient ggc-ambient-a" />
+        <div className="ggc-ambient ggc-ambient-b" />
+        <div className="ggc-stage-copy">
+          <div className="ggc-step">PROCESSUS LAVÉ · {String(activeIndex+1).padStart(2,'0')}/{String(GG_PROCESS_STAGES.length).padStart(2,'0')}</div>
+          <h1>{GG_PROCESS_STAGES[activeIndex].label}</h1>
+          <p>{GG_PROCESS_STAGES[activeIndex].detail}</p>
         </div>
 
-        <div className="gg-market-card">
-          <div className="gg-section-label"><span>Market pulse</span><em>live</em></div>
-          <div className="gg-market-list">
-            {(markets.length ? markets.slice(0,4) : [
-              {label:'Arabica ICE',val:'--',unit:'c/lb'}, {label:'Robusta ICE',val:'--',unit:'$/t'}, {label:'EUR/USD',val:'--'}, {label:'BRL/USD',val:'--'}
-            ]).map((m,i)=><div className="gg-market-line" key={i}><span>{m.label}</span><b>{m.val}<small>{m.unit || ''}</small></b>{m.chg && <em className={m.up?'up':'down'}>{m.up?'▲':'▼'} {m.chg}</em>}</div>)}
-          </div>
-        </div>
-      </section>
+        <GGCoffeeVisual progress={progress} />
 
-      <section className="gg-universes">
-        <div className="gg-heading-row"><div><small>LES UNIVERS</small><h2>Choisis ton terrain de jeu.</h2></div><p>Chaque module garde sa logique actuelle, mais l accueil te permet maintenant d y entrer par intention.</p></div>
-        <div className="gg-module-grid">
-          {HOME_MODULES.map((m,i)=><button key={m.id} onClick={()=>setTab(m.id)} className="gg-module" style={{'--accent':m.accent}}>
-            <div className="gg-module-top"><span>{m.icon}</span><i>{String(i+1).padStart(2,'0')}</i></div>
-            <small>{m.eyebrow}</small><h3>{m.title}</h3><p>{m.copy}</p><b>Entrer <span>↗</span></b>
-          </button>)}
+        <div className="ggc-progress" aria-hidden="true">
+          <div className="ggc-progress-track"><i style={{height:`${progress*100}%`}} /></div>
+          {GG_PROCESS_STAGES.map((stage,i)=><span key={stage.key} className={i===activeIndex?'active':''}>{stage.label}</span>)}
         </div>
-      </section>
-    </div>
-  )
+
+        <div className={`ggc-scroll-hint ${progress>.05?'hide':''}`}><span>↓</span> faire défiler</div>
+        <div className="ggc-stage-number">{String(activeIndex+1).padStart(2,'0')}</div>
+      </div>
+    </section>
+
+    <section className="ggc-universes">
+      <div className="ggc-universe-head">
+        <span>GG</span>
+        <h2>Choisir un univers.</h2>
+      </div>
+      <div className="ggc-category-grid">
+        {GG_HOME_CATEGORIES.map(item=><button key={item.id} className="ggc-category" onClick={()=>item.id==='music'?onMusic():onNavigate(item.id)} data-cursor="active">
+          <span className="ggc-category-icon"><GGCategoryIcon type={item.icon}/></span>
+          <strong>{item.label}</strong>
+          <span className="ggc-arrow">↗</span>
+        </button>)}
+      </div>
+      <div className="ggc-footer-line"><span>GaufreGentille</span><i/><span>veille · café · culture</span></div>
+    </section>
+  </div>;
 }
 
 function Tag({ topic, lang, T }) {
@@ -1148,8 +1307,76 @@ export default function App() {
         .gg-heading-row{display:flex;justify-content:space-between;gap:30px;align-items:end;margin-bottom:20px}.gg-heading-row small{font-size:9px;letter-spacing:.2em;color:${BRAND.orange};font-weight:800}.gg-heading-row h2{font:800 clamp(26px,3vw,38px)/1.05 Manrope,sans-serif;letter-spacing:-.04em;margin-top:6px}.gg-heading-row>p{font-size:11px;line-height:1.65;color:${T.faint};max-width:350px}.gg-module-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}.gg-module{--accent:${BRAND.amber};text-align:left;min-height:225px;padding:19px;border-radius:21px;border:1px solid ${T.border};background:linear-gradient(155deg,${T.surf},${T.surf2});color:${T.text};cursor:pointer;transition:.25s;position:relative;overflow:hidden}.gg-module:after{content:'';position:absolute;width:150px;height:150px;right:-75px;bottom:-85px;border-radius:50%;background:var(--accent);filter:blur(45px);opacity:.09;transition:.25s}.gg-module:hover{transform:translateY(-5px);border-color:var(--accent);box-shadow:0 18px 44px rgba(0,0,0,${dark?'.20':'.08'})}.gg-module:hover:after{opacity:.2}.gg-module-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}.gg-module-top>span{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:${T.surf3};border:1px solid ${T.border2};color:var(--accent);font-size:18px}.gg-module-top i{font-style:normal;color:${T.faint};font-size:9px;letter-spacing:.12em}.gg-module>small{font-size:8px;text-transform:uppercase;letter-spacing:.14em;color:var(--accent);font-weight:800}.gg-module h3{font:800 20px Manrope,sans-serif;letter-spacing:-.03em;margin-top:5px}.gg-module p{font-size:10px;line-height:1.6;color:${T.faint};margin-top:8px;max-width:270px}.gg-module>b{position:absolute;left:19px;bottom:18px;font-size:9px;text-transform:uppercase;letter-spacing:.1em}.gg-module>b span{color:var(--accent);margin-left:4px}
         @media(max-width:900px){.gg-home-hero{grid-template-columns:1fr}.gg-home-copy{padding:46px 34px 20px}.gg-scene{min-height:390px}.gg-home-grid{grid-template-columns:1fr}.gg-stat-row{grid-template-columns:repeat(2,1fr)}.gg-music-quick{grid-column:1/-1}.gg-module-grid{grid-template-columns:repeat(2,1fr)}}
         @media(max-width:620px){.gg-home{padding:18px 12px 90px}.gg-home-hero{border-radius:24px}.gg-home-copy{padding:35px 23px 5px}.gg-home-copy h1{font-size:43px}.gg-home-copy>p{font-size:14px}.gg-scene{min-height:340px}.gg-cup-wrap{animation:none;transform:translate(-50%,-50%) scale(.78)}.gg-orbit-one{width:320px;height:320px;margin:-160px}.gg-orbit-two{width:240px;height:240px;margin:-120px}.gg-stat-row{margin-top:10px}.gg-stat{min-height:68px;padding:12px}.gg-top-story{grid-template-columns:1fr}.gg-top-story>p{display:none}.gg-heading-row{display:block}.gg-heading-row>p{margin-top:10px}.gg-module-grid{grid-template-columns:1fr}.gg-module{min-height:205px}.gg-float-card{display:none}}
+
+
+.ggc-page{min-height:100vh;font-family:'DM Sans',system-ui,sans-serif;transition:background-color .12s linear,color .28s ease;overflow:clip;position:relative;cursor:none}
+.ggc-page *{box-sizing:border-box}
+.ggc-page button,.ggc-page a{font:inherit;color:inherit}
+.ggc-nav{position:fixed;z-index:80;left:0;right:0;top:0;height:78px;padding:0 clamp(22px,4vw,64px);display:flex;align-items:center;justify-content:space-between;mix-blend-mode:normal;transition:color .25s}
+.ggc-logo{border:0;background:transparent;color:var(--ggc-orange);font-family:Manrope,sans-serif;font-size:26px;line-height:1;font-weight:800;letter-spacing:-.08em;cursor:none;padding:8px 0}
+.ggc-nav nav{display:flex;align-items:center;gap:clamp(12px,2.1vw,32px)}
+.ggc-nav nav button{border:0;background:transparent;font-size:11px;font-weight:700;cursor:none;opacity:.68;transition:opacity .2s,color .2s;letter-spacing:.01em}
+.ggc-nav nav button:hover{opacity:1;color:var(--ggc-orange)}
+
+.ggc-cursor{position:fixed;z-index:9999;left:0;top:0;width:38px;height:38px;border-radius:50%;pointer-events:none;background:rgba(218,93,22,.15);border:1px solid rgba(218,93,22,.42);backdrop-filter:blur(2px);transition:width .22s,height .22s,background .22s,border-color .22s;will-change:transform}
+.ggc-cursor.is-active{width:64px;height:64px;background:rgba(218,93,22,.12);border-color:rgba(218,93,22,.72)}
+.ggc-cursor-dot{position:fixed;z-index:10000;left:0;top:0;width:4px;height:4px;border-radius:50%;background:var(--ggc-orange);pointer-events:none;will-change:transform}
+
+.ggc-journey{height:720vh;position:relative}
+.ggc-sticky{position:sticky;top:0;height:100vh;min-height:620px;display:grid;place-items:center;overflow:hidden;isolation:isolate}
+.ggc-ambient{position:absolute;border-radius:50%;filter:blur(60px);pointer-events:none;opacity:.42;transition:opacity .35s}
+.ggc-ambient-a{width:46vw;height:46vw;max-width:720px;max-height:720px;left:-18vw;top:13vh;background:rgba(218,93,22,.17)}
+.ggc-ambient-b{width:34vw;height:34vw;max-width:540px;max-height:540px;right:-10vw;bottom:1vh;background:rgba(160,109,208,.08)}
+.ggc-page.is-dark .ggc-ambient-a{opacity:.22}.ggc-page.is-dark .ggc-ambient-b{opacity:.15}
+
+.ggc-object{width:min(62vw,700px);aspect-ratio:1;position:relative;z-index:4;will-change:transform;transition:transform .08s linear}
+.ggc-object svg{width:100%;height:100%;overflow:visible;display:block}
+.ggc-bubble{animation:ggcBubble 2.6s ease-in-out infinite;transform-origin:center}
+.ggc-water{animation:ggcWater 2.4s ease-in-out infinite alternate}.ggc-water-2{animation-delay:-1.1s}
+@keyframes ggcBubble{0%,100%{transform:translateY(0);opacity:.35}50%{transform:translateY(-16px);opacity:.8}}
+@keyframes ggcWater{from{transform:translateX(-12px)}to{transform:translateX(12px)}}
+
+.ggc-stage-copy{position:absolute;z-index:8;left:clamp(24px,6vw,92px);top:50%;transform:translateY(-50%);width:min(28vw,360px);pointer-events:none}
+.ggc-step{font-size:9px;letter-spacing:.21em;font-weight:800;color:var(--ggc-orange);margin-bottom:18px}
+.ggc-stage-copy h1{font-family:Manrope,sans-serif;font-weight:700;letter-spacing:-.06em;font-size:clamp(42px,6vw,92px);line-height:.88;margin:0}
+.ggc-stage-copy p{font-size:13px;line-height:1.55;color:var(--ggc-soft);max-width:270px;margin:20px 0 0}
+
+.ggc-progress{position:absolute;z-index:8;right:clamp(24px,5vw,76px);top:50%;transform:translateY(-50%);display:grid;grid-template-columns:2px auto;gap:0 16px;align-items:start;pointer-events:none}
+.ggc-progress-track{grid-row:1 / span 7;width:2px;height:184px;background:currentColor;opacity:.16;border-radius:999px;position:relative;margin-top:4px}
+.ggc-progress-track i{position:absolute;left:0;top:0;width:100%;background:var(--ggc-orange);border-radius:999px;transition:height .08s linear}
+.ggc-progress>span{display:block;font-size:8px;letter-spacing:.15em;text-transform:uppercase;color:var(--ggc-soft);height:26px;transition:.2s;white-space:nowrap}
+.ggc-progress>span.active{color:currentColor;font-weight:800;transform:translateX(4px)}
+.ggc-scroll-hint{position:absolute;z-index:8;bottom:31px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;font-size:9px;text-transform:uppercase;letter-spacing:.18em;color:var(--ggc-soft);transition:opacity .3s,transform .3s}.ggc-scroll-hint span{color:var(--ggc-orange);font-size:15px}.ggc-scroll-hint.hide{opacity:0;transform:translate(-50%,8px)}
+.ggc-stage-number{position:absolute;right:2.5vw;bottom:-2vw;font-family:Manrope,sans-serif;font-size:clamp(110px,20vw,330px);font-weight:800;letter-spacing:-.1em;color:currentColor;opacity:.025;line-height:.75;pointer-events:none}
+
+.ggc-universes{position:relative;z-index:10;min-height:100vh;background:#180d0a;color:#f5ece5;padding:clamp(100px,12vw,180px) clamp(22px,5vw,78px) 58px;border-top:1px solid rgba(255,255,255,.08)}
+.ggc-universe-head{display:flex;align-items:end;justify-content:space-between;gap:30px;margin-bottom:72px}.ggc-universe-head>span{color:var(--ggc-orange);font:800 18px Manrope,sans-serif;letter-spacing:-.06em}.ggc-universe-head h2{font:600 clamp(38px,6vw,86px)/.95 Manrope,sans-serif;letter-spacing:-.055em;margin:0;text-align:right}
+.ggc-category-grid{display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(255,255,255,.12);border-left:1px solid rgba(255,255,255,.12)}
+.ggc-category{position:relative;min-height:190px;padding:24px;border:0;border-right:1px solid rgba(255,255,255,.12);border-bottom:1px solid rgba(255,255,255,.12);background:transparent;color:#f5ece5;text-align:left;cursor:none;transition:background .25s,color .25s;overflow:hidden}
+.ggc-category:before{content:'';position:absolute;inset:auto -30% -80% 30%;height:150%;background:radial-gradient(circle,rgba(218,93,22,.24),transparent 64%);opacity:0;transition:opacity .25s}
+.ggc-category:hover{background:rgba(255,255,255,.035)}.ggc-category:hover:before{opacity:1}
+.ggc-category-icon{width:38px;height:38px;display:grid;place-items:center;color:var(--ggc-orange)}.ggc-category-icon svg{width:25px;height:25px}
+.ggc-category strong{position:absolute;left:24px;bottom:24px;font:600 17px Manrope,sans-serif;letter-spacing:-.025em}.ggc-arrow{position:absolute;right:22px;top:22px;color:rgba(255,255,255,.4);transition:transform .25s,color .25s}.ggc-category:hover .ggc-arrow{transform:translate(3px,-3px);color:var(--ggc-orange)}
+.ggc-footer-line{display:flex;align-items:center;gap:16px;margin-top:72px;font-size:9px;text-transform:uppercase;letter-spacing:.18em;color:rgba(255,255,255,.4)}.ggc-footer-line i{height:1px;background:rgba(255,255,255,.13);flex:1}
+
+@media(max-width:900px){
+  .ggc-nav nav{display:none}.ggc-object{width:min(86vw,650px)}
+  .ggc-stage-copy{left:24px;top:auto;bottom:88px;transform:none;width:min(70vw,330px)}
+  .ggc-stage-copy h1{font-size:clamp(38px,10vw,70px)}
+  .ggc-stage-copy p{font-size:12px;margin-top:10px}.ggc-step{margin-bottom:10px}
+  .ggc-progress{right:18px}.ggc-progress>span{display:none}.ggc-progress-track{height:150px}
+  .ggc-category-grid{grid-template-columns:repeat(2,1fr)}.ggc-universe-head{align-items:start;flex-direction:column}.ggc-universe-head h2{text-align:left}
+}
+@media(max-width:560px){
+  .ggc-page{cursor:auto}.ggc-cursor,.ggc-cursor-dot{display:none}.ggc-nav{height:64px;padding:0 18px}
+  .ggc-journey{height:650vh}.ggc-sticky{min-height:520px}.ggc-object{width:104vw;transform-origin:center}
+  .ggc-stage-copy{bottom:58px}.ggc-stage-copy p{max-width:230px}.ggc-scroll-hint{bottom:18px}
+  .ggc-category-grid{grid-template-columns:1fr}.ggc-category{min-height:136px}.ggc-universes{padding-left:18px;padding-right:18px}.ggc-universe-head{margin-bottom:44px}
+}
+@media(prefers-reduced-motion:reduce){.ggc-page *{scroll-behavior:auto!important;animation:none!important;transition-duration:.01ms!important}.ggc-cursor,.ggc-cursor-dot{display:none}}
       `}</style>
 
+      {tab !== 'home' && <>
       {/* TOPBAR */}
       <div style={{ background:`${T.bg}e8`, borderBottom:`1px solid ${T.border}`, padding:'0 24px', height:64, display:'flex', alignItems:'center', justifyContent:'space-between', position:'sticky', top:0, zIndex:100, backdropFilter:'blur(20px) saturate(140%)' }}>
         <div style={{ display:'flex', alignItems:'center', gap:12 }}>
@@ -1281,17 +1508,15 @@ export default function App() {
         ))}
       </div>
 
+      </>}
+
       {/* CONTENT */}
       <div style={{ maxWidth: tab==='home' ? 'none' : 1040, margin:'0 auto', padding: tab==='home' ? 0 : '28px 18px 110px' }}>
         {error && <ErrMsg msg={error} T={T} />}
 
         {/* HOME */}
         {tab==='home' && (
-          <HomePage
-            T={T} setTab={setTab} news={news} sci={sci} sciItems={sciItems}
-            community={community} gear={gear} gearItems={gearItems} markets={markets}
-            dateStr={dateStr} lastRefresh={lastRefresh} setShowMusic={setShowMusic}
-          />
+          <HomePage setTab={setTab} setShowMusic={setShowMusic} />
         )}
 
         {/* NEWS */}
