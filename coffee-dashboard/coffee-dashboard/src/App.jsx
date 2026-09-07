@@ -553,6 +553,7 @@ const INSTAGRAM = [
 ]
 
 const TABS = [
+  { id:'home',      label:'Accueil' },
   { id:'news',      label:'Actualites' },
   { id:'instagram', label:'Instagram'  },
   { id:'reddit',    label:'Communaute' },
@@ -560,6 +561,114 @@ const TABS = [
   { id:'gear',      label:'Ça fait du bruit' },
   { id:'harvest',   label:'Origines' },
 ]
+
+
+const HOME_MODULES = [
+  { id:'news',      icon:'◫', eyebrow:'Le briefing', title:'Actualites', copy:'Les infos cafe qui meritent vraiment ton attention.', accent:BRAND.amber },
+  { id:'science',   icon:'⌁', eyebrow:'Papiers & recherche', title:'Science', copy:'PubMed, fermentation, extraction et nouveaux travaux.', accent:'#7a8fb5' },
+  { id:'gear',      icon:'⌘', eyebrow:'Nouveautes', title:'Ca fait du bruit', copy:'Machines, moulins, drippers et objets qui agitent le cafe.', accent:BRAND.orange },
+  { id:'harvest',   icon:'◎', eyebrow:'Saisonnalite', title:'Origines', copy:'Un coup d oeil aux recoltes et aux zones a surveiller.', accent:'#7a9e78' },
+  { id:'instagram', icon:'◇', eyebrow:'Radar visuel', title:'Instagram', copy:'Ta veille de comptes, marques, producteurs et tendances.', accent:BRAND.purple },
+  { id:'reddit',    icon:'✦', eyebrow:'Signaux faibles', title:'Communaute', copy:'Ce qui circule, se discute et commence a faire du bruit.', accent:BRAND.yellow },
+]
+
+function CoffeeScene3D({ T }) {
+  const bean = (x,y,r,s,delay,color=BRAND.orange) => (
+    <div className="gg-bean" style={{ left:x, top:y, transform:`rotate(${r}deg) scale(${s})`, animationDelay:delay, background:`linear-gradient(145deg, ${color}, #6d2d13 68%, #30150d)` }}>
+      <span />
+    </div>
+  )
+  return (
+    <div className="gg-scene" aria-label="Illustration 3D cafe">
+      <div className="gg-glow gg-glow-a" />
+      <div className="gg-glow gg-glow-b" />
+      <div className="gg-orbit gg-orbit-one" />
+      <div className="gg-orbit gg-orbit-two" />
+      <div className="gg-cup-shadow" />
+      <div className="gg-cup-wrap">
+        <div className="gg-cup-handle" />
+        <div className="gg-cup">
+          <div className="gg-cup-rim"><div className="gg-coffee"><i /><i /><i /></div></div>
+          <div className="gg-cup-mark">GG</div>
+        </div>
+        <div className="gg-saucer" />
+      </div>
+      {bean('9%','17%',-26,.78,'-.3s',BRAND.amber)}
+      {bean('74%','10%',28,.96,'-.8s',BRAND.orange)}
+      {bean('82%','62%',-16,.72,'-1.2s',BRAND.purple)}
+      {bean('18%','72%',20,.62,'-.5s','#a46b3d')}
+      <div className="gg-float-card gg-float-card-a"><span style={{color:BRAND.yellow}}>●</span> veille active</div>
+      <div className="gg-float-card gg-float-card-b">coffee intelligence</div>
+    </div>
+  )
+}
+
+function HomePage({ T, setTab, news, sci, sciItems, community, gear, gearItems, markets, dateStr, lastRefresh, setShowMusic }) {
+  const top = news?.[0]
+  const stats = [
+    {label:'actus', value:news.length || '—'},
+    {label:'science', value:(sciItems.length || sci.length || '—')},
+    {label:'communaute', value:community.length || '—'},
+    {label:'gear', value:(gearItems.length || gear.length || '—')},
+  ]
+  return (
+    <div className="gg-home">
+      <section className="gg-home-hero">
+        <div className="gg-home-copy">
+          <div className="gg-kicker"><span className="gg-live-dot" /> KISSA SŌKO · PERSONAL COFFEE DESK</div>
+          <div className="gg-hello">Bonjour Raphaël.</div>
+          <h1>Ton café.<br/><span>Tout ce qui bouge autour.</span></h1>
+          <p>Actualites, science, materiel, origines et signaux faibles. Un cockpit personnel pour garder une longueur d avance sans ouvrir quinze onglets.</p>
+          <div className="gg-home-actions">
+            <button className="gg-primary" onClick={()=>setTab('news')}>Voir le briefing <b>↗</b></button>
+            <button className="gg-secondary" onClick={()=>setTab('harvest')}>Explorer les origines</button>
+          </div>
+          <div className="gg-home-meta">
+            <span>{dateStr}</span><i />
+            <span>{lastRefresh ? `mis a jour ${lastRefresh}` : 'mise a jour en cours'}</span>
+          </div>
+        </div>
+        <CoffeeScene3D T={T} />
+      </section>
+
+      <section className="gg-stat-row">
+        {stats.map((s,i)=><div className="gg-stat" key={i}><strong>{s.value}</strong><span>{s.label}</span></div>)}
+        <button className="gg-music-quick" onClick={()=>setShowMusic(v=>!v)}><span>♪</span><div><b>Midnight radio</b><small>ouvrir les playlists</small></div></button>
+      </section>
+
+      <section className="gg-home-grid">
+        <div className="gg-today-card">
+          <div className="gg-section-label"><span>Aujourd hui</span><button onClick={()=>setTab('news')}>Tout voir ↗</button></div>
+          {top ? <a href={top.url} target="_blank" rel="noopener noreferrer" className="gg-top-story">
+            <div className="gg-story-img" style={{backgroundImage:`linear-gradient(180deg, transparent, rgba(9,9,13,.78)), url(${IMG[0]})`}}>
+              <div><small>{top.source || 'Kissa Soko'}</small><strong>{top.title}</strong></div>
+            </div>
+            <p>{top.summary || top.desc || top.description || 'Le sujet a ouvrir en premier dans ton briefing du jour.'}</p>
+          </a> : <div className="gg-skeleton-home">Le briefing se prepare…</div>}
+        </div>
+
+        <div className="gg-market-card">
+          <div className="gg-section-label"><span>Market pulse</span><em>live</em></div>
+          <div className="gg-market-list">
+            {(markets.length ? markets.slice(0,4) : [
+              {label:'Arabica ICE',val:'--',unit:'c/lb'}, {label:'Robusta ICE',val:'--',unit:'$/t'}, {label:'EUR/USD',val:'--'}, {label:'BRL/USD',val:'--'}
+            ]).map((m,i)=><div className="gg-market-line" key={i}><span>{m.label}</span><b>{m.val}<small>{m.unit || ''}</small></b>{m.chg && <em className={m.up?'up':'down'}>{m.up?'▲':'▼'} {m.chg}</em>}</div>)}
+          </div>
+        </div>
+      </section>
+
+      <section className="gg-universes">
+        <div className="gg-heading-row"><div><small>LES UNIVERS</small><h2>Choisis ton terrain de jeu.</h2></div><p>Chaque module garde sa logique actuelle, mais l accueil te permet maintenant d y entrer par intention.</p></div>
+        <div className="gg-module-grid">
+          {HOME_MODULES.map((m,i)=><button key={m.id} onClick={()=>setTab(m.id)} className="gg-module" style={{'--accent':m.accent}}>
+            <div className="gg-module-top"><span>{m.icon}</span><i>{String(i+1).padStart(2,'0')}</i></div>
+            <small>{m.eyebrow}</small><h3>{m.title}</h3><p>{m.copy}</p><b>Entrer <span>↗</span></b>
+          </button>)}
+        </div>
+      </section>
+    </div>
+  )
+}
 
 function Tag({ topic, lang, T }) {
   const color = TOPIC_COLORS[topic] || BRAND.amber
@@ -893,7 +1002,7 @@ function MiniPlayer({ open, setOpen, trackIdx, setTrackIdx, T }) {
 }
 
 export default function App() {
-  const [tab, setTab]         = useState('news')
+  const [tab, setTab]         = useState('home')
   const [dark, setDark]       = useState(true)
   const [news, setNews]       = useState([])
   const [sci, setSci]         = useState([])
@@ -999,19 +1108,54 @@ export default function App() {
   useEffect(() => { fetchHarvest() }, [fetchHarvest])
 
   return (
-    <div style={{ background:T.bg, minHeight:'100vh', color:T.text, fontFamily:"Inter,-apple-system,system-ui,sans-serif", fontWeight:500, fontSize:17, transition:'background 0.3s, color 0.3s', position:'relative' }}>
+    <div style={{ background:T.bg, minHeight:'100vh', color:T.text, fontFamily:"DM Sans,Inter,-apple-system,system-ui,sans-serif", fontWeight:500, fontSize:17, transition:'background 0.3s, color 0.3s', position:'relative', backgroundImage:`radial-gradient(circle at 15% -10%, ${BRAND.orange}0c, transparent 28%), radial-gradient(circle at 95% 8%, ${BRAND.purple}0b, transparent 24%)` }}>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap'); @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+        @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
+        @keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
         @keyframes spin{to{transform:rotate(360deg)}}
-        *{box-sizing:border-box;margin:0;padding:0;} a{color:inherit;} ::-webkit-scrollbar{width:6px;} ::-webkit-scrollbar-track{background:transparent;} ::-webkit-scrollbar-thumb{background:${T.border2};border-radius:3px;}
+        @keyframes beanFloat{0%,100%{translate:0 0}50%{translate:0 -13px}}
+        @keyframes sceneFloat{0%,100%{transform:translate(-50%,-50%) rotateX(2deg) rotateY(-8deg)}50%{transform:translate(-50%,calc(-50% - 7px)) rotateX(-2deg) rotateY(-5deg)}}
+        @keyframes pulseDot{0%,100%{box-shadow:0 0 0 0 ${BRAND.yellow}00}50%{box-shadow:0 0 0 7px ${BRAND.yellow}12}}
+        *{box-sizing:border-box;margin:0;padding:0;} html{scroll-behavior:smooth} body{margin:0} button{font:inherit} a{color:inherit;}
+        ::selection{background:${BRAND.yellow};color:#16110b} ::-webkit-scrollbar{width:7px;height:7px;} ::-webkit-scrollbar-track{background:transparent;} ::-webkit-scrollbar-thumb{background:${T.border2};border-radius:99px;}
+        .gg-home{max-width:1180px;margin:0 auto;padding:34px 22px 110px;animation:fadeUp .45s ease both}
+        .gg-home-hero{min-height:520px;border:1px solid ${T.border};border-radius:32px;display:grid;grid-template-columns:1.06fr .94fr;overflow:hidden;position:relative;background:linear-gradient(135deg,${T.surf} 0%,${T.surf2} 58%,${BRAND.purple}12 100%);box-shadow:0 28px 80px rgba(0,0,0,${dark?'.28':'.08'});isolation:isolate}
+        .gg-home-hero:before{content:'';position:absolute;width:420px;height:420px;border-radius:50%;background:${BRAND.yellow}10;filter:blur(70px);left:-170px;bottom:-250px;z-index:-1}
+        .gg-home-copy{padding:64px 58px;display:flex;flex-direction:column;justify-content:center;position:relative;z-index:2}
+        .gg-kicker{font-size:10px;font-weight:800;letter-spacing:.19em;color:${T.dim};display:flex;align-items:center;gap:9px;margin-bottom:24px}
+        .gg-live-dot{width:8px;height:8px;border-radius:50%;background:${BRAND.yellow};box-shadow:0 0 20px ${BRAND.yellow};animation:pulseDot 2s ease-in-out infinite}
+        .gg-hello{font-size:14px;color:${BRAND.amber};font-weight:700;margin-bottom:8px}
+        .gg-home-copy h1{font-family:Manrope,Inter,sans-serif;font-size:clamp(42px,5.2vw,72px);line-height:.98;letter-spacing:-.06em;font-weight:800;color:${T.text};max-width:650px}
+        .gg-home-copy h1 span{color:${T.dim};font-weight:600}
+        .gg-home-copy>p{font-size:16px;line-height:1.75;color:${T.dim};max-width:590px;margin-top:24px;font-weight:450}
+        .gg-home-actions{display:flex;gap:11px;flex-wrap:wrap;margin-top:30px}
+        .gg-primary,.gg-secondary{border-radius:13px;padding:12px 17px;cursor:pointer;transition:.22s ease;border:1px solid transparent;font-weight:750;font-size:13px}
+        .gg-primary{background:${BRAND.yellow};color:#17130c;box-shadow:0 9px 28px ${BRAND.yellow}1f}.gg-primary:hover{transform:translateY(-2px);box-shadow:0 14px 36px ${BRAND.yellow}30}.gg-primary b{margin-left:8px}
+        .gg-secondary{background:${T.surf3};color:${T.text};border-color:${T.border2}}.gg-secondary:hover{border-color:${BRAND.purple}80;transform:translateY(-2px)}
+        .gg-home-meta{display:flex;align-items:center;gap:10px;color:${T.faint};font-size:10px;margin-top:27px;text-transform:uppercase;letter-spacing:.08em}.gg-home-meta i{width:3px;height:3px;border-radius:50%;background:${T.faint}}
+        .gg-scene{position:relative;min-height:520px;perspective:1000px;overflow:hidden;background:radial-gradient(circle at 55% 48%,${BRAND.amber}16,transparent 34%),linear-gradient(145deg,transparent 12%,${BRAND.purple}0c)}
+        .gg-glow{position:absolute;border-radius:50%;filter:blur(12px)}.gg-glow-a{width:240px;height:240px;right:12%;top:18%;background:${BRAND.yellow}12}.gg-glow-b{width:280px;height:280px;left:8%;bottom:-10%;background:${BRAND.purple}18}
+        .gg-orbit{position:absolute;left:50%;top:47%;border:1px solid ${T.border2};border-radius:50%;transform-style:preserve-3d}.gg-orbit-one{width:390px;height:390px;margin:-195px;transform:rotateX(66deg) rotateZ(-24deg)}.gg-orbit-two{width:300px;height:300px;margin:-150px;border-color:${BRAND.yellow}22;transform:rotateX(66deg) rotateZ(42deg)}
+        .gg-cup-wrap{position:absolute;left:50%;top:52%;width:260px;height:270px;transform:translate(-50%,-50%) rotateX(2deg) rotateY(-8deg);transform-style:preserve-3d;animation:sceneFloat 5.5s ease-in-out infinite}
+        .gg-cup{position:absolute;left:33px;top:48px;width:178px;height:150px;border-radius:18px 18px 76px 76px;background:linear-gradient(100deg,#f4f1eb 0%,#fff 35%,#d8d5d1 78%,#b8b5b2 100%);box-shadow:inset -12px -12px 28px rgba(0,0,0,.12),0 28px 48px rgba(0,0,0,.28);z-index:3}
+        .gg-cup-rim{position:absolute;left:-1px;top:-19px;width:180px;height:48px;border-radius:50%;background:linear-gradient(180deg,#fff,#d9d7d3);box-shadow:0 6px 10px rgba(0,0,0,.2);display:grid;place-items:center}.gg-coffee{width:151px;height:33px;border-radius:50%;background:radial-gradient(circle at 48% 35%,#7d4b2c 0%,#4b2617 45%,#1f0f0b 100%);box-shadow:inset 0 4px 10px #a46a3d55;position:relative;overflow:hidden}.gg-coffee i{position:absolute;width:60px;height:8px;border:1px solid #d9c6a055;border-radius:50%;filter:blur(.2px)}.gg-coffee i:nth-child(1){left:26px;top:7px;transform:rotate(7deg)}.gg-coffee i:nth-child(2){right:18px;bottom:7px;transform:rotate(-11deg)}.gg-coffee i:nth-child(3){left:64px;top:16px;width:32px}
+        .gg-cup-mark{position:absolute;left:63px;top:65px;color:${BRAND.orange};font-family:Manrope,sans-serif;font-size:28px;font-weight:800;letter-spacing:-.08em;transform:rotate(-2deg)}
+        .gg-cup-handle{position:absolute;right:2px;top:83px;width:80px;height:82px;border:19px solid #dedbd6;border-left-width:12px;border-radius:48%;transform:rotate(-8deg);box-shadow:12px 8px 20px rgba(0,0,0,.14);z-index:1}.gg-saucer{position:absolute;left:10px;bottom:22px;width:230px;height:54px;border-radius:50%;background:linear-gradient(180deg,#f9f7f3,#c7c4bf);box-shadow:0 30px 40px rgba(0,0,0,.28);z-index:0}.gg-cup-shadow{position:absolute;left:50%;top:73%;width:250px;height:55px;transform:translateX(-50%);border-radius:50%;background:rgba(0,0,0,.28);filter:blur(18px)}
+        .gg-bean{position:absolute;width:64px;height:45px;border-radius:58% 42% 58% 42% / 60% 40% 60% 40%;box-shadow:inset 8px 8px 14px rgba(255,255,255,.09),inset -8px -9px 12px rgba(0,0,0,.24),0 16px 26px rgba(0,0,0,.24);z-index:5;animation:beanFloat 4s ease-in-out infinite}.gg-bean span{position:absolute;left:31px;top:4px;width:5px;height:37px;border-radius:50%;background:#2b160f66;transform:rotate(8deg)}
+        .gg-float-card{position:absolute;z-index:6;padding:9px 12px;border-radius:12px;background:${T.surf}cc;border:1px solid ${T.border2};backdrop-filter:blur(14px);font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;box-shadow:0 12px 36px rgba(0,0,0,.16)}.gg-float-card-a{right:6%;top:31%;transform:rotate(4deg)}.gg-float-card-b{left:7%;bottom:18%;transform:rotate(-5deg);color:${T.dim}}
+        .gg-stat-row{margin:15px 0 34px;display:grid;grid-template-columns:repeat(4,1fr) minmax(220px,1.45fr);gap:10px}.gg-stat,.gg-music-quick{background:${T.surf};border:1px solid ${T.border};border-radius:16px;min-height:78px}.gg-stat{padding:15px 18px;display:flex;flex-direction:column;justify-content:center}.gg-stat strong{font:800 20px/1 Manrope,sans-serif;color:${T.text}}.gg-stat span{font-size:9px;text-transform:uppercase;letter-spacing:.14em;color:${T.faint};margin-top:7px}.gg-music-quick{display:flex;align-items:center;gap:13px;padding:0 18px;color:${T.text};cursor:pointer;text-align:left;transition:.2s}.gg-music-quick:hover{border-color:${BRAND.purple}77;transform:translateY(-2px)}.gg-music-quick>span{width:38px;height:38px;border-radius:11px;background:linear-gradient(145deg,${BRAND.purple},${BRAND.orange});display:grid;place-items:center;color:white;font-size:18px;box-shadow:0 8px 20px ${BRAND.purple}24}.gg-music-quick b{display:block;font-size:12px}.gg-music-quick small{color:${T.faint};font-size:9px;display:block;margin-top:2px}
+        .gg-home-grid{display:grid;grid-template-columns:1.45fr .75fr;gap:16px;margin-bottom:52px}.gg-today-card,.gg-market-card{background:${T.surf};border:1px solid ${T.border};border-radius:24px;padding:18px;overflow:hidden}.gg-section-label{display:flex;align-items:center;justify-content:space-between;margin-bottom:15px}.gg-section-label>span{font-size:10px;text-transform:uppercase;letter-spacing:.16em;color:${T.dim};font-weight:800}.gg-section-label button{border:0;background:none;color:${T.faint};font-size:10px;cursor:pointer}.gg-section-label em{font-style:normal;font-size:8px;text-transform:uppercase;color:#7cb87c;background:#7cb87c18;border:1px solid #7cb87c35;border-radius:99px;padding:4px 7px;letter-spacing:.1em}.gg-top-story{text-decoration:none;display:grid;grid-template-columns:1.28fr .72fr;gap:18px;align-items:center}.gg-story-img{height:210px;border-radius:17px;background-size:cover;background-position:center;position:relative;overflow:hidden;transition:.25s}.gg-top-story:hover .gg-story-img{transform:scale(1.008)}.gg-story-img>div{position:absolute;left:18px;right:18px;bottom:17px}.gg-story-img small{display:block;color:${BRAND.yellow};font-size:9px;text-transform:uppercase;letter-spacing:.14em;font-weight:800;margin-bottom:7px}.gg-story-img strong{display:block;color:#fff;font:700 20px/1.16 Manrope,sans-serif;letter-spacing:-.025em}.gg-top-story>p{font-size:12px;line-height:1.7;color:${T.dim};display:-webkit-box;-webkit-line-clamp:7;-webkit-box-orient:vertical;overflow:hidden}.gg-skeleton-home{height:210px;border-radius:17px;background:linear-gradient(90deg,${T.surf2},${T.surf3},${T.surf2});display:grid;place-items:center;color:${T.faint};font-size:12px}.gg-market-list{display:flex;flex-direction:column}.gg-market-line{display:grid;grid-template-columns:1fr auto;gap:3px 8px;padding:15px 2px;border-top:1px solid ${T.border};align-items:center}.gg-market-line:first-child{border-top:0}.gg-market-line>span{font-size:10px;text-transform:uppercase;letter-spacing:.08em;color:${T.faint};font-weight:700}.gg-market-line>b{font:750 17px Manrope,sans-serif;color:${T.text}}.gg-market-line b small{font:500 8px DM Sans,sans-serif;color:${T.faint};margin-left:4px}.gg-market-line>em{grid-column:2;font-size:9px;font-style:normal;text-align:right}.gg-market-line>.up{color:#7cb87c}.gg-market-line>.down{color:#c07070}
+        .gg-heading-row{display:flex;justify-content:space-between;gap:30px;align-items:end;margin-bottom:20px}.gg-heading-row small{font-size:9px;letter-spacing:.2em;color:${BRAND.orange};font-weight:800}.gg-heading-row h2{font:800 clamp(26px,3vw,38px)/1.05 Manrope,sans-serif;letter-spacing:-.04em;margin-top:6px}.gg-heading-row>p{font-size:11px;line-height:1.65;color:${T.faint};max-width:350px}.gg-module-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px}.gg-module{--accent:${BRAND.amber};text-align:left;min-height:225px;padding:19px;border-radius:21px;border:1px solid ${T.border};background:linear-gradient(155deg,${T.surf},${T.surf2});color:${T.text};cursor:pointer;transition:.25s;position:relative;overflow:hidden}.gg-module:after{content:'';position:absolute;width:150px;height:150px;right:-75px;bottom:-85px;border-radius:50%;background:var(--accent);filter:blur(45px);opacity:.09;transition:.25s}.gg-module:hover{transform:translateY(-5px);border-color:var(--accent);box-shadow:0 18px 44px rgba(0,0,0,${dark?'.20':'.08'})}.gg-module:hover:after{opacity:.2}.gg-module-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:24px}.gg-module-top>span{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:${T.surf3};border:1px solid ${T.border2};color:var(--accent);font-size:18px}.gg-module-top i{font-style:normal;color:${T.faint};font-size:9px;letter-spacing:.12em}.gg-module>small{font-size:8px;text-transform:uppercase;letter-spacing:.14em;color:var(--accent);font-weight:800}.gg-module h3{font:800 20px Manrope,sans-serif;letter-spacing:-.03em;margin-top:5px}.gg-module p{font-size:10px;line-height:1.6;color:${T.faint};margin-top:8px;max-width:270px}.gg-module>b{position:absolute;left:19px;bottom:18px;font-size:9px;text-transform:uppercase;letter-spacing:.1em}.gg-module>b span{color:var(--accent);margin-left:4px}
+        @media(max-width:900px){.gg-home-hero{grid-template-columns:1fr}.gg-home-copy{padding:46px 34px 20px}.gg-scene{min-height:390px}.gg-home-grid{grid-template-columns:1fr}.gg-stat-row{grid-template-columns:repeat(2,1fr)}.gg-music-quick{grid-column:1/-1}.gg-module-grid{grid-template-columns:repeat(2,1fr)}}
+        @media(max-width:620px){.gg-home{padding:18px 12px 90px}.gg-home-hero{border-radius:24px}.gg-home-copy{padding:35px 23px 5px}.gg-home-copy h1{font-size:43px}.gg-home-copy>p{font-size:14px}.gg-scene{min-height:340px}.gg-cup-wrap{animation:none;transform:translate(-50%,-50%) scale(.78)}.gg-orbit-one{width:320px;height:320px;margin:-160px}.gg-orbit-two{width:240px;height:240px;margin:-120px}.gg-stat-row{margin-top:10px}.gg-stat{min-height:68px;padding:12px}.gg-top-story{grid-template-columns:1fr}.gg-top-story>p{display:none}.gg-heading-row{display:block}.gg-heading-row>p{margin-top:10px}.gg-module-grid{grid-template-columns:1fr}.gg-module{min-height:205px}.gg-float-card{display:none}}
       `}</style>
 
       {/* TOPBAR */}
-      <div style={{ background:T.surf, borderBottom:`1px solid ${T.border}`, padding:'0 20px', height:54, display:'flex', alignItems:'center', justifyContent:'space-between', position:'sticky', top:0, zIndex:100, backdropFilter:'blur(12px)' }}>
+      <div style={{ background:`${T.bg}e8`, borderBottom:`1px solid ${T.border}`, padding:'0 24px', height:64, display:'flex', alignItems:'center', justifyContent:'space-between', position:'sticky', top:0, zIndex:100, backdropFilter:'blur(20px) saturate(140%)' }}>
         <div style={{ display:'flex', alignItems:'center', gap:12 }}>
           {/* Logo */}
           <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-            <img src="/logo.png" alt="Kissa Soko" style={{ height:36, width:'auto', display:'block', borderRadius:10 }} />
+            <img src="/logo.png" alt="Kissa Soko" style={{ height:38, width:'auto', display:'block', borderRadius:11, boxShadow:`0 8px 24px ${BRAND.orange}18` }} />
             <div style={{ fontSize:11, color:T.dim, letterSpacing:'0.08em', textTransform:'uppercase', fontWeight:500 }}>by GaufreGentille · Actu Cafe</div>
           </div>
         </div>
@@ -1031,7 +1175,7 @@ export default function App() {
       </div>
 
       {/* MARKETS STRIP */}
-      <div style={{ background:T.surf, borderBottom:`2px solid ${BRAND.yellow}22`, display:'flex', alignItems:'center', padding:'0 24px', minHeight:64 }}>
+      <div style={{ background:`${T.surf}d9`, borderBottom:`1px solid ${T.border}`, display:'flex', alignItems:'center', padding:'0 24px', minHeight:66, backdropFilter:'blur(18px)' }}>
         {/* Market data */}
         <div style={{ display:'flex', flex:1, overflowX:'auto' }}>
           {(markets.length ? markets : [
@@ -1122,15 +1266,15 @@ export default function App() {
       )}
 
       {/* TAB BAR */}
-      <div style={{ background:T.surf2, borderBottom:`1px solid ${T.border}`, display:'flex', padding:'0 20px', overflowX:'auto' }}>
+      <div style={{ background:`${T.bg}e6`, borderBottom:`1px solid ${T.border}`, display:'flex', gap:5, padding:'8px max(20px, calc((100vw - 1180px)/2))', overflowX:'auto', position:'sticky', top:64, zIndex:90, backdropFilter:'blur(18px) saturate(140%)' }}>
         {TABS.map(t => (
           <button key={t.id} onClick={()=>setTab(t.id)} style={{
-            background:'none', border:'none',
-            borderBottom: tab===t.id ? `3px solid ${BRAND.yellow}` : '3px solid transparent',
+            background: tab===t.id ? T.surf3 : 'transparent', border:`1px solid ${tab===t.id ? T.border2 : 'transparent'}`,
+            borderRadius:11,
             color: tab===t.id ? T.text : T.dim,
-            fontWeight: tab===t.id ? 600 : 400,
-            fontSize:'0.95rem', padding:'14px 20px 11px', letterSpacing:'0.02em',
-            cursor:'pointer', whiteSpace:'nowrap', transition:'all 0.15s', fontFamily:'inherit',
+            fontWeight: tab===t.id ? 700 : 500,
+            fontSize:'0.78rem', padding:'8px 13px', letterSpacing:'0.015em',
+            cursor:'pointer', whiteSpace:'nowrap', transition:'all 0.18s', fontFamily:'inherit',
           }}>
             {t.label}
           </button>
@@ -1138,8 +1282,17 @@ export default function App() {
       </div>
 
       {/* CONTENT */}
-      <div style={{ maxWidth:960, margin:'0 auto', padding:'20px 16px 100px' }}>
+      <div style={{ maxWidth: tab==='home' ? 'none' : 1040, margin:'0 auto', padding: tab==='home' ? 0 : '28px 18px 110px' }}>
         {error && <ErrMsg msg={error} T={T} />}
+
+        {/* HOME */}
+        {tab==='home' && (
+          <HomePage
+            T={T} setTab={setTab} news={news} sci={sci} sciItems={sciItems}
+            community={community} gear={gear} gearItems={gearItems} markets={markets}
+            dateStr={dateStr} lastRefresh={lastRefresh} setShowMusic={setShowMusic}
+          />
+        )}
 
         {/* NEWS */}
         {tab==='news' && (
