@@ -563,9 +563,9 @@ const TABS = [
 ]
 
 
-const GG_GG_ORANGE = '#da5d16';
+const GG_ORANGE = '#da5d16';
 
-const GG_PROCESS_GG_PROCESS_STAGES = [
+const GG_PROCESS_STAGES = [
   { key:'cherry',       label:'Cerise',       detail:'La matière première.',                    bg:'#f5f0e9' },
   { key:'depulp',       label:'Dépulpage',    detail:'La peau et la pulpe sont retirées.',      bg:'#eee4d6' },
   { key:'fermentation', label:'Fermentation', detail:'Le mucilage se dégrade progressivement.', bg:'#dfd0bc' },
@@ -575,7 +575,7 @@ const GG_PROCESS_GG_PROCESS_STAGES = [
   { key:'roast',        label:'Torréfaction', detail:'La chaleur transforme le grain.',         bg:'#271510' },
 ];
 
-const GG_HOME_GG_HOME_CATEGORIES = [
+const GG_HOME_CATEGORIES = [
   { id:'news',      label:'Actualités',  icon:'news' },
   { id:'science',   label:'Science',     icon:'science' },
   { id:'harvest',   label:'Origines',    icon:'origins' },
@@ -780,7 +780,7 @@ function HomePage({ setTab, setShowMusic }) {
     <GGCursor />
 
     <header className="ggc-nav">
-      <button className="ggc-logo" onClick={()=>window.scrollTo({top:0,behavior:'ggSmooth'})} data-cursor="active">GG</button>
+      <button className="ggc-logo" onClick={()=>window.scrollTo({top:0,behavior:'smooth'})} data-cursor="active">GG</button>
       <nav>
         <button onClick={()=>onNavigate('news')}>Actus</button>
         <button onClick={()=>onNavigate('science')}>Science</button>
