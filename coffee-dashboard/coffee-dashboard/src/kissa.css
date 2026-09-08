@@ -180,7 +180,7 @@ a{color:inherit}
 .ks-page-ornament img{width:100%;height:100%;display:block;object-fit:contain;filter:none;opacity:1}
 
 /* Chaque univers a son propre placement. Le dessin reste volontairement en périphérie. */
-.ks-page-ornament.is-news{top:auto;bottom:72px;width:310px;height:330px}
+.ks-page-ornament.is-news{top:auto;bottom:0;width:310px;height:330px}
 .ks-page-ornament.is-news img{transform:translateX(32%) rotate(-8deg)}
 
 .ks-page-ornament.is-science{top:215px;width:285px;height:320px}
@@ -192,13 +192,13 @@ a{color:inherit}
 /* Matériel, Communauté et Instagram : le décor est ancré en bas de la page,
    derrière les contenus. Le canvas PNG n'est plus rogné par son conteneur. */
 .ks-page-ornament.is-gear{top:auto;bottom:72px;width:390px;height:410px}
-.ks-page-ornament.is-gear img{transform:translateX(20%) scaleX(-1) rotate(-5deg)}
+.ks-page-ornament.is-gear img{transform:translateX(-20%) scaleX(-1) rotate(-5deg)}
 
 .ks-page-ornament.is-reddit{top:auto;bottom:82px;width:400px;height:410px}
-.ks-page-ornament.is-reddit img{transform:translateX(-20%) rotate(5deg)}
+.ks-page-ornament.is-reddit img{transform:translateX(20%) rotate(5deg)}
 
 .ks-page-ornament.is-instagram{top:auto;bottom:64px;width:370px;height:390px}
-.ks-page-ornament.is-instagram img{transform:translateX(18%) scaleX(-1) rotate(4deg)}
+.ks-page-ornament.is-instagram img{transform:translateX(-18%) scaleX(-1) rotate(4deg)}
 
 .ks-spinner{display:flex;align-items:center;gap:12px;padding:34px 0;color:var(--ks-dim);font-size:13px}
 .ks-spinner>span{width:18px;height:18px;border:2px solid var(--ks-border-strong);border-top-color:var(--ks-orange);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
@@ -560,18 +560,18 @@ a{color:inherit}
   .ks-page-ornament{width:190px;height:215px}
   .ks-page-ornament.right{right:calc(50% - 50vw)}
   .ks-page-ornament.left{left:calc(50% - 50vw)}
-  .ks-page-ornament.is-news{top:auto;bottom:38px;width:190px;height:215px}
+  .ks-page-ornament.is-news{top:auto;bottom:0;width:190px;height:215px}
   .ks-page-ornament.is-news img{transform:translateX(52%) rotate(-8deg)}
   .ks-page-ornament.is-science{top:150px;width:175px;height:205px}
   .ks-page-ornament.is-science img{transform:translateX(-54%) scaleX(-1) rotate(12deg)}
   .ks-page-ornament.is-harvest{top:8px;width:195px;height:220px}
   .ks-page-ornament.is-harvest img{transform:translateX(55%) rotate(7deg)}
   .ks-page-ornament.is-gear{top:auto;bottom:38px;width:245px;height:265px}
-  .ks-page-ornament.is-gear img{transform:translateX(27%) scaleX(-1) rotate(-5deg)}
+  .ks-page-ornament.is-gear img{transform:translateX(-27%) scaleX(-1) rotate(-5deg)}
   .ks-page-ornament.is-reddit{top:auto;bottom:42px;width:250px;height:265px}
-  .ks-page-ornament.is-reddit img{transform:translateX(-28%) rotate(5deg)}
+  .ks-page-ornament.is-reddit img{transform:translateX(28%) rotate(5deg)}
   .ks-page-ornament.is-instagram{top:auto;bottom:34px;width:235px;height:250px}
-  .ks-page-ornament.is-instagram img{transform:translateX(26%) scaleX(-1) rotate(4deg)}
+  .ks-page-ornament.is-instagram img{transform:translateX(-26%) scaleX(-1) rotate(4deg)}
   .ks-origin-map{min-height:390px;padding:13px;border-radius:14px}
   .ks-origin-world{min-height:285px}
   .ks-origin-map-legend{align-items:flex-start;flex-direction:column;gap:5px}
@@ -629,31 +629,22 @@ a{color:inherit}
   border-radius:18px;
 }
 
-/* Les handles de comptes sont des liens : ils étaient quasi blancs sur ivoire. */
-.ks-instagram-panel-skin a,
-.ks-instagram-panel-skin a:visited,
-.ks-instagram-panel-skin a[href*="instagram.com"]{
-  color:var(--ks-orange)!important;
-  font-weight:700!important;
+/* Gestion des comptes uniquement : handles/noms en bleu Kissa Soko.
+   Le ciblage reste enfermé dans <details> pour ne pas toucher les tuiles. */
+.ks-instagram-panel-skin details a,
+.ks-instagram-panel-skin details a:visited,
+.ks-instagram-panel-skin details a *,
+.ks-instagram-panel-skin details [role="link"],
+.ks-instagram-panel-skin details [role="link"] *{
+  color:var(--ks-ink)!important;
+  opacity:1!important;
   text-decoration:none!important;
 }
-.ks-instagram-panel-skin a:hover{
+.ks-instagram-panel-skin details a:hover,
+.ks-instagram-panel-skin details a:hover *{
   color:var(--ks-ink)!important;
   text-decoration:underline!important;
   text-underline-offset:3px;
-}
-
-/* Les handles Instagram contiennent des éléments enfants avec leur propre couleur.
-   On force aussi ces enfants afin que @puq.coffee, @ikawahome, etc. soient lisibles. */
-.ks-instagram-panel-skin a *,
-.ks-instagram-panel-skin a[href*="instagram.com"] *{
-  color:var(--ks-orange)!important;
-  opacity:1!important;
-  visibility:visible!important;
-  filter:none!important;
-}
-.ks-instagram-panel-skin a:hover *{
-  color:var(--ks-ink)!important;
 }
 
 /* Formulaire de gestion : contraste explicite, même si le composant possède
@@ -700,11 +691,4 @@ a{color:inherit}
     padding:16px 12px;
     border-radius:14px;
   }
-}
-
-
-/* Secours de contraste pour les noms/handles de la liste Instagram. */
-.ks-instagram-panel-skin [role="link"],
-.ks-instagram-panel-skin [role="link"] *{
-  opacity:1!important;
 }
