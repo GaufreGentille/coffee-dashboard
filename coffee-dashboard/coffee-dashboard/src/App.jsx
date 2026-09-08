@@ -45,7 +45,7 @@ const PLAYLISTS = [
     vibe: 'Tokyo nights · Neon · Electronic',
   },
   {
-    name: 'Kowareta Kagami',
+    name: 'Sakura',
     url: 'https://suno.com/playlist/b6243889-9e57-46cb-90ae-fad1f0adb8a0',
     tracks: '—',
     cover: '/playlist-sakura.jpg',
@@ -1084,7 +1084,9 @@ export default function App() {
               <section className="ks-editorial-page ks-instagram-page ks-legacy-panel ks-page-has-art">
                 <PageOrnament page="instagram" />
                 <PageIntro title="Instagram" meta="Veille visuelle" />
-                <InstaVeillePanel />
+                <div className="ks-instagram-panel-skin">
+                  <InstaVeillePanel />
+                </div>
               </section>
             )}
 
