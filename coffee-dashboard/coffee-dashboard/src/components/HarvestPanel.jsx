@@ -63,52 +63,52 @@ function getOriginStatus(origin, nowIdx) {
 const STATUS_CONFIG = {
   available: {
     label: "En entrepôt",
-    color: "#4ade80",
-    bg: "rgba(74,222,128,0.12)",
-    border: "rgba(74,222,128,0.35)",
-    dot: "#4ade80",
+    color: "#2f7a4d",
+    bg: "rgba(47,122,77,0.12)",
+    border: "rgba(47,122,77,0.35)",
+    dot: "#2f7a4d",
   },
   shipping: {
     label: "En route",
-    color: "#60a5fa",
-    bg: "rgba(96,165,250,0.12)",
-    border: "rgba(96,165,250,0.35)",
-    dot: "#60a5fa",
+    color: "#2563eb",
+    bg: "rgba(37,99,235,0.12)",
+    border: "rgba(37,99,235,0.35)",
+    dot: "#2563eb",
   },
   arriving_soon: {
     label: "Arrive bientôt",
-    color: "#fb923c",
-    bg: "rgba(251,146,60,0.14)",
-    border: "rgba(251,146,60,0.45)",
-    dot: "#fb923c",
+    color: "#c2570d",
+    bg: "rgba(194,87,13,0.14)",
+    border: "rgba(194,87,13,0.45)",
+    dot: "#c2570d",
   },
   shipping_soon: {
     label: "Embarque bientôt",
-    color: "#facc15",
-    bg: "rgba(250,204,21,0.10)",
-    border: "rgba(250,204,21,0.35)",
-    dot: "#facc15",
+    color: "#8a6412",
+    bg: "rgba(138,100,18,0.10)",
+    border: "rgba(138,100,18,0.35)",
+    dot: "#8a6412",
   },
   buying: {
     label: "Fenêtre d'achat",
-    color: "#e879f9",
-    bg: "rgba(232,121,249,0.12)",
-    border: "rgba(232,121,249,0.35)",
-    dot: "#e879f9",
+    color: "#a83bb0",
+    bg: "rgba(168,59,176,0.12)",
+    border: "rgba(168,59,176,0.35)",
+    dot: "#a83bb0",
   },
   buying_soon: {
     label: "Achat imminent",
-    color: "#a78bfa",
-    bg: "rgba(167,139,250,0.12)",
-    border: "rgba(167,139,250,0.35)",
-    dot: "#a78bfa",
+    color: "#6b4fc4",
+    bg: "rgba(107,79,196,0.12)",
+    border: "rgba(107,79,196,0.35)",
+    dot: "#6b4fc4",
   },
   harvest: {
     label: "En récolte",
-    color: "#86efac",
-    bg: "rgba(134,239,172,0.08)",
-    border: "rgba(134,239,172,0.2)",
-    dot: "#86efac",
+    color: "#4a7c3f",
+    bg: "rgba(74,124,63,0.08)",
+    border: "rgba(74,124,63,0.2)",
+    dot: "#4a7c3f",
   },
 };
 
@@ -119,7 +119,7 @@ const PANEL_CONFIGS = [
     title: "À goûter maintenant",
     subtitle: "Cafés disponibles en entrepôt Europe",
     statuses: ["available"],
-    accent: "#4ade80",
+    accent: "#2f7a4d",
   },
   {
     id: "buy",
@@ -127,7 +127,7 @@ const PANEL_CONFIGS = [
     title: "À acheter",
     subtitle: "Fenêtre d'achat ouverte — commandez vos échantillons",
     statuses: ["buying"],
-    accent: "#e879f9",
+    accent: "#a83bb0",
   },
   {
     id: "soon",
@@ -135,7 +135,7 @@ const PANEL_CONFIGS = [
     title: "Arrive bientôt",
     subtitle: "En route vers les entrepôts européens",
     statuses: ["shipping", "arriving_soon"],
-    accent: "#60a5fa",
+    accent: "#2563eb",
   },
   {
     id: "alert",
@@ -143,7 +143,7 @@ const PANEL_CONFIGS = [
     title: "Alerte — imminent",
     subtitle: "Fenêtre d'achat qui s'ouvre dans moins de 2 mois",
     statuses: ["buying_soon", "shipping_soon"],
-    accent: "#fb923c",
+    accent: "#c2570d",
   },
 ];
 
@@ -163,21 +163,21 @@ function GanttRow({ cycle, nowIdx }) {
     return null;
   };
   const typeColors = {
-    harvest: "#86efac44",
-    buying: "#e879f933",
-    shipping: "#60a5fa44",
-    available: "#4ade8044",
+    harvest: "#4a7c3f44",
+    buying: "#a83bb033",
+    shipping: "#2563eb44",
+    available: "#2f7a4d44",
   };
   const typeBorders = {
-    harvest: "#86efac",
-    buying: "#e879f9",
-    shipping: "#60a5fa",
-    available: "#4ade80",
+    harvest: "#4a7c3f",
+    buying: "#a83bb0",
+    shipping: "#2563eb",
+    available: "#2f7a4d",
   };
 
   return (
     <div style={{ display: "flex", alignItems: "center", gap: 2, marginTop: 6 }}>
-      <span style={{ fontSize: 9, color: "#888", minWidth: 90, textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
+      <span style={{ fontSize: 9, color: "var(--ks-dim)", minWidth: 90, textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>
         {cycle.label}
       </span>
       <div style={{ display: "flex", gap: 1, flex: 1 }}>
@@ -192,12 +192,12 @@ function GanttRow({ cycle, nowIdx }) {
                 flex: 1,
                 height: 10,
                 borderRadius: 2,
-                background: t ? typeColors[t] : "rgba(255,255,255,0.04)",
+                background: t ? typeColors[t] : "rgba(255,255,255,0.55)",
                 border: isNow
-                  ? "1.5px solid rgba(255,255,255,0.8)"
+                  ? "1.5px solid var(--ks-ink)"
                   : t
                   ? `1px solid ${typeBorders[t]}44`
-                  : "1px solid rgba(255,255,255,0.05)",
+                  : "1px solid rgba(7,23,43,0.08)",
                 transition: "transform 0.1s",
                 cursor: "default",
               }}
@@ -220,9 +220,9 @@ function OriginCard({ origin, nowIdx, expanded, onToggle }) {
       onClick={onToggle}
       style={{
         background: expanded
-          ? "rgba(255,255,255,0.07)"
-          : cfg.bg || "rgba(255,255,255,0.04)",
-        border: `1px solid ${expanded ? "rgba(255,255,255,0.15)" : cfg.border || "rgba(255,255,255,0.08)"}`,
+          ? "rgba(255,255,255,0.78)"
+          : cfg.bg || "rgba(255,255,255,0.55)",
+        border: `1px solid ${expanded ? "var(--ks-border-strong)" : cfg.border || "var(--ks-border)"}`,
         borderRadius: 10,
         padding: "10px 12px",
         cursor: "pointer",
@@ -235,21 +235,21 @@ function OriginCard({ origin, nowIdx, expanded, onToggle }) {
         <span style={{ fontSize: 18 }}>{origin.flag}</span>
         <div style={{ flex: 1 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-            <span style={{ fontWeight: 700, fontSize: 13, color: "#f0f0f0" }}>
+            <span style={{ fontWeight: 700, fontSize: 13, color: "var(--ks-ink)" }}>
               {origin.country}
             </span>
             {origin.alert && (
-              <span style={{ fontSize: 10, color: "#fb923c" }}>⚠</span>
+              <span style={{ fontSize: 10, color: "#c2570d" }}>⚠</span>
             )}
           </div>
-          <div style={{ fontSize: 10, color: "#888", marginTop: 1 }}>
+          <div style={{ fontSize: 10, color: "var(--ks-dim)", marginTop: 1 }}>
             {origin.typical_processes.join(" · ")}
           </div>
         </div>
         <div
           style={{
             fontSize: 10,
-            color: cfg.color || "#888",
+            color: cfg.color || "var(--ks-dim)",
             background: cfg.bg,
             border: `1px solid ${cfg.border || "transparent"}`,
             borderRadius: 20,
@@ -264,14 +264,14 @@ function OriginCard({ origin, nowIdx, expanded, onToggle }) {
               width: 6,
               height: 6,
               borderRadius: "50%",
-              background: cfg.dot || "#888",
+              background: cfg.dot || "var(--ks-dim)",
               marginRight: 5,
               verticalAlign: "middle",
             }}
           />
           {cfg.label || "Hors saison"}
         </div>
-        <span style={{ fontSize: 10, color: "#555", marginLeft: 4 }}>
+        <span style={{ fontSize: 10, color: "var(--ks-faint)", marginLeft: 4 }}>
           {expanded ? "▲" : "▼"}
         </span>
       </div>
@@ -283,12 +283,12 @@ function OriginCard({ origin, nowIdx, expanded, onToggle }) {
           {origin.alert && (
             <div
               style={{
-                background: "rgba(251,146,60,0.1)",
-                border: "1px solid rgba(251,146,60,0.3)",
+                background: "rgba(194,87,13,0.1)",
+                border: "1px solid rgba(194,87,13,0.3)",
                 borderRadius: 6,
                 padding: "6px 10px",
                 fontSize: 11,
-                color: "#fb923c",
+                color: "#c2570d",
                 marginBottom: 8,
               }}
             >
@@ -300,7 +300,7 @@ function OriginCard({ origin, nowIdx, expanded, onToggle }) {
           <div
             style={{
               fontSize: 11,
-              color: "#aaa",
+              color: "var(--ks-ink-2)",
               lineHeight: 1.5,
               marginBottom: 8,
             }}
@@ -315,8 +315,8 @@ function OriginCard({ origin, nowIdx, expanded, onToggle }) {
                 key={r}
                 style={{
                   fontSize: 10,
-                  color: "#aaa",
-                  background: "rgba(255,255,255,0.06)",
+                  color: "var(--ks-ink-2)",
+                  background: "rgba(7,23,43,0.07)",
                   borderRadius: 4,
                   padding: "2px 6px",
                 }}
@@ -335,7 +335,7 @@ function OriginCard({ origin, nowIdx, expanded, onToggle }) {
                   style={{
                     flex: 1,
                     fontSize: 8,
-                    color: i + 1 === nowIdx ? "#fff" : "#555",
+                    color: i + 1 === nowIdx ? "var(--ks-ink)" : "var(--ks-faint)",
                     fontWeight: i + 1 === nowIdx ? 700 : 400,
                     textAlign: "center",
                   }}
@@ -359,10 +359,10 @@ function OriginCard({ origin, nowIdx, expanded, onToggle }) {
             }}
           >
             {[
-              { label: "Récolte", color: "#86efac" },
-              { label: "Fenêtre achat", color: "#e879f9" },
-              { label: "Embarquement", color: "#60a5fa" },
-              { label: "Disponible EU", color: "#4ade80" },
+              { label: "Récolte", color: "#4a7c3f" },
+              { label: "Fenêtre achat", color: "#a83bb0" },
+              { label: "Embarquement", color: "#2563eb" },
+              { label: "Disponible EU", color: "#2f7a4d" },
             ].map(({ label, color }) => (
               <div
                 key={label}
@@ -377,7 +377,7 @@ function OriginCard({ origin, nowIdx, expanded, onToggle }) {
                     border: `1px solid ${color}`,
                   }}
                 />
-                <span style={{ fontSize: 9, color: "#777" }}>{label}</span>
+                <span style={{ fontSize: 9, color: "var(--ks-dim)" }}>{label}</span>
               </div>
             ))}
           </div>
@@ -404,8 +404,8 @@ function SectionPanel({ config, origins, nowIdx }) {
   return (
     <div
       style={{
-        background: "rgba(255,255,255,0.03)",
-        border: `1px solid rgba(255,255,255,0.08)`,
+        background: "rgba(255,255,255,0.50)",
+        border: `1px solid var(--ks-border)`,
         borderRadius: 12,
         padding: "14px 14px",
         borderTop: `2px solid ${config.accent}`,
@@ -417,11 +417,11 @@ function SectionPanel({ config, origins, nowIdx }) {
           <span style={{ fontSize: 20 }}>{config.icon}</span>
           <div>
             <div
-              style={{ fontWeight: 700, fontSize: 13, color: "#f0f0f0" }}
+              style={{ fontWeight: 700, fontSize: 13, color: "var(--ks-ink)" }}
             >
               {config.title}
             </div>
-            <div style={{ fontSize: 10, color: "#777", marginTop: 1 }}>
+            <div style={{ fontSize: 10, color: "var(--ks-dim)", marginTop: 1 }}>
               {config.subtitle}
             </div>
           </div>
@@ -445,7 +445,7 @@ function SectionPanel({ config, origins, nowIdx }) {
       {/* Origins */}
       {matching.length === 0 ? (
         <div
-          style={{ fontSize: 11, color: "#555", textAlign: "center", padding: "10px 0" }}
+          style={{ fontSize: 11, color: "var(--ks-faint)", textAlign: "center", padding: "10px 0" }}
         >
           Aucune origine dans cette fenêtre actuellement
         </div>
@@ -495,7 +495,7 @@ export default function HarvestPanel({ data }) {
         style={{
           padding: 40,
           textAlign: "center",
-          color: "#555",
+          color: "var(--ks-faint)",
           fontSize: 12,
         }}
       >
@@ -507,8 +507,8 @@ export default function HarvestPanel({ data }) {
   return (
     <div
       style={{
-        fontFamily: "'Inter', system-ui, sans-serif",
-        color: "#e0e0e0",
+        fontFamily: "'DM Sans', system-ui, sans-serif",
+        color: "var(--ks-ink)",
         padding: "0 0 20px 0",
       }}
     >
@@ -524,13 +524,13 @@ export default function HarvestPanel({ data }) {
         }}
       >
         <div>
-          <div style={{ fontSize: 16, fontWeight: 700, color: "#fff" }}>
+          <div style={{ fontSize: 16, fontWeight: 700, color: "var(--ks-ink)" }}>
             Calendrier des origines
           </div>
-          <div style={{ fontSize: 11, color: "#666", marginTop: 2 }}>
-            Aujourd'hui : <span style={{ color: "#aaa" }}>{nowLabel}</span>
+          <div style={{ fontSize: 11, color: "var(--ks-dim)", marginTop: 2 }}>
+            Aujourd'hui : <span style={{ color: "var(--ks-ink-2)" }}>{nowLabel}</span>
             {" · "}
-            <span style={{ color: "#555" }}>Source : Algrano DSC 2026-27</span>
+            <span style={{ color: "var(--ks-faint)" }}>Source : Algrano DSC 2026-27</span>
           </div>
         </div>
 
@@ -546,15 +546,15 @@ export default function HarvestPanel({ data }) {
               style={{
                 background:
                   activeTab === t.id
-                    ? "rgba(255,255,255,0.12)"
-                    : "rgba(255,255,255,0.04)",
+                    ? "var(--ks-ink)"
+                    : "rgba(255,255,255,0.55)",
                 border: `1px solid ${
                   activeTab === t.id
-                    ? "rgba(255,255,255,0.2)"
-                    : "rgba(255,255,255,0.07)"
+                    ? "var(--ks-ink)"
+                    : "var(--ks-border)"
                 }`,
                 borderRadius: 6,
-                color: activeTab === t.id ? "#fff" : "#666",
+                color: activeTab === t.id ? "#fff" : "var(--ks-dim)",
                 fontSize: 11,
                 padding: "4px 10px",
                 cursor: "pointer",
@@ -587,14 +587,14 @@ export default function HarvestPanel({ data }) {
                 borderRadius: 20,
                 border: `1px solid ${
                   regionFilter === r
-                    ? "rgba(255,255,255,0.3)"
-                    : "rgba(255,255,255,0.08)"
+                    ? "var(--ks-ink)"
+                    : "var(--ks-border)"
                 }`,
                 background:
                   regionFilter === r
-                    ? "rgba(255,255,255,0.12)"
+                    ? "var(--ks-ink)"
                     : "transparent",
-                color: regionFilter === r ? "#fff" : "#666",
+                color: regionFilter === r ? "#fff" : "var(--ks-dim)",
                 cursor: "pointer",
               }}
             >
@@ -602,7 +602,7 @@ export default function HarvestPanel({ data }) {
             </button>
           ))}
         </div>
-        <div style={{ width: 1, background: "rgba(255,255,255,0.08)" }} />
+        <div style={{ width: 1, background: "var(--ks-border)" }} />
         {/* Process */}
         <div style={{ display: "flex", gap: 3 }}>
           {PROCESS_FILTERS.map((p) => (
@@ -615,14 +615,14 @@ export default function HarvestPanel({ data }) {
                 borderRadius: 20,
                 border: `1px solid ${
                   processFilter === p
-                    ? "rgba(255,255,255,0.3)"
-                    : "rgba(255,255,255,0.08)"
+                    ? "var(--ks-ink)"
+                    : "var(--ks-border)"
                 }`,
                 background:
                   processFilter === p
-                    ? "rgba(255,255,255,0.12)"
+                    ? "var(--ks-ink)"
                     : "transparent",
-                color: processFilter === p ? "#fff" : "#666",
+                color: processFilter === p ? "#fff" : "var(--ks-dim)",
                 cursor: "pointer",
               }}
             >
@@ -655,7 +655,7 @@ export default function HarvestPanel({ data }) {
           <div
             style={{
               fontSize: 11,
-              color: "#555",
+              color: "var(--ks-faint)",
               marginBottom: 10,
             }}
           >
@@ -668,8 +668,8 @@ export default function HarvestPanel({ data }) {
               <div
                 key={o.id}
                 style={{
-                  background: cfg.bg || "rgba(255,255,255,0.03)",
-                  border: `1px solid ${cfg.border || "rgba(255,255,255,0.07)"}`,
+                  background: cfg.bg || "rgba(255,255,255,0.50)",
+                  border: `1px solid ${cfg.border || "var(--ks-border)"}`,
                   borderRadius: 8,
                   padding: "8px 12px",
                   marginBottom: 6,
@@ -680,10 +680,10 @@ export default function HarvestPanel({ data }) {
               >
                 <span style={{ fontSize: 16 }}>{o.flag}</span>
                 <div style={{ flex: 1 }}>
-                  <span style={{ fontWeight: 600, fontSize: 12, color: "#eee" }}>
+                  <span style={{ fontWeight: 600, fontSize: 12, color: "var(--ks-ink)" }}>
                     {o.country}
                   </span>
-                  <span style={{ fontSize: 10, color: "#666", marginLeft: 8 }}>
+                  <span style={{ fontSize: 10, color: "var(--ks-dim)", marginLeft: 8 }}>
                     {o.region}
                   </span>
                 </div>
@@ -693,9 +693,9 @@ export default function HarvestPanel({ data }) {
                       key={p}
                       style={{
                         fontSize: 9,
-                        color: "#888",
-                        background: "rgba(255,255,255,0.05)",
-                        border: "1px solid rgba(255,255,255,0.08)",
+                        color: "var(--ks-dim)",
+                        background: "rgba(7,23,43,0.06)",
+                        border: "1px solid var(--ks-border)",
                         borderRadius: 3,
                         padding: "1px 5px",
                       }}
@@ -707,7 +707,7 @@ export default function HarvestPanel({ data }) {
                 <div
                   style={{
                     fontSize: 10,
-                    color: cfg.color || "#666",
+                    color: cfg.color || "var(--ks-dim)",
                     fontWeight: 600,
                     whiteSpace: "nowrap",
                   }}
@@ -725,25 +725,25 @@ export default function HarvestPanel({ data }) {
         style={{
           marginTop: 16,
           padding: "8px 12px",
-          background: "rgba(255,255,255,0.02)",
-          border: "1px solid rgba(255,255,255,0.06)",
+          background: "rgba(255,255,255,0.45)",
+          border: "1px solid var(--ks-border)",
           borderRadius: 8,
           fontSize: 10,
-          color: "#555",
+          color: "var(--ks-faint)",
         }}
       >
-        <span style={{ color: "#666" }}>Sources vérifiées : </span>
+        <span style={{ color: "var(--ks-dim)" }}>Sources vérifiées : </span>
         Algrano Direct Sourcing Calendar 2026-27 ·{" "}
         <a
           href="https://algrano.com/learn/sourcing-calendar"
           target="_blank"
           rel="noopener"
-          style={{ color: "#4ade80", textDecoration: "none" }}
+          style={{ color: "#2f7a4d", textDecoration: "none" }}
         >
           algrano.com
         </a>{" "}
         · Données mises à jour manuellement — dernière vérification :{" "}
-        <span style={{ color: "#666" }}>Juin 2026</span>
+        <span style={{ color: "var(--ks-dim)" }}>Juin 2026</span>
       </div>
     </div>
   );
