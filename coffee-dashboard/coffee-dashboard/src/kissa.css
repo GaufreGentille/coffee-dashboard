@@ -280,3 +280,142 @@ a{color:inherit}
   .ks-app *{scroll-behavior:auto!important;animation:none!important;transition-duration:.01ms!important}
   .ggc-cursor,.ggc-cursor-dot{display:none}
 }
+
+
+/* =========================================================
+   ORIGINES — atlas éditorial Kissa Soko
+   ========================================================= */
+
+.ks-origin-page{padding-bottom:120px}
+.ks-origin-page .ks-page-intro{margin-bottom:38px}
+
+.ks-origin-feature{
+  scroll-margin-top:92px;
+  display:grid;
+  grid-template-columns:minmax(0,1.55fr) minmax(280px,.72fr);
+  gap:clamp(34px,6vw,96px);
+  padding:clamp(34px,5vw,68px);
+  background:var(--ks-ink);
+  color:var(--ks-paper-2);
+  border-radius:18px;
+  overflow:hidden;
+  position:relative
+}
+.ks-origin-feature:after{
+  content:'';
+  position:absolute;
+  right:-90px;
+  bottom:-140px;
+  width:340px;
+  height:340px;
+  border:72px solid rgba(218,93,22,.18);
+  border-radius:50%;
+  pointer-events:none
+}
+.ks-origin-feature-main{position:relative;z-index:2}
+.ks-origin-feature-eyebrow{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-bottom:42px}
+.ks-origin-feature-eyebrow>span{font-size:9px;font-weight:700;letter-spacing:.22em;color:rgba(247,241,232,.58)}
+.ks-origin-feature-eyebrow button{border:0;background:transparent;color:var(--ks-paper-2);font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;padding:0;opacity:.72;transition:opacity .18s,color .18s}
+.ks-origin-feature-eyebrow button:hover{opacity:1;color:var(--ks-orange)}
+.ks-origin-region{margin:0 0 9px;font-size:10px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--ks-orange)}
+.ks-origin-feature h2{font-family:'Bodoni Moda',Georgia,serif;font-style:italic;font-weight:800;font-size:clamp(64px,8vw,126px);line-height:.78;letter-spacing:-.065em;margin:0 0 34px;color:var(--ks-paper-2);max-width:900px}
+.ks-origin-feature h2 span{color:var(--ks-orange);font-style:normal}
+.ks-origin-lead{font-family:'Bodoni Moda',Georgia,serif;font-size:clamp(21px,2vw,30px);line-height:1.25;letter-spacing:-.025em;max-width:34em;margin:0 0 22px;color:var(--ks-paper-2)}
+.ks-origin-copy{max-width:64ch;margin:0;color:rgba(247,241,232,.7);font-size:15px;line-height:1.75}
+.ks-origin-history{margin-top:28px;border-top:1px solid rgba(247,241,232,.2);border-bottom:1px solid rgba(247,241,232,.2);padding:14px 0}
+.ks-origin-history summary{cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;gap:20px;font-size:10px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--ks-paper-2)}
+.ks-origin-history summary::-webkit-details-marker{display:none}
+.ks-origin-history summary span{color:var(--ks-orange);font-size:14px}
+.ks-origin-history p{margin:16px 0 4px;max-width:64ch;color:rgba(247,241,232,.72);font-size:14px;line-height:1.75}
+.ks-origin-source{margin:18px 0 0;font-size:9px;letter-spacing:.08em;color:rgba(247,241,232,.38)}
+
+.ks-origin-facts{position:relative;z-index:2;align-self:stretch;border-left:1px solid rgba(247,241,232,.18);padding-left:clamp(24px,3vw,44px);display:flex;flex-direction:column}
+.ks-origin-facts-title{font-size:9px;font-weight:700;letter-spacing:.22em;color:rgba(247,241,232,.45);margin-bottom:18px}
+.ks-origin-fact{padding:15px 0;border-top:1px solid rgba(247,241,232,.14)}
+.ks-origin-fact span{display:block;font-size:8px;font-weight:700;letter-spacing:.17em;text-transform:uppercase;color:var(--ks-orange);margin-bottom:5px}
+.ks-origin-fact strong{display:block;font-size:13px;line-height:1.48;font-weight:600;color:var(--ks-paper-2)}
+
+.ks-origin-browser,.ks-origin-live{margin-top:74px}
+.ks-origin-section-head{display:flex;justify-content:space-between;align-items:end;gap:24px;padding-bottom:17px;border-bottom:1px solid var(--ks-border)}
+.ks-origin-section-head span{font-size:8px;font-weight:700;letter-spacing:.2em;color:var(--ks-orange)}
+.ks-origin-section-head h3{font-family:'Bodoni Moda',Georgia,serif;font-size:clamp(32px,4vw,54px);font-weight:800;line-height:.95;letter-spacing:-.04em;margin:6px 0 0;color:var(--ks-ink)}
+.ks-origin-section-head>p{margin:0;font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ks-dim)}
+
+.ks-origin-controls{display:grid;grid-template-columns:minmax(260px,.75fr) minmax(0,1.6fr);gap:28px;align-items:end;padding:22px 0 20px}
+.ks-origin-search{display:grid;gap:8px}
+.ks-origin-search>span{font-size:8px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--ks-dim)}
+.ks-origin-search input{width:100%;border:0;border-bottom:1px solid var(--ks-ink);background:transparent;color:var(--ks-ink);padding:7px 0 9px;font:600 15px/1.3 'DM Sans',sans-serif;outline:none;border-radius:0}
+.ks-origin-search input::placeholder{color:#8d918f;font-weight:500}
+.ks-origin-search input:focus{border-bottom-color:var(--ks-orange)}
+.ks-origin-regions{display:flex;justify-content:flex-end;gap:7px;flex-wrap:wrap}
+.ks-origin-regions button{border:1px solid var(--ks-border);background:transparent;color:var(--ks-dim);border-radius:999px;padding:7px 10px;font-size:8px;font-weight:700;letter-spacing:.08em;transition:background .18s,color .18s,border-color .18s}
+.ks-origin-regions button:hover,.ks-origin-regions button.is-active{background:var(--ks-ink);border-color:var(--ks-ink);color:var(--ks-paper-2)}
+
+.ks-origin-index{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--ks-border);border-left:1px solid var(--ks-border)}
+.ks-origin-index-card{min-height:170px;position:relative;border:0;border-right:1px solid var(--ks-border);border-bottom:1px solid var(--ks-border);background:transparent;text-align:left;padding:22px 22px 48px;color:var(--ks-ink);transition:background .2s,color .2s}
+.ks-origin-index-card>span{display:block;font-size:8px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ks-dim);margin-bottom:13px}
+.ks-origin-index-card strong{display:block;font-family:'Bodoni Moda',Georgia,serif;font-size:clamp(24px,2.2vw,36px);font-weight:800;line-height:.93;letter-spacing:-.04em}
+.ks-origin-index-card small{display:block;margin-top:12px;font-size:10px;line-height:1.45;color:var(--ks-dim)}
+.ks-origin-index-card i{position:absolute;right:18px;bottom:18px;font-style:normal;font-size:16px;color:var(--ks-orange);transition:transform .18s}
+.ks-origin-index-card:hover,.ks-origin-index-card.is-active{background:var(--ks-ink);color:var(--ks-paper-2)}
+.ks-origin-index-card:hover>span,.ks-origin-index-card:hover small,.ks-origin-index-card.is-active>span,.ks-origin-index-card.is-active small{color:rgba(247,241,232,.58)}
+.ks-origin-index-card:hover i,.ks-origin-index-card.is-active i{transform:translateX(4px)}
+.ks-origin-empty{padding:40px 0;color:var(--ks-dim);font-size:13px}
+
+.ks-origin-live-card{display:flex;align-items:center;justify-content:space-between;gap:36px;padding:28px 0;border-bottom:1px solid var(--ks-border)}
+.ks-origin-live-copy{display:flex;align-items:flex-start;gap:13px;max-width:760px}
+.ks-origin-live-dot{width:8px;height:8px;border-radius:50%;background:var(--ks-orange);margin-top:7px;flex:0 0 auto}
+.ks-origin-live-copy strong{display:block;font-family:'Bodoni Moda',Georgia,serif;font-size:24px;line-height:1.05;color:var(--ks-ink);margin-bottom:8px}
+.ks-origin-live-copy p{margin:0;font-size:12px;line-height:1.65;color:var(--ks-dim);max-width:66ch}
+.ks-origin-live-meta{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.ks-origin-live-meta span{border:1px solid var(--ks-border);border-radius:999px;padding:5px 8px;font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ks-dim)}
+.ks-origin-calendar-toggle{flex:0 0 auto;border:0;background:var(--ks-ink);color:var(--ks-paper-2);border-radius:999px;padding:11px 15px 11px 18px;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;gap:12px;transition:background .18s,transform .18s}
+.ks-origin-calendar-toggle:hover{background:var(--ks-orange);transform:translateY(-1px)}
+.ks-origin-calendar-toggle span{font-size:12px}
+.ks-origin-calendar-legacy{margin-top:28px;padding-top:6px}
+.ks-origin-calendar-legacy,
+.ks-origin-calendar-legacy *{color:var(--ks-ink)!important}
+.ks-origin-calendar-legacy [style*="opacity"]{opacity:1!important}
+.ks-origin-calendar-legacy [style*="color: rgb(255"],
+.ks-origin-calendar-legacy [style*="color:#fff"],
+.ks-origin-calendar-legacy [style*="color: #fff"]{color:var(--ks-ink)!important}
+.ks-origin-calendar-legacy button{font-family:'DM Sans',sans-serif!important}
+.ks-origin-calendar-legacy a{color:var(--ks-ink)!important}
+
+@media(max-width:980px){
+  .ks-origin-feature{grid-template-columns:1fr;gap:34px}
+  .ks-origin-facts{border-left:0;border-top:1px solid rgba(247,241,232,.18);padding:22px 0 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:24px}
+  .ks-origin-facts-title{grid-column:1/-1}
+  .ks-origin-controls{grid-template-columns:1fr}
+  .ks-origin-regions{justify-content:flex-start}
+  .ks-origin-index{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+@media(max-width:700px){
+  .ks-origin-page{padding-bottom:80px}
+  .ks-origin-page .ks-page-intro{margin-bottom:24px}
+  .ks-origin-feature{margin-left:-4px;margin-right:-4px;padding:28px 22px;border-radius:14px}
+  .ks-origin-feature-eyebrow{align-items:flex-start;margin-bottom:32px}
+  .ks-origin-feature-eyebrow>span{max-width:110px;line-height:1.45}
+  .ks-origin-feature-eyebrow button{text-align:right}
+  .ks-origin-feature h2{font-size:clamp(54px,18vw,88px);margin-bottom:28px}
+  .ks-origin-lead{font-size:20px}
+  .ks-origin-copy,.ks-origin-history p{font-size:13px}
+  .ks-origin-facts{grid-template-columns:1fr}
+  .ks-origin-facts-title{grid-column:auto}
+  .ks-origin-browser,.ks-origin-live{margin-top:54px}
+  .ks-origin-section-head{align-items:flex-start}
+  .ks-origin-section-head>p{padding-top:8px;text-align:right}
+  .ks-origin-controls{gap:20px}
+  .ks-origin-regions{flex-wrap:nowrap;overflow-x:auto;padding-bottom:5px;scrollbar-width:none}
+  .ks-origin-regions::-webkit-scrollbar{display:none}
+  .ks-origin-regions button{flex:0 0 auto}
+  .ks-origin-index{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .ks-origin-index-card{min-height:150px;padding:18px 16px 42px}
+  .ks-origin-index-card strong{font-size:25px}
+  .ks-origin-live-card{align-items:flex-start;flex-direction:column;gap:22px}
+  .ks-origin-calendar-toggle{width:100%;justify-content:space-between}
+}
+@media(max-width:430px){
+  .ks-origin-index{grid-template-columns:1fr}
+  .ks-origin-index-card{min-height:132px}
+}
