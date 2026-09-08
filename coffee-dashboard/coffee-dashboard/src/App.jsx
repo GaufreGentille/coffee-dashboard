@@ -125,6 +125,15 @@ function GGCursor() {
 function HomePage({ setTab, setShowMusic }) {
   const onNavigate = (id) => setTab(id === 'market' ? 'news' : id);
   const onMusic = () => { setShowMusic(true); setTab('news'); };
+  const [stuck, setStuck] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setStuck(window.scrollY > 88);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive:true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
   const scrollToUniverses = () => document.getElementById('ks-universes')?.scrollIntoView({ behavior:'smooth', block:'start' });
 
   const tiles = [
@@ -148,7 +157,7 @@ function HomePage({ setTab, setShowMusic }) {
   return <div className="ks-home" style={{'--ks-orange':GG_ORANGE}}>
     <GGCursor />
 
-    <header className="ks-home-nav">
+    <header className={`ks-home-nav${stuck ? ' is-stuck' : ''}`}>
       <button className="ks-logo" onClick={()=>window.scrollTo({top:0,behavior:'smooth'})} data-cursor="active" aria-label="GG, retour en haut de page">
         <span className="ks-gg-logo">GG<span>.</span></span>
       </button>
@@ -582,7 +591,9 @@ export default function App() {
 .ks-home{--ks-paper:#f4ede3;--ks-paper-2:#f7f1e8;--ks-ink:#07172b;min-height:100vh;background:var(--ks-paper);color:var(--ks-ink);position:relative;overflow:hidden;cursor:none}
 .ks-home button,.ks-home a{font-family:'DM Sans',Inter,sans-serif}
 .ks-shell{max-width:1440px;margin:0 auto;padding-left:clamp(24px,4.5vw,68px);padding-right:clamp(24px,4.5vw,68px)}
-.ks-home-nav{height:72px;width:100%;padding:0 clamp(24px,4.5vw,68px);display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:28px;position:fixed;inset:0 0 auto;z-index:60;background:var(--ks-paper-2);border-bottom:1px solid rgba(7,23,43,.12);pointer-events:auto}
+.ks-home-nav{height:72px;width:100%;padding:0 clamp(24px,4.5vw,68px);display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:28px;position:absolute;inset:0 0 auto;z-index:60;background:transparent;border-bottom:1px solid transparent;pointer-events:auto;transition:background .18s ease,border-color .18s ease}
+.ks-home-nav.is-stuck{position:fixed;background:var(--ks-paper-2);border-bottom-color:rgba(7,23,43,.12);animation:ksNavDrop .24s cubic-bezier(.2,.8,.2,1) both}
+@keyframes ksNavDrop{from{transform:translateY(-100%)}to{transform:translateY(0)}}
 .ks-logo{border:0;background:transparent;padding:0;display:block;cursor:none;pointer-events:auto;color:var(--ks-ink)}
 .ks-gg-logo{display:inline-block;font-family:'Bodoni Moda',Georgia,serif;font-style:italic;font-weight:800;font-size:clamp(38px,4vw,58px);line-height:.82;letter-spacing:-.08em}
 .ks-gg-logo>span{color:var(--ks-orange);font-style:normal;margin-left:3px}
@@ -605,7 +616,7 @@ export default function App() {
 .ks-hero-art{position:absolute;inset:0 0 0 auto;width:min(54vw,820px);pointer-events:none;display:flex;justify-content:flex-end;align-items:flex-start;z-index:1}
 .ks-hero-botanical{position:absolute;right:0;top:0;width:100%;height:100%;object-fit:contain;object-position:top right;pointer-events:none;filter:none;opacity:1}
 
-.ks-universes{position:relative;z-index:10;padding:28px 0 76px}
+.ks-universes{position:relative;z-index:10;padding:28px 0 76px;scroll-margin-top:84px}
 .ks-tile-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
 .ks-tile{height:clamp(220px,23vw,320px);position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.56);border-radius:12px;background:#20170f;color:#fff;text-decoration:none;text-align:left;cursor:none;padding:0;display:block;box-shadow:0 8px 24px rgba(44,28,18,.055);transition:transform .32s cubic-bezier(.2,.8,.2,1),box-shadow .32s ease}
 .ks-tile-photo,.ks-tile-shade{position:absolute;inset:0}.ks-tile-photo{background-size:cover;background-position:center;transform:scale(1.015);filter:none;transition:transform .65s cubic-bezier(.2,.8,.2,1)}
@@ -633,9 +644,9 @@ export default function App() {
   .ks-tile-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ks-tile{height:300px}.ks-closing-copy{width:58%}.ks-closing-art{width:72vw}
 }
 @media(max-width:640px){
-  .ks-home{cursor:auto}.ks-home .ggc-cursor,.ks-home .ggc-cursor-dot{display:none}.ks-home-nav{height:68px;padding:0 18px;grid-template-columns:auto 1fr auto}.ks-top-links{display:none}.ks-menu-button{width:42px;height:42px}.ks-gg-logo{font-size:42px}
+  .ks-home{cursor:auto}.ks-home .ggc-cursor,.ks-home .ggc-cursor-dot{display:none}.ks-home-nav{height:68px;padding:0 18px;grid-template-columns:auto 1fr auto}.ks-home-nav.is-stuck{background:var(--ks-paper-2)}.ks-top-links{display:none}.ks-menu-button{width:42px;height:42px}.ks-gg-logo{font-size:42px}
   .ks-shell{padding-left:14px;padding-right:14px}
-  .ks-hero{min-height:620px;padding:122px 0 46px;align-items:flex-end}.ks-hero-copy{width:100%;padding-bottom:0}.ks-eyebrow{font-size:8px;margin-bottom:16px}.ks-hero h1{font-size:clamp(44px,14.3vw,67px);line-height:.82;letter-spacing:-.06em}.ks-hero-art{width:62vw;height:300px;top:8px;bottom:auto}.ks-hero-botanical{right:-8vw;top:0;opacity:1}.ks-explore{margin-top:26px}.ks-hero:after{left:14px;right:14px}
+  .ks-hero{min-height:0;padding:218px 0 40px;align-items:flex-start}.ks-hero-copy{width:100%;padding-bottom:0}.ks-eyebrow{font-size:8px;margin-bottom:16px}.ks-hero h1{font-size:clamp(44px,14.3vw,67px);line-height:.82;letter-spacing:-.06em}.ks-hero-art{width:72vw;height:205px;top:18px;bottom:auto}.ks-hero-botanical{right:-8vw;top:0;opacity:1}.ks-explore{margin-top:26px}.ks-hero:after{left:14px;right:14px}
   .ks-universes{padding:14px 0 46px}.ks-tile-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.ks-tile{height:174px;border-radius:9px}.ks-tile strong{left:14px;bottom:15px;font-size:15px}.ks-tile-arrow{left:13px;top:13px;width:29px;height:29px;font-size:13px}.ks-tile-index{right:12px;top:12px;font-size:7px}.ks-tile:last-child{grid-column:1/-1;height:205px}
   .ks-closing{min-height:560px;padding:62px 0 70px;align-items:flex-start}.ks-closing-copy{width:82%}.ks-closing h2{font-size:clamp(44px,12.5vw,62px)}.ks-closing-copy>p:not(.ks-closing-kicker){font-size:13px;max-width:95%}.ks-closing-art{width:62vw;height:300px;right:0;top:auto;bottom:0}.ks-closing-botanical{right:-10vw;bottom:0;opacity:1}.ks-footer-brand{margin-top:38px}.ks-footer-brand img{width:112px}
 }
