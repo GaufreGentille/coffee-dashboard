@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import HarvestPanel from './components/HarvestPanel';
+import HarvestPanel from './components/HarvestPanel'
 import InstaVeillePanel from './components/InstaVeillePanel'
 
 // GaufreGentille brand palette
@@ -56,7 +56,6 @@ const TOPIC_COLORS = {
   competition: BRAND.orange, producteur: '#7a9e78', technique: BRAND.purple, materiel: BRAND.yellow,
 }
 
-
 const PLAYLISTS = [
   {
     name: 'Midnight Cassette',
@@ -91,50 +90,93 @@ const TABS = [
   { id:'harvest',   label:'Origines' },
 ]
 
+const MARKET_PLACEHOLDER = [
+  { label:'Arabica ICE', val:'--', unit:'c/lb', chg:'', up:true  },
+  { label:'Robusta ICE', val:'--', unit:'$/t',  chg:'', up:false },
+  { label:'EUR/USD',     val:'--', unit:'',     chg:'', up:true  },
+  { label:'BRL/USD',     val:'--', unit:'',     chg:'', up:true  },
+]
 
-const GG_ORANGE = '#da5d16';
+const GG_ORANGE = '#da5d16'
+
+/* ---------- Chargement des flux ---------- */
+
+const pickNews    = j => j.news || []
+const pickScience = j => j.science || []
+const pickGear    = j => j.gear || []
+const pickSprudge = j => j.tiles || []
+const pickHarvest = j => (j.origins ? j : null)
+const pickMarkets = j => ({ rows: j.markets || [], updatedAt: j.updatedAt || '--' })
+
+// Charge une function Netlify a la premiere ouverture de l'univers concerne,
+// puis garde le resultat en memoire. Un echec remet le drapeau a zero pour
+// qu'un retour sur l'onglet retente le chargement.
+function useFeed(url, pick, active) {
+  const [state, setState] = useState({ data: null, loading: false, error: null })
+  const loaded = useRef(false)
+
+  const load = useCallback(async () => {
+    loaded.current = true
+    setState(s => ({ ...s, loading: true, error: null }))
+    try {
+      const res = await fetch(url)
+      if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
+      setState({ data: pick(await res.json()), loading: false, error: null })
+    } catch (e) {
+      console.error(`Fetch ${url}:`, e)
+      loaded.current = false
+      setState({ data: null, loading: false, error: 'Chargement impossible. Réessaie dans un instant.' })
+    }
+  }, [url, pick])
+
+  useEffect(() => { if (active && !loaded.current) load() }, [active, load])
+
+  return { ...state, reload: load }
+}
+
+/* ---------- Accueil ---------- */
 
 function GGCursor() {
-  const cursorRef = useRef(null);
-  const dotRef = useRef(null);
-  const [active, setActive] = useState(false);
+  const cursorRef = useRef(null)
+  const dotRef = useRef(null)
+  const [active, setActive] = useState(false)
 
   useEffect(() => {
-    if (window.matchMedia('(pointer: coarse)').matches) return;
-    let tx = innerWidth/2, ty = innerHeight/2, x=tx, y=ty, raf;
-    const move = e => { tx=e.clientX; ty=e.clientY; };
-    const over = e => setActive(Boolean(e.target.closest('a,button,[data-cursor="active"]')));
+    if (window.matchMedia('(pointer: coarse)').matches) return
+    let tx = innerWidth/2, ty = innerHeight/2, x=tx, y=ty, raf
+    const move = e => { tx=e.clientX; ty=e.clientY }
+    const over = e => setActive(Boolean(e.target.closest('a,button,[data-cursor="active"]')))
     const tick = () => {
-      x += (tx-x)*.16; y += (ty-y)*.16;
-      if(cursorRef.current) cursorRef.current.style.transform=`translate3d(${x}px,${y}px,0) translate(-50%,-50%)`;
-      if(dotRef.current) dotRef.current.style.transform=`translate3d(${tx}px,${ty}px,0) translate(-50%,-50%)`;
-      raf=requestAnimationFrame(tick);
-    };
-    addEventListener('pointermove',move,{passive:true});
-    addEventListener('pointerover',over,{passive:true});
-    tick();
-    return ()=>{ removeEventListener('pointermove',move); removeEventListener('pointerover',over); cancelAnimationFrame(raf); };
-  },[]);
+      x += (tx-x)*.16; y += (ty-y)*.16
+      if(cursorRef.current) cursorRef.current.style.transform=`translate3d(${x}px,${y}px,0) translate(-50%,-50%)`
+      if(dotRef.current) dotRef.current.style.transform=`translate3d(${tx}px,${ty}px,0) translate(-50%,-50%)`
+      raf=requestAnimationFrame(tick)
+    }
+    addEventListener('pointermove',move,{passive:true})
+    addEventListener('pointerover',over,{passive:true})
+    tick()
+    return ()=>{ removeEventListener('pointermove',move); removeEventListener('pointerover',over); cancelAnimationFrame(raf) }
+  },[])
 
   return <>
     <div ref={cursorRef} className={`ggc-cursor ${active?'is-active':''}`} />
     <div ref={dotRef} className="ggc-cursor-dot" />
-  </>;
+  </>
 }
 
 function HomePage({ setTab, setShowMusic }) {
-  const onNavigate = (id) => setTab(id === 'market' ? 'news' : id);
-  const onMusic = () => { setShowMusic(true); setTab('news'); };
-  const [stuck, setStuck] = useState(false);
+  const onNavigate = (id) => setTab(id === 'market' ? 'news' : id)
+  const onMusic = () => { setShowMusic(true); setTab('news') }
+  const [stuck, setStuck] = useState(false)
 
   useEffect(() => {
-    const onScroll = () => setStuck(window.scrollY > 88);
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive:true });
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
+    const onScroll = () => setStuck(window.scrollY > 88)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive:true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
-  const scrollToUniverses = () => document.getElementById('ks-universes')?.scrollIntoView({ behavior:'smooth', block:'start' });
+  const scrollToUniverses = () => document.getElementById('ks-universes')?.scrollIntoView({ behavior:'smooth', block:'start' })
 
   const tiles = [
     { id:'news',      label:'Actualités', image:'/tiles/actualites.png' },
@@ -146,13 +188,13 @@ function HomePage({ setTab, setShowMusic }) {
     { id:'instagram', label:'Instagram',  image:'/tiles/instagram.png' },
     { id:'music',     label:'Musique',    image:'/tiles/musique.png' },
     { id:'game',      label:'Jeu',        image:'/tiles/jeu.png', href:'https://kissasoko.netlify.app/hangar-torref-843/' },
-  ];
+  ]
 
   const openTile = (tile) => {
-    if (tile.id === 'music') return onMusic();
-    if (tile.href) return;
-    onNavigate(tile.id);
-  };
+    if (tile.id === 'music') return onMusic()
+    if (tile.href) return
+    onNavigate(tile.id)
+  }
 
   return <div className="ks-home" style={{'--ks-orange':GG_ORANGE}}>
     <GGCursor />
@@ -204,7 +246,7 @@ function HomePage({ setTab, setShowMusic }) {
                 <strong>{tile.label}</strong>
                 <span className="ks-tile-arrow">→</span>
                 <span className="ks-tile-index">{String(i+1).padStart(2,'0')}</span>
-              </>;
+              </>
 
               return tile.href ? (
                 <a key={tile.id} className="ks-tile" href={tile.href} data-cursor="active" aria-label={`Ouvrir ${tile.label}`}>
@@ -214,7 +256,7 @@ function HomePage({ setTab, setShowMusic }) {
                 <button key={tile.id} className="ks-tile" onClick={()=>openTile(tile)} data-cursor="active" aria-label={`Ouvrir ${tile.label}`}>
                   {content}
                 </button>
-              );
+              )
             })}
           </div>
         </div>
@@ -237,8 +279,10 @@ function HomePage({ setTab, setShowMusic }) {
         </div>
       </section>
     </main>
-  </div>;
+  </div>
 }
+
+/* ---------- Briques d'interface ---------- */
 
 function Tag({ topic, lang, T }) {
   const color = TOPIC_COLORS[topic] || BRAND.amber
@@ -287,7 +331,7 @@ function HeroCard({ item, T }) {
           <div style={{ fontFamily:'Georgia,serif', fontSize:'1.55rem', fontWeight:700, color:T.text, lineHeight:1.35, marginBottom:10 }}>{item.title}</div>
           <div style={{ fontSize:'1rem', color:T.dim, lineHeight:1.7 }}>{item.summary}</div>
           <div style={{ marginTop:14, display:'inline-flex', alignItems:'center', gap:6, color:BRAND.purple, fontSize:'0.85rem', fontWeight:700 }}>
-            Lire l article <span style={{ fontSize:'1rem' }}>→</span>
+            Lire l&apos;article <span style={{ fontSize:'1rem' }}>→</span>
           </div>
         </div>
       </div>
@@ -326,7 +370,7 @@ function SciCard({ item, img, i, T }) {
       <div onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
         style={{ background:T.surf, border:`1px solid ${h ? T.border2 : T.border}`, borderRadius:12, overflow:'hidden', cursor:'pointer', display:'grid', gridTemplateColumns:'90px 1fr', animation:`fadeUp 0.35s ease ${i*80}ms both`, transition:'all 0.2s', minHeight:104, boxShadow: h ? `0 4px 16px rgba(0,0,0,0.1)` : 'none' }}>
         <div style={{ backgroundImage:`url(${img})`, backgroundSize:'cover', backgroundPosition:'center', borderRight:`1px solid ${T.border}`, position:'relative' }}>
-          <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.45)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:'1.9rem' }}></div>
+          <div style={{ position:'absolute', inset:0, background:'rgba(0,0,0,0.45)' }} />
         </div>
         <div style={{ padding:'13px 15px' }}>
           <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:4 }}>
@@ -336,7 +380,7 @@ function SciCard({ item, img, i, T }) {
           <div style={{ fontSize:11, color:T.dim, marginBottom:5, fontStyle:'italic', fontWeight:500 }}>{item.journal}</div>
           <div style={{ fontSize:'1.05rem', fontWeight:700, color:T.text, lineHeight:1.38, marginBottom:6, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.title}</div>
           <div style={{ fontSize:'0.92rem', color:T.dim, lineHeight:1.5, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.abstract}</div>
-          <div style={{ marginTop:8, fontSize:'0.8rem', color:BRAND.purple, fontWeight:700 }}>Voir l article →</div>
+          <div style={{ marginTop:8, fontSize:'0.8rem', color:BRAND.purple, fontWeight:700 }}>Voir l&apos;article →</div>
         </div>
       </div>
     </a>
@@ -346,7 +390,7 @@ function SciCard({ item, img, i, T }) {
 function RedditCard({ post, i, T }) {
   const [h, setH] = useState(false)
 
-  // Community article (Sprudge) — displayed inline, full text, no link needed
+  // Article communaute (Sprudge) : texte complet affiche sur place, sans lien sortant
   const isSprudge = post.source === 'The Sprudge Report'
 
   const card = (
@@ -360,7 +404,6 @@ function RedditCard({ post, i, T }) {
         boxShadow: (!isSprudge && h) ? `0 8px 24px rgba(0,0,0,0.15)` : 'none',
         display:'flex', flexDirection:'column',
       }}>
-      {/* Image */}
       {post.img && (
         <div style={{
           height:160, flexShrink:0,
@@ -372,21 +415,17 @@ function RedditCard({ post, i, T }) {
         </div>
       )}
       <div style={{ padding:'16px 18px 18px', flex:1, display:'flex', flexDirection:'column', gap:8 }}>
-        {/* Date only — no source badge */}
         {post.date && (
           <div style={{ fontSize:10, color:T.faint, letterSpacing:'0.05em' }}>{post.date}</div>
         )}
-        {/* Title */}
         <div style={{ fontSize:'0.95rem', fontWeight:700, color:T.text, lineHeight:1.4 }}>
           {post.title}
         </div>
-        {/* Full text */}
         {post.summary && (
           <div style={{ fontSize:'0.82rem', color:T.dim, lineHeight:1.7, flex:1 }}>
             {post.summary}
           </div>
         )}
-        {/* Lire plus only for non-Sprudge (external links) */}
         {!isSprudge && post.url && (
           <a href={post.url} target="_blank" rel="noopener noreferrer"
             style={{ fontSize:'0.72rem', fontWeight:700, color:BRAND.amber, textDecoration:'none', marginTop:4, alignSelf:'flex-end' }}>
@@ -401,7 +440,6 @@ function RedditCard({ post, i, T }) {
     ? card
     : <a href={post.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration:'none' }}>{card}</a>
 }
-
 
 function GearHeroCard({ item, T }) {
   const [h, setH] = useState(false)
@@ -441,9 +479,11 @@ function GearCard({ item, i, T }) {
         style={{ background:T.surf, border:`1px solid ${h?T.border2:T.border}`, borderRadius:12, overflow:'hidden', cursor:'pointer', transform:h?'translateY(-3px)':'translateY(0)', transition:'all 0.2s', boxShadow:h?`0 8px 24px rgba(0,0,0,0.12)`:'none', animation:`fadeUp 0.35s ease ${i*60}ms both` }}>
         <div style={{ height:160, backgroundImage:`url(${item.img})`, backgroundSize:'cover', backgroundPosition:'center', position:'relative' }}>
           <div style={{ position:'absolute', inset:0, background:`linear-gradient(to top, ${T.surf}ee 0%, transparent 50%)` }} />
-          <div style={{ position:'absolute', top:10, left:12, display:'flex', gap:6, alignItems:'center' }}>
-            {item.hot && <span style={{ fontSize:'1rem' }}>🔥</span>}
-          </div>
+          {item.hot && (
+            <div style={{ position:'absolute', top:10, left:12, display:'flex', gap:6, alignItems:'center' }}>
+              <span style={{ fontSize:'1rem' }}>🔥</span>
+            </div>
+          )}
           <div style={{ position:'absolute', bottom:10, left:12 }}>
             <span style={{ fontSize:9, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', color:BRAND.amber, background:T.surf+'dd', borderRadius:4, padding:'2px 7px' }}>{item.category}</span>
           </div>
@@ -463,110 +503,39 @@ function GearCard({ item, i, T }) {
   )
 }
 
+/* ---------- Application ---------- */
+
 export default function App() {
-  const [tab, setTab]         = useState('home')
-  const [dark, setDark]       = useState(true)
-  const [news, setNews]       = useState([])
-  const [sci, setSci]         = useState([])
-  const [reddit, setReddit]   = useState([])
-  const [markets, setMarkets] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [mktTime, setMktTime] = useState('--')
-  const [error, setError]     = useState(null)
+  const [tab, setTab]             = useState('home')
+  const [dark, setDark]           = useState(true)
+  const [showMusic, setShowMusic] = useState(false)
   const [lastRefresh, setLastRefresh] = useState(null)
-  const [community, setCommunity]     = useState([])
-  const [commLoading, setCommLoading] = useState(false)
-  const [gearItems, setGearItems]     = useState([])
-  const [gearLoading, setGearLoading] = useState(false)
-  const [sciItems, setSciItems]         = useState([])
-  const [sciLoading, setSciLoading]     = useState(false)
-  const [showMusic, setShowMusic]       = useState(false)
-  const [gear, setGear]         = useState([])
-  const [harvestData, setHarvestData] = useState(null)
-  const [harvestLoading, setHarvestLoading] = useState(false)
 
   const T = dark ? DARK : LIGHT
+  const isHome = tab === 'home'
+
+  const markets   = useFeed('/.netlify/functions/get-markets', pickMarkets, !isHome)
+  const news      = useFeed('/.netlify/functions/get-news',    pickNews,    tab === 'news')
+  const science   = useFeed('/.netlify/functions/get-science', pickScience, tab === 'science')
+  const gear      = useFeed('/.netlify/functions/get-gear',    pickGear,    tab === 'gear')
+  const community = useFeed('/.netlify/functions/get-sprudge', pickSprudge, tab === 'reddit')
+  const harvest   = useFeed('/.netlify/functions/get-harvest', pickHarvest, tab === 'harvest')
+
+  const feeds = { news, science, gear, reddit: community, harvest }
+
+  useEffect(() => {
+    if (markets.data) setLastRefresh(new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}))
+  }, [markets.data])
+
+  const refresh = () => { markets.reload(); feeds[tab]?.reload() }
+
+  const marketRows = markets.data?.rows?.length ? markets.data.rows : MARKET_PLACEHOLDER
+  const mktTime    = markets.data?.updatedAt || '--'
 
   const today = new Date()
   const DAYS   = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi']
   const MONTHS = ['janvier','fevrier','mars','avril','mai','juin','juillet','aout','septembre','octobre','novembre','decembre']
   const dateStr = `${DAYS[today.getDay()]} ${today.getDate()} ${MONTHS[today.getMonth()]} ${today.getFullYear()}`
-
-  const fetchAll = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const [contentRes, mktRes] = await Promise.all([
-        fetch('/.netlify/functions/get-news'),
-        fetch('/.netlify/functions/get-markets'),
-      ])
-      const content = await contentRes.json()
-      const mkt     = await mktRes.json()
-      if (content.news)    setNews(content.news)
-      if (content.science) setSci(content.science)
-      if (content.community) setReddit(content.community)
-      else if (content.reddit)  setReddit(content.reddit)
-      if (content.gear)    setGear(content.gear)
-      if (mkt.markets)     setMarkets(mkt.markets)
-      if (mkt.updatedAt)   setMktTime(mkt.updatedAt)
-      setLastRefresh(new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}))
-    } catch(e) {
-      setError('Erreur de chargement. Verifie ta connexion.')
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => { fetchAll() }, [fetchAll])
-
-  const fetchCommunity = useCallback(async () => {
-    setCommLoading(true)
-    try {
-      const res  = await fetch('/.netlify/functions/get-sprudge')
-      const data = await res.json()
-      if (data.tiles && data.tiles.length > 0) {
-        setCommunity(data.tiles)
-      }
-    } catch(e) {
-      console.error('Community fetch error:', e)
-    }
-    setCommLoading(false)
-  }, [])
-
-  useEffect(() => { fetchCommunity() }, [fetchCommunity])
-
-  const fetchGear = useCallback(async () => {
-    setGearLoading(true)
-    try {
-      const res  = await fetch('/.netlify/functions/get-gear')
-      const data = await res.json()
-      if (data.gear && data.gear.length > 0) setGearItems(data.gear)
-    } catch(e) { console.error('Gear fetch error:', e) }
-    setGearLoading(false)
-  }, [])
-  useEffect(() => { fetchGear() }, [fetchGear])
-
-  const fetchScience = useCallback(async () => {
-    setSciLoading(true)
-    try {
-      const res  = await fetch('/.netlify/functions/get-science')
-      const data = await res.json()
-      if (data.science && data.science.length > 0) setSciItems(data.science)
-    } catch(e) { console.error('Science fetch error:', e) }
-    setSciLoading(false)
-  }, [])
-  useEffect(() => { fetchScience() }, [fetchScience])
-  
-  const fetchHarvest = useCallback(async () => {
-    setHarvestLoading(true)
-    try {
-      const res  = await fetch('/.netlify/functions/get-harvest')
-      const data = await res.json()
-      if (data.origins) setHarvestData(data)
-    } catch(e) { console.error('Harvest fetch error:', e) }
-    setHarvestLoading(false)
-  }, [])
-  useEffect(() => { fetchHarvest() }, [fetchHarvest])
 
   return (
     <div style={{ background:T.bg, minHeight:'100vh', color:T.text, fontFamily:"DM Sans,Inter,-apple-system,system-ui,sans-serif", fontWeight:500, fontSize:17, transition:'background 0.3s, color 0.3s', position:'relative', backgroundImage:`radial-gradient(circle at 15% -10%, ${BRAND.orange}0c, transparent 28%), radial-gradient(circle at 95% 8%, ${BRAND.purple}0b, transparent 24%)` }}>
@@ -579,7 +548,7 @@ export default function App() {
         body{margin:0}
         button{font:inherit}
         a{color:inherit;}
-        ::selection{background:#fed238;color:#16110b}
+        ::selection{background:${BRAND.yellow};color:#16110b}
         ::-webkit-scrollbar{width:7px;height:7px;}
         ::-webkit-scrollbar-track{background:transparent;}
         ::-webkit-scrollbar-thumb{background:${T.border2};border-radius:99px;}
@@ -658,7 +627,6 @@ export default function App() {
       {/* TOPBAR */}
       <div style={{ background:`${T.bg}e8`, borderBottom:`1px solid ${T.border}`, padding:'0 24px', height:64, display:'flex', alignItems:'center', justifyContent:'space-between', position:'sticky', top:0, zIndex:100, backdropFilter:'blur(20px) saturate(140%)' }}>
         <div style={{ display:'flex', alignItems:'center', gap:12 }}>
-          {/* Logo */}
           <button onClick={()=>setTab('home')} style={{display:'flex',alignItems:'center',gap:13,border:0,background:'transparent',padding:0,cursor:'pointer',color:T.text,textAlign:'left'}}>
             <strong style={{fontFamily:'Manrope, sans-serif',fontSize:25,lineHeight:1,fontWeight:800,letterSpacing:'-0.08em',color:BRAND.orange}}>GG</strong>
             <span style={{fontSize:9,color:T.faint,letterSpacing:'0.13em',textTransform:'uppercase',fontWeight:700}}>veille · science · culture café</span>
@@ -669,10 +637,9 @@ export default function App() {
           {lastRefresh && <span style={{ fontSize:'0.62rem', color:T.faint, display:'flex', alignItems:'center', gap:4 }}>
             <span style={{ width:5, height:5, borderRadius:'50%', background:'#7a9e78', display:'inline-block' }} />{lastRefresh}
           </span>}
-          <button onClick={fetchAll} style={{ background:T.surf2, border:`1px solid ${T.border2}`, color:T.dim, fontSize:'0.72rem', padding:'5px 11px', borderRadius:7, cursor:'pointer', fontFamily:'inherit', transition:'all 0.15s' }}>
+          <button onClick={refresh} style={{ background:T.surf2, border:`1px solid ${T.border2}`, color:T.dim, fontSize:'0.72rem', padding:'5px 11px', borderRadius:7, cursor:'pointer', fontFamily:'inherit', transition:'all 0.15s' }}>
             ↺
           </button>
-          {/* Dark/Light toggle */}
           <button onClick={()=>setDark(!dark)} style={{ background: dark ? BRAND.yellow+'22' : BRAND.purple+'22', border:`1px solid ${dark ? BRAND.yellow+'44' : BRAND.purple+'44'}`, color: dark ? BRAND.yellow : BRAND.purple, fontSize:'0.72rem', padding:'5px 11px', borderRadius:7, cursor:'pointer', fontFamily:'inherit', fontWeight:600, transition:'all 0.2s' }}>
             {dark ? '☀ Clair' : '☾ Sombre'}
           </button>
@@ -681,15 +648,9 @@ export default function App() {
 
       {/* MARKETS STRIP */}
       <div style={{ background:`${T.surf}d9`, borderBottom:`1px solid ${T.border}`, display:'flex', alignItems:'center', padding:'0 24px', minHeight:66, backdropFilter:'blur(18px)' }}>
-        {/* Market data */}
         <div style={{ display:'flex', flex:1, overflowX:'auto' }}>
-          {(markets.length ? markets : [
-            {label:'Arabica ICE',val:'--',unit:'c/lb',chg:'',up:true},
-            {label:'Robusta ICE',val:'--',unit:'$/t', chg:'',up:false},
-            {label:'EUR/USD',    val:'--',unit:'',    chg:'',up:true},
-            {label:'BRL/USD',   val:'--',unit:'',    chg:'',up:true},
-          ]).map((m,i) => (
-            <div key={i} style={{ padding:'9px 24px 9px 20px', minWidth:140, borderRight:`1px solid ${T.border}`, flexShrink:0 }}>
+          {marketRows.map((m,i) => (
+            <div key={m.label || i} style={{ padding:'9px 24px 9px 20px', minWidth:140, borderRight:`1px solid ${T.border}`, flexShrink:0 }}>
               <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.1em', color:T.dim, marginBottom:5, fontWeight:600 }}>{m.label}</div>
               <div style={{ display:'flex', alignItems:'baseline', gap:7 }}>
                 <span style={{ fontSize:'1.25rem', fontWeight:700, color:T.text }}>
@@ -705,45 +666,41 @@ export default function App() {
             <div style={{ fontSize:'1.1rem', color:T.text, fontWeight:700 }}>{mktTime}</div>
           </div>
         </div>
-        {/* Right buttons — Music + Vitality */}
+        {/* Raccourcis : musique, Vitality, cupping */}
         <div style={{ display:'flex', alignItems:'center', gap:12, paddingLeft:24, borderLeft:`1px solid ${T.border}`, flexShrink:0 }}>
-          {/* Music button */}
           <button onClick={() => setShowMusic(v => !v)} style={{
             background:'none', border:'none', cursor:'pointer', padding:4, borderRadius:8,
             opacity: showMusic ? 1 : 0.65, transition:'all 0.2s',
             transform: showMusic ? 'scale(1.05)' : 'scale(1)',
-          }} title="Musique — GaufreGentille">
+          }} title="Musique · GaufreGentille">
             <img src="/gg-logo.png" alt="GaufreGentille Musique" style={{ width:62, height:62, borderRadius:8, objectFit:'cover', display:'block' }} />
           </button>
-          {/* Vitality button */}
           <a href="https://bo3.gg/teams/vitality/matches" target="_blank" rel="noopener noreferrer"
             style={{ display:'block', padding:4, borderRadius:8, opacity:0.65, transition:'all 0.2s' }}
             onMouseEnter={e => e.currentTarget.style.opacity='1'}
             onMouseLeave={e => e.currentTarget.style.opacity='0.65'}
-            title="Team Vitality CS2 — bo3.gg">
+            title="Team Vitality CS2 · bo3.gg">
             <img src="/vitality-logo.webp" alt="Team Vitality" style={{ width:62, height:62, borderRadius:8, objectFit:'cover', display:'block' }} />
           </a>
-          {/* Cupping button — lien externe vers l'outil de dégustation */}
           <a href="https://cupping-secure.netlify.app" target="_blank" rel="noopener noreferrer"
             style={{ display:'block', padding:4, borderRadius:8, opacity:0.65, transition:'all 0.2s' }}
             onMouseEnter={e => e.currentTarget.style.opacity='1'}
             onMouseLeave={e => e.currentTarget.style.opacity='0.65'}
-            title="Cupping — Fiches de dégustation">
+            title="Cupping · fiches de dégustation">
             <img src="/cupping-logo.png" alt="Cupping" style={{ width:62, height:62, borderRadius:8, objectFit:'cover', display:'block' }} />
           </a>
         </div>
       </div>
 
-
-            {/* MUSIC PANEL */}
+      {/* MUSIC PANEL */}
       {showMusic && (
         <div style={{ background:T.surf, borderBottom:`1px solid ${BRAND.purple}44`, padding:'20px', animation:'fadeUp 0.2s ease both' }}>
           <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.15em', color:T.dim, fontWeight:600, marginBottom:20, paddingBottom:12, borderBottom:`1px solid ${T.border}` }}>
             Musique · GaufreGentille · {PLAYLISTS.length} playlists sur Suno
           </div>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:16 }}>
-            {PLAYLISTS.map((pl, i) => (
-              <a key={i} href={pl.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration:'none' }}>
+            {PLAYLISTS.map((pl) => (
+              <a key={pl.url} href={pl.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration:'none' }}>
                 <div style={{
                   background:T.surf2, border:`1px solid ${T.border}`,
                   borderRadius:14, overflow:'hidden', cursor:'pointer', transition:'all 0.22s',
@@ -790,27 +747,27 @@ export default function App() {
 
       {/* CONTENT */}
       <div style={{ maxWidth: tab==='home' ? 'none' : 1040, margin:'0 auto', padding: tab==='home' ? 0 : '28px 18px 110px' }}>
-        {error && <ErrMsg msg={error} T={T} />}
 
-        {/* HOME */}
+        {/* ACCUEIL */}
         {tab==='home' && (
           <HomePage setTab={setTab} setShowMusic={setShowMusic} />
         )}
 
-        {/* NEWS */}
+        {/* ACTUALITES */}
         {tab==='news' && (
-          loading ? <Spinner label="Generation des actualites du jour..." T={T} /> :
-          news.length ? (
+          news.loading ? <Spinner label="Chargement des actualités..." T={T} /> :
+          news.error   ? <ErrMsg msg={news.error} T={T} /> :
+          news.data?.length ? (
             <div>
               <div style={{ fontSize:9, textTransform:'uppercase', letterSpacing:'0.18em', color:T.faint, marginBottom:16, paddingBottom:10, borderBottom:`1px solid ${T.border}` }}>
-                Actualites du secteur - {news.length} articles · {dateStr}
+                Actualités du secteur · {news.data.length} articles · {dateStr}
               </div>
-              <HeroCard item={news[0]} T={T} />
+              <HeroCard item={news.data[0]} T={T} />
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:14 }}>
-                {news.slice(1).map((item,i) => <NewsCard key={i} item={item} img={IMG[(i+1)%IMG.length]} i={i} T={T} />)}
+                {news.data.slice(1).map((item,i) => <NewsCard key={item.url || i} item={item} img={IMG[(i+1)%IMG.length]} i={i} T={T} />)}
               </div>
             </div>
-          ) : <ErrMsg msg="Impossible de charger les actualites." T={T} />
+          ) : <ErrMsg msg="Aucune actualité disponible pour le moment." T={T} />
         )}
 
         {/* INSTAGRAM */}
@@ -818,66 +775,61 @@ export default function App() {
           <InstaVeillePanel />
         )}
 
-        {/* REDDIT */}
+        {/* COMMUNAUTE */}
         {tab==='reddit' && (
-          commLoading ? <Spinner label="Chargement de la communaute..." T={T} /> :
-          community.length ? (
+          community.loading ? <Spinner label="Chargement de la communauté..." T={T} /> :
+          community.error   ? <ErrMsg msg={community.error} T={T} /> :
+          community.data?.length ? (
             <div>
               <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.15em', color:T.dim, fontWeight:600, marginBottom:16, paddingBottom:12, borderBottom:`1px solid ${T.border}` }}>
-                Communaute · The Sprudge Report · {community.length} articles · {dateStr}
+                Communauté · The Sprudge Report · {community.data.length} articles · {dateStr}
               </div>
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(300px,1fr))', gap:14 }}>
-                {community.map((post,i) => <RedditCard key={i} post={post} i={i} T={T} />)}
+                {community.data.map((post,i) => <RedditCard key={post.url || i} post={post} i={i} T={T} />)}
               </div>
             </div>
-          ) : <ErrMsg msg="Impossible de charger le contenu Sprudge." T={T} />
+          ) : <ErrMsg msg="Aucun article disponible pour le moment." T={T} />
         )}
 
         {/* SCIENCE */}
         {tab==='science' && (
-          sciLoading ? <Spinner label="Recherche d articles scientifiques..." T={T} /> :
-          (sciItems.length > 0 ? sciItems : sci).length ? (
+          science.loading ? <Spinner label="Recherche d'articles scientifiques..." T={T} /> :
+          science.error   ? <ErrMsg msg={science.error} T={T} /> :
+          science.data?.length ? (
             <div>
               <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.15em', color:T.dim, fontWeight:600, marginBottom:16, paddingBottom:12, borderBottom:`1px solid ${T.border}` }}>
-                Articles scientifiques · {(sciItems.length > 0 ? sciItems : sci).length} articles · vrais papiers via PubMed NCBI
+                Articles scientifiques · {science.data.length} articles · via PubMed NCBI
               </div>
               <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
-                {(sciItems.length > 0 ? sciItems : sci).map((item,i) => <SciCard key={i} item={item} img={SCI_IMG[i%SCI_IMG.length]} i={i} T={T} />)}
+                {science.data.map((item,i) => <SciCard key={item.url || i} item={item} img={SCI_IMG[i%SCI_IMG.length]} i={i} T={T} />)}
               </div>
             </div>
-          ) : <ErrMsg msg="Impossible de charger les articles scientifiques." T={T} />
+          ) : <ErrMsg msg="Aucun article scientifique disponible." T={T} />
         )}
 
-
-        {/* TEAM VITALITY */}
-
-
-        {/* MUSIQUE */}
-
-        {tab==='gear' && (() => {
-          const items = gearItems.length > 0 ? gearItems : gear
-          return gearLoading ? <Spinner label="Chargement des nouveautés matériel..." T={T} /> :
-          items.length ? (
+        {/* MATERIEL */}
+        {tab==='gear' && (
+          gear.loading ? <Spinner label="Chargement des nouveautés matériel..." T={T} /> :
+          gear.error   ? <ErrMsg msg={gear.error} T={T} /> :
+          gear.data?.length ? (
             <div>
               <div style={{ fontSize:11, textTransform:'uppercase', letterSpacing:'0.15em', color:T.dim, fontWeight:600, marginBottom:16, paddingBottom:12, borderBottom:`1px solid ${T.border}` }}>
-                Ça fait du bruit · {items.length} nouveautés · moulins, machines, tasses, drippers...
+                Ça fait du bruit · {gear.data.length} nouveautés · moulins, machines, tasses, drippers...
               </div>
-              <GearHeroCard item={items[0]} T={T} />
+              <GearHeroCard item={gear.data[0]} T={T} />
               <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fill,minmax(260px,1fr))', gap:14 }}>
-                {items.slice(1).map((item,i) => <GearCard key={i} item={item} i={i} T={T} />)}
+                {gear.data.slice(1).map((item,i) => <GearCard key={item.url || i} item={item} i={i} T={T} />)}
               </div>
             </div>
-          ) : <ErrMsg msg="Impossible de charger les nouveautés." T={T} />
-        })()}
-        
-        {/* HARVEST */}
+          ) : <ErrMsg msg="Aucune nouveauté disponible." T={T} />
+        )}
+
+        {/* ORIGINES */}
         {tab==='harvest' && (
-          harvestLoading ? <Spinner label="Chargement du calendrier des origines..." T={T} /> :
-          harvestData ? (
-            <HarvestPanel data={harvestData} />
-          ) : (
-            <ErrMsg msg="Impossible de charger le calendrier des origines." T={T} />
-          )
+          harvest.loading ? <Spinner label="Chargement du calendrier des origines..." T={T} /> :
+          harvest.error   ? <ErrMsg msg={harvest.error} T={T} /> :
+          harvest.data ? <HarvestPanel data={harvest.data} />
+                       : <ErrMsg msg="Calendrier des origines indisponible." T={T} />
         )}
       </div>
     </div>
