@@ -17,18 +17,18 @@ const MAX_POST_AGE = 14 * 24 * 3600 * 1000; // le feed n'affiche que les posts <
 const PAGE_SIZE = 48;
 
 const CATEGORY_COLORS = {
-  Torrefacteur: "#ea9524",
-  Materiel: "#60a5fa",
-  Cafe: "#4ade80",
-  Producteur: "#86efac",
-  Barista: "#e879f9",
-  Media: "#a78bfa",
-  Importateur: "#fb923c",
-  Communaute: "#facc15",
-  The: "#34d399",
-  Evenement: "#f472b6",
+  Torrefacteur: "#b4610f",
+  Materiel: "#2563eb",
+  Cafe: "#2f7a4d",
+  Producteur: "#4a7c3f",
+  Barista: "#a83bb0",
+  Media: "#6b4fc4",
+  Importateur: "#c2570d",
+  Communaute: "#8a6412",
+  The: "#1f7a63",
+  Evenement: "#bd3a70",
 };
-const catColor = (c) => CATEGORY_COLORS[c] || "#888";
+const catColor = (c) => CATEGORY_COLORS[c] || "#6d747a";
 
 function timeAgo(ts) {
   const diff = Date.now() - new Date(ts).getTime();
@@ -86,14 +86,15 @@ function PseudoModal({ onConfirm, onCancel }) {
       <div
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: "#1a1a1a", border: "1px solid rgba(254,210,56,0.3)",
+          background: "var(--ks-paper-2)", border: "1px solid rgba(218,93,22,0.30)",
+          boxShadow: "0 24px 60px rgba(7,23,43,0.18)",
           borderRadius: 14, padding: 24, width: 300, maxWidth: "88vw",
         }}
       >
-        <div style={{ fontSize: 14, fontWeight: 700, color: "#f0f0f0", marginBottom: 6 }}>
+        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ks-ink)", marginBottom: 6 }}>
           Choisis un pseudo pour voter
         </div>
-        <div style={{ fontSize: 10, color: "#888", lineHeight: 1.5, marginBottom: 14 }}>
+        <div style={{ fontSize: 10, color: "var(--ks-dim)", lineHeight: 1.5, marginBottom: 14 }}>
           Pas de compte, pas de mot de passe — ton pseudo est lié à ce navigateur.
         </div>
         <input
@@ -105,14 +106,15 @@ function PseudoModal({ onConfirm, onCancel }) {
           maxLength={20}
           style={{
             width: "100%", boxSizing: "border-box",
-            background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.15)",
-            borderRadius: 8, color: "#eee", fontSize: 13, padding: "8px 12px", outline: "none",
+            background: "#fff", border: "1px solid var(--ks-border-strong)",
+            borderRadius: 8, color: "var(--ks-ink)", caretColor: "var(--ks-orange)",
+            fontSize: 13, padding: "8px 12px", outline: "none",
           }}
         />
         <div style={{ display: "flex", gap: 8, marginTop: 14, justifyContent: "flex-end" }}>
           <button onClick={onCancel} style={{
             cursor: "pointer", fontSize: 11, borderRadius: 8, padding: "6px 14px",
-            border: "1px solid rgba(255,255,255,0.15)", background: "none", color: "#999",
+            border: "1px solid var(--ks-border-strong)", background: "none", color: "var(--ks-dim)",
           }}>Annuler</button>
           <button
             onClick={() => valid && onConfirm(pseudo)}
@@ -120,7 +122,7 @@ function PseudoModal({ onConfirm, onCancel }) {
             style={{
               cursor: valid ? "pointer" : "default", fontSize: 11, fontWeight: 700,
               borderRadius: 8, padding: "6px 16px", border: "none",
-              background: valid ? "#fed238" : "rgba(254,210,56,0.25)", color: "#1a1a1a",
+              background: valid ? "var(--ks-orange)" : "rgba(218,93,22,0.25)", color: "#fff",
             }}
           >C'est parti !</button>
         </div>
@@ -138,9 +140,9 @@ function VoteButtons({ postId, counts, mine, onVote }) {
       style={{
         cursor: "pointer", display: "flex", alignItems: "center", gap: 4,
         fontSize: 11, borderRadius: 8, padding: "2px 8px",
-        border: `1px solid ${active ? activeColor : "rgba(255,255,255,0.1)"}`,
-        background: active ? `${activeColor}1f` : "rgba(255,255,255,0.03)",
-        color: active ? activeColor : "#888",
+        border: `1px solid ${active ? activeColor : "var(--ks-border-strong)"}`,
+        background: active ? `${activeColor}1f` : "var(--ks-paper-2)",
+        color: active ? activeColor : "var(--ks-dim)",
       }}
     >
       <span>{emoji}</span>
@@ -149,8 +151,8 @@ function VoteButtons({ postId, counts, mine, onVote }) {
   );
   return (
     <div style={{ display: "flex", gap: 6 }}>
-      {btn(1, "🔥", counts?.u || 0, mine === 1, "#ea9524")}
-      {btn(-1, "❄️", counts?.d || 0, mine === -1, "#60a5fa")}
+      {btn(1, "🔥", counts?.u || 0, mine === 1, "#c2570d")}
+      {btn(-1, "❄️", counts?.d || 0, mine === -1, "#2563eb")}
     </div>
   );
 }
@@ -158,8 +160,8 @@ function VoteButtons({ postId, counts, mine, onVote }) {
 // ─── Carte de post (feed et épingles) ────────────────────────────────────────
 function PostCard({ it, isNew, pinned, isAdmin, votes, onVote, onPin, onUnpin }) {
   const borderColor = pinned
-    ? "rgba(234,149,36,0.55)"
-    : isNew ? "rgba(254,210,56,0.4)" : "rgba(255,255,255,0.07)";
+    ? "rgba(218,93,22,0.50)"
+    : isNew ? "rgba(218,93,22,0.26)" : "var(--ks-border)";
   return (
     <a
       href={it.permalink}
@@ -167,12 +169,12 @@ function PostCard({ it, isNew, pinned, isAdmin, votes, onVote, onPin, onUnpin })
       rel="noopener noreferrer"
       style={{
         display: "block", textDecoration: "none",
-        background: pinned ? "rgba(234,149,36,0.05)" : "rgba(255,255,255,0.03)",
+        background: pinned ? "rgba(218,93,22,0.06)" : "rgba(255,255,255,0.55)",
         border: `1px solid ${borderColor}`,
         borderRadius: 12, overflow: "hidden",
       }}
     >
-      <div style={{ position: "relative", aspectRatio: "1/1", background: "#111" }}>
+      <div style={{ position: "relative", aspectRatio: "1/1", background: "var(--ks-paper-3)" }}>
         {it.image && (
           <img
             src={it.image}
@@ -238,7 +240,7 @@ function PostCard({ it, isNew, pinned, isAdmin, votes, onVote, onPin, onUnpin })
             />
           )}
           <span style={{
-            fontSize: 11, fontWeight: 700, color: "#f0f0f0",
+            fontSize: 11, fontWeight: 700, color: "var(--ks-ink)",
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
           }}>
             {it.account.name || it.account.handle}
@@ -247,13 +249,13 @@ function PostCard({ it, isNew, pinned, isAdmin, votes, onVote, onPin, onUnpin })
             {it.account.category}
           </span>
         </div>
-        <div style={{ fontSize: 9, color: "#666", marginTop: 2 }}>
+        <div style={{ fontSize: 9, color: "var(--ks-dim)", marginTop: 2 }}>
           @{it.account.handle}
           {it.account.followers != null && ` · ${fmtCount(it.account.followers)} abonnés`}
         </div>
         {it.caption && (
           <div style={{
-            fontSize: 10, color: "#aaa", marginTop: 5, lineHeight: 1.4,
+            fontSize: 10, color: "var(--ks-ink-2)", marginTop: 5, lineHeight: 1.4,
             display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
           }}>
             {it.caption}
@@ -266,7 +268,7 @@ function PostCard({ it, isNew, pinned, isAdmin, votes, onVote, onPin, onUnpin })
             mine={votes.mine[it.id] || 0}
             onVote={onVote}
           />
-          <span style={{ fontSize: 9, color: "#666", marginLeft: "auto" }}>{timeAgo(it.timestamp)}</span>
+          <span style={{ fontSize: 9, color: "var(--ks-dim)", marginLeft: "auto" }}>{timeAgo(it.timestamp)}</span>
         </div>
       </div>
     </a>
@@ -478,16 +480,16 @@ export default function InstaVeillePanel() {
   const isAdmin = !!adminKey;
 
   if (error) {
-    return <div style={{ padding: 20, color: "#f87171", fontSize: 12 }}>
+    return <div style={{ padding: 20, color: "#b4402f", fontSize: 12 }}>
       Erreur de chargement de la veille Instagram : {error}
     </div>;
   }
   if (!data) {
-    return <div style={{ padding: 20, color: "#888", fontSize: 12 }}>Chargement de la veille…</div>;
+    return <div style={{ padding: 20, color: "var(--ks-dim)", fontSize: 12 }}>Chargement de la veille…</div>;
   }
   if (!feed.length && !pinnedItems.length) {
     return <div style={{ padding: 20 }}>
-      <div style={{ color: "#888", fontSize: 12 }}>
+      <div style={{ color: "var(--ks-dim)", fontSize: 12 }}>
         Aucune donnée pour l'instant — le premier passage de la veille n'a pas encore eu lieu.
       </div>
       <VeilleAdmin />
@@ -502,23 +504,23 @@ export default function InstaVeillePanel() {
 
       {/* ─── Header ─── */}
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap", marginBottom: 10 }}>
-        <span style={{ fontWeight: 700, fontSize: 15, color: "#f0f0f0" }}>Veille Instagram</span>
-        <span style={{ fontSize: 10, color: "#888" }}>
+        <span style={{ fontWeight: 700, fontSize: 15, color: "var(--ks-ink)" }}>Veille Instagram</span>
+        <span style={{ fontSize: 10, color: "var(--ks-dim)" }}>
           {data.stats?.ok ?? "?"} comptes suivis · {feed.length} posts
         </span>
         {newCount > 0 && (
           <span style={{
-            fontSize: 10, fontWeight: 700, color: "#1a1a1a",
-            background: "#fed238", borderRadius: 8, padding: "1px 7px",
+            fontSize: 10, fontWeight: 700, color: "#3c2d05",
+            background: "var(--ks-yellow)", borderRadius: 8, padding: "1px 7px",
           }}>
             {newCount} nouveau{newCount > 1 ? "x" : ""}
           </span>
         )}
         {user && (
-          <span style={{ fontSize: 9, color: "#666" }}>· connecté : <span style={{ color: "#fed238" }}>{user.pseudo}</span></span>
+          <span style={{ fontSize: 9, color: "var(--ks-dim)" }}>· connecté : <span style={{ color: "var(--ks-orange)", fontWeight: 600 }}>{user.pseudo}</span></span>
         )}
         {data.fetchedAt && (
-          <span style={{ fontSize: 9, color: "#555", marginLeft: "auto" }}>
+          <span style={{ fontSize: 9, color: "var(--ks-faint)", marginLeft: "auto" }}>
             màj {timeAgo(data.fetchedAt)}
           </span>
         )}
@@ -528,11 +530,11 @@ export default function InstaVeillePanel() {
       {pinnedItems.length > 0 && (
         <div style={{ marginBottom: 18 }}>
           <div style={{
-            fontSize: 11, fontWeight: 700, color: "#ea9524", marginBottom: 8,
+            fontSize: 11, fontWeight: 700, color: "var(--ks-orange)", marginBottom: 8,
             display: "flex", alignItems: "center", gap: 6,
           }}>
             📌 À la une
-            <span style={{ fontWeight: 400, color: "#666", fontSize: 9 }}>
+            <span style={{ fontWeight: 400, color: "var(--ks-dim)", fontSize: 9 }}>
               — sélection de la maison
             </span>
           </div>
@@ -560,15 +562,15 @@ export default function InstaVeillePanel() {
 
       {/* ─── Tri + Filtres ─── */}
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap", alignItems: "center", marginBottom: 12 }}>
-        <div style={{ display: "flex", borderRadius: 8, overflow: "hidden", border: "1px solid rgba(255,255,255,0.1)" }}>
+        <div style={{ display: "flex", borderRadius: 8, overflow: "hidden", border: "1px solid var(--ks-border-strong)" }}>
           {[["recent", "Récents"], ["hot", "🔥 Hot"]].map(([key, label]) => (
             <button
               key={key}
               onClick={() => { setSort(key); setLimit(PAGE_SIZE); }}
               style={{
                 cursor: "pointer", fontSize: 10, padding: "4px 11px", border: "none",
-                background: sort === key ? "rgba(234,149,36,0.2)" : "rgba(255,255,255,0.03)",
-                color: sort === key ? "#ea9524" : "#888",
+                background: sort === key ? "rgba(218,93,22,0.14)" : "var(--ks-paper-2)",
+                color: sort === key ? "var(--ks-orange)" : "var(--ks-dim)",
                 fontWeight: sort === key ? 700 : 400,
               }}
             >{label}</button>
@@ -580,8 +582,9 @@ export default function InstaVeillePanel() {
           onChange={(e) => { setSearch(e.target.value); setLimit(PAGE_SIZE); }}
           placeholder="Rechercher…"
           style={{
-            background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.1)",
-            borderRadius: 8, color: "#eee", fontSize: 11, padding: "4px 10px", outline: "none", width: 130,
+            background: "var(--ks-paper-2)", border: "1px solid var(--ks-border-strong)",
+            borderRadius: 8, color: "var(--ks-ink)", caretColor: "var(--ks-orange)",
+            fontSize: 11, padding: "4px 10px", outline: "none", width: 130,
           }}
         />
         {[["Tous", feed.length], ...categories.slice(0, 8)].map(([cat, count]) => (
@@ -590,9 +593,9 @@ export default function InstaVeillePanel() {
             onClick={() => { setCategory(cat); setLimit(PAGE_SIZE); }}
             style={{
               cursor: "pointer", fontSize: 10, borderRadius: 8, padding: "3px 9px",
-              border: `1px solid ${category === cat ? catColor(cat) : "rgba(255,255,255,0.1)"}`,
-              background: category === cat ? `${catColor(cat)}22` : "rgba(255,255,255,0.03)",
-              color: category === cat ? catColor(cat) : "#aaa",
+              border: `1px solid ${category === cat ? catColor(cat) : "var(--ks-border-strong)"}`,
+              background: category === cat ? `${catColor(cat)}1a` : "var(--ks-paper-2)",
+              color: category === cat ? catColor(cat) : "var(--ks-dim)",
             }}
           >
             {cat} <span style={{ opacity: 0.6 }}>{count}</span>
@@ -628,7 +631,7 @@ export default function InstaVeillePanel() {
             onClick={() => setLimit((l) => l + PAGE_SIZE)}
             style={{
               cursor: "pointer", fontSize: 11, borderRadius: 8, padding: "6px 16px",
-              border: "1px solid rgba(254,210,56,0.35)", background: "rgba(254,210,56,0.08)", color: "#fed238",
+              border: "1px solid rgba(218,93,22,0.40)", background: "rgba(218,93,22,0.08)", color: "var(--ks-orange)",
             }}
           >
             Voir plus ({filtered.length - limit} restants)
