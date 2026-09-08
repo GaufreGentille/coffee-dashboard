@@ -830,6 +830,16 @@ function HomePage({ setTab, setShowMusic }) {
       <button className="ks-logo" onClick={()=>window.scrollTo({top:0,behavior:'smooth'})} data-cursor="active" aria-label="GG, retour en haut de page">
         <span className="ks-gg-logo">GG<span>.</span></span>
       </button>
+
+      <nav className="ks-top-links" aria-label="Navigation principale">
+        <button onClick={()=>onNavigate('news')}>ACTUALITÉS</button>
+        <button onClick={()=>onNavigate('science')}>SCIENCE</button>
+        <button onClick={()=>onNavigate('harvest')}>ORIGINES</button>
+        <button onClick={()=>onNavigate('gear')}>MATÉRIEL</button>
+        <button onClick={()=>onNavigate('market')}>MARCHÉ</button>
+        <button onClick={()=>onNavigate('reddit')}>COMMUNAUTÉ</button>
+      </nav>
+
       <button className="ks-menu-button" onClick={scrollToUniverses} data-cursor="active" aria-label="Voir les univers">
         <span></span><span></span>
       </button>
@@ -850,14 +860,6 @@ function HomePage({ setTab, setShowMusic }) {
             </button>
           </div>
 
-          <nav className="ks-hero-links" aria-label="Accès rapide">
-            <button onClick={()=>onNavigate('news')}>ACTUALITÉS</button>
-            <button onClick={()=>onNavigate('science')}>SCIENCE</button>
-            <button onClick={()=>onNavigate('harvest')}>ORIGINES</button>
-            <button onClick={()=>onNavigate('gear')}>MATÉRIEL</button>
-            <button onClick={()=>onNavigate('market')}>MARCHÉ</button>
-            <button onClick={()=>onNavigate('reddit')}>COMMUNAUTÉ</button>
-          </nav>
         </div>
       </section>
 
@@ -1497,14 +1499,17 @@ export default function App() {
 .ks-home{--ks-paper:#f4ede3;--ks-paper-2:#f7f1e8;--ks-ink:#07172b;--ks-soft:#6f716d;min-height:100vh;background:var(--ks-paper);color:var(--ks-ink);position:relative;overflow:hidden;cursor:none}
 .ks-home button,.ks-home a{font-family:'DM Sans',Inter,sans-serif}
 .ks-shell{max-width:1440px;margin:0 auto;padding-left:clamp(24px,4.5vw,68px);padding-right:clamp(24px,4.5vw,68px)}
-.ks-home-nav{height:102px;max-width:1440px;margin:0 auto;padding:24px clamp(24px,4.5vw,68px);display:flex;align-items:flex-start;justify-content:space-between;position:absolute;inset:0 0 auto;z-index:30;pointer-events:none}
+.ks-home-nav{height:72px;width:100%;padding:0 clamp(24px,4.5vw,68px);display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:28px;position:fixed;inset:0 0 auto;z-index:60;background:var(--ks-paper-2);border-bottom:1px solid rgba(7,23,43,.12);pointer-events:auto}
 .ks-logo{border:0;background:transparent;padding:0;display:block;cursor:none;pointer-events:auto;color:var(--ks-ink)}
 .ks-gg-logo{display:inline-block;font-family:'Bodoni Moda',Georgia,serif;font-style:italic;font-weight:800;font-size:clamp(38px,4vw,58px);line-height:.82;letter-spacing:-.08em}
 .ks-gg-logo>span{color:var(--ks-orange);font-style:normal;margin-left:3px}
-.ks-menu-button{width:47px;height:47px;border-radius:50%;border:0;background:var(--ks-ink);display:grid;place-content:center;gap:6px;cursor:none;pointer-events:auto;box-shadow:0 11px 24px rgba(7,23,43,.12);transition:transform .25s ease,background .25s ease}
+.ks-top-links{display:flex;align-items:center;justify-content:center;gap:clamp(16px,2vw,34px);min-width:0}
+.ks-top-links button{border:0;background:transparent;padding:7px 0;color:var(--ks-ink);font-size:9px;font-weight:700;letter-spacing:.18em;cursor:none;white-space:nowrap;transition:color .18s ease,transform .18s ease}
+.ks-top-links button:hover{color:var(--ks-orange);transform:translateY(-1px)}
+.ks-menu-button{width:44px;height:44px;border-radius:50%;border:0;background:var(--ks-ink);display:grid;place-content:center;gap:6px;cursor:none;box-shadow:none;transition:transform .25s ease,background .25s ease}
 .ks-menu-button span{display:block;width:17px;height:1.5px;border-radius:2px;background:#fff}.ks-menu-button:hover{transform:scale(1.06);background:#132942}
 
-.ks-hero{min-height:min(790px,92vh);position:relative;padding:clamp(120px,12vh,170px) 0 62px;display:flex;align-items:center;isolation:isolate;overflow:hidden}
+.ks-hero{min-height:min(790px,92vh);position:relative;padding:clamp(142px,15vh,190px) 0 62px;display:flex;align-items:center;isolation:isolate;overflow:hidden}
 .ks-hero:after{content:'';position:absolute;left:clamp(24px,4.5vw,68px);right:clamp(24px,4.5vw,68px);bottom:0;height:1px;background:rgba(7,23,43,.12)}
 .ks-hero-shell{position:relative;z-index:5;width:100%;display:flex;align-items:flex-start;justify-content:space-between}
 .ks-hero-copy{position:relative;z-index:5;width:min(69%,900px);padding-bottom:30px}
@@ -1516,8 +1521,6 @@ export default function App() {
 .ks-explore:hover i{transform:translateX(4px)}
 .ks-hero-art{position:absolute;inset:0 0 0 auto;width:min(54vw,820px);pointer-events:none;display:flex;justify-content:flex-end;align-items:flex-start;z-index:1}
 .ks-hero-botanical{position:absolute;right:0;top:0;width:100%;height:100%;object-fit:contain;object-position:top right;pointer-events:none;filter:none;opacity:1}
-.ks-hero-links{position:relative;z-index:6;display:flex;flex-direction:column;gap:9px;align-items:flex-start;padding-left:18px;border-left:1px solid rgba(7,23,43,.28);margin-top:6px;margin-right:12px}
-.ks-hero-links button{border:0;background:transparent;color:var(--ks-ink);font-size:9px;font-weight:600;letter-spacing:.23em;cursor:none;opacity:.63;padding:0;transition:opacity .2s,color .2s,transform .2s}.ks-hero-links button:hover{opacity:1;color:var(--ks-orange);transform:translateX(3px)}
 
 .ks-universes{position:relative;z-index:10;padding:28px 0 76px}
 .ks-tile-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
@@ -1542,12 +1545,12 @@ export default function App() {
 .ks-closing-botanical{position:absolute;right:0;bottom:0;width:100%;height:100%;object-fit:contain;object-position:bottom right;pointer-events:none;filter:none;opacity:1}
 
 @media(max-width:980px){
-  .ks-home-nav{max-width:none}
-  .ks-hero{min-height:720px;align-items:flex-end;padding-bottom:74px}.ks-hero-copy{width:76%}.ks-hero h1{font-size:clamp(62px,11vw,108px)}.ks-hero-art{width:67vw}.ks-hero-links{display:none}
+  .ks-top-links{gap:14px}.ks-top-links button{font-size:8px;letter-spacing:.13em}
+  .ks-hero{min-height:720px;align-items:flex-end;padding-top:130px;padding-bottom:74px}.ks-hero-copy{width:76%}.ks-hero h1{font-size:clamp(62px,11vw,108px)}.ks-hero-art{width:67vw}
   .ks-tile-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.ks-tile{height:300px}.ks-closing-copy{width:58%}.ks-closing-art{width:72vw}
 }
 @media(max-width:640px){
-  .ks-home{cursor:auto}.ks-home .ggc-cursor,.ks-home .ggc-cursor-dot{display:none}.ks-home-nav{height:78px;padding:18px}.ks-menu-button{width:42px;height:42px}.ks-gg-logo{font-size:42px}
+  .ks-home{cursor:auto}.ks-home .ggc-cursor,.ks-home .ggc-cursor-dot{display:none}.ks-home-nav{height:68px;padding:0 18px;grid-template-columns:auto 1fr auto}.ks-top-links{display:none}.ks-menu-button{width:42px;height:42px}.ks-gg-logo{font-size:42px}
   .ks-shell{padding-left:14px;padding-right:14px}
   .ks-hero{min-height:620px;padding:122px 0 46px;align-items:flex-end}.ks-hero-copy{width:100%;padding-bottom:0}.ks-eyebrow{font-size:8px;margin-bottom:16px}.ks-hero h1{font-size:clamp(44px,14.3vw,67px);line-height:.82;letter-spacing:-.06em}.ks-hero-art{width:62vw;height:300px;top:8px;bottom:auto}.ks-hero-botanical{right:-8vw;top:0;opacity:1}.ks-explore{margin-top:26px}.ks-hero:after{left:14px;right:14px}
   .ks-universes{padding:14px 0 46px}.ks-tile-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.ks-tile{height:174px;border-radius:9px}.ks-tile strong{left:14px;bottom:15px;font-size:15px}.ks-tile-arrow{left:13px;top:13px;width:29px;height:29px;font-size:13px}.ks-tile-index{right:12px;top:12px;font-size:7px}.ks-tile:last-child{grid-column:1/-1;height:205px}
