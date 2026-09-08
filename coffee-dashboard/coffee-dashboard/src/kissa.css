@@ -692,3 +692,13 @@ a{color:inherit}
     border-radius:14px;
   }
 }
+
+
+/* Handle Instagram identifié précisément par le wrapper React. */
+.ks-instagram-panel-skin [data-ks-instagram-handle="true"]{
+  color:var(--ks-ink)!important;
+  -webkit-text-fill-color:var(--ks-ink)!important;
+  opacity:1!important;
+  visibility:visible!important;
+  filter:none!important;
+}
