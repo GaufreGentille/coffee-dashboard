@@ -180,7 +180,7 @@ a{color:inherit}
 .ks-page-ornament img{width:100%;height:100%;display:block;object-fit:contain;filter:none;opacity:1}
 
 /* Chaque univers a son propre placement. Le dessin reste volontairement en périphérie. */
-.ks-page-ornament.is-news{top:34px;width:310px;height:330px}
+.ks-page-ornament.is-news{top:auto;bottom:72px;width:310px;height:330px}
 .ks-page-ornament.is-news img{transform:translateX(32%) rotate(-8deg)}
 
 .ks-page-ornament.is-science{top:215px;width:285px;height:320px}
@@ -560,7 +560,7 @@ a{color:inherit}
   .ks-page-ornament{width:190px;height:215px}
   .ks-page-ornament.right{right:calc(50% - 50vw)}
   .ks-page-ornament.left{left:calc(50% - 50vw)}
-  .ks-page-ornament.is-news{top:18px;width:190px;height:215px}
+  .ks-page-ornament.is-news{top:auto;bottom:38px;width:190px;height:215px}
   .ks-page-ornament.is-news img{transform:translateX(52%) rotate(-8deg)}
   .ks-page-ornament.is-science{top:150px;width:175px;height:205px}
   .ks-page-ornament.is-science img{transform:translateX(-54%) scaleX(-1) rotate(12deg)}
@@ -643,6 +643,19 @@ a{color:inherit}
   text-underline-offset:3px;
 }
 
+/* Les handles Instagram contiennent des éléments enfants avec leur propre couleur.
+   On force aussi ces enfants afin que @puq.coffee, @ikawahome, etc. soient lisibles. */
+.ks-instagram-panel-skin a *,
+.ks-instagram-panel-skin a[href*="instagram.com"] *{
+  color:var(--ks-orange)!important;
+  opacity:1!important;
+  visibility:visible!important;
+  filter:none!important;
+}
+.ks-instagram-panel-skin a:hover *{
+  color:var(--ks-ink)!important;
+}
+
 /* Formulaire de gestion : contraste explicite, même si le composant possède
    encore des styles inline hérités de son ancienne version sombre. */
 .ks-instagram-panel-skin input,
@@ -687,4 +700,11 @@ a{color:inherit}
     padding:16px 12px;
     border-radius:14px;
   }
+}
+
+
+/* Secours de contraste pour les noms/handles de la liste Instagram. */
+.ks-instagram-panel-skin [role="link"],
+.ks-instagram-panel-skin [role="link"] *{
+  opacity:1!important;
 }
