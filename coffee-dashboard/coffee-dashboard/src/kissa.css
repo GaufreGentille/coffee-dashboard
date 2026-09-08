@@ -335,7 +335,8 @@ a{color:inherit}
 .ks-origin-fact span{display:block;font-size:8px;font-weight:700;letter-spacing:.17em;text-transform:uppercase;color:var(--ks-orange);margin-bottom:5px}
 .ks-origin-fact strong{display:block;font-size:13px;line-height:1.48;font-weight:600;color:var(--ks-paper-2)}
 
-.ks-origin-browser,.ks-origin-live{margin-top:74px}
+.ks-origin-live{margin-top:34px}
+.ks-origin-browser{margin-top:74px}
 .ks-origin-section-head{display:flex;justify-content:space-between;align-items:end;gap:24px;padding-bottom:17px;border-bottom:1px solid var(--ks-border)}
 .ks-origin-section-head span{font-size:8px;font-weight:700;letter-spacing:.2em;color:var(--ks-orange)}
 .ks-origin-section-head h3{font-family:'Bodoni Moda',Georgia,serif;font-size:clamp(32px,4vw,54px);font-weight:800;line-height:.95;letter-spacing:-.04em;margin:6px 0 0;color:var(--ks-ink)}
@@ -351,15 +352,6 @@ a{color:inherit}
 .ks-origin-regions button{border:1px solid var(--ks-border);background:transparent;color:var(--ks-dim);border-radius:999px;padding:7px 10px;font-size:8px;font-weight:700;letter-spacing:.08em;transition:background .18s,color .18s,border-color .18s}
 .ks-origin-regions button:hover,.ks-origin-regions button.is-active{background:var(--ks-ink);border-color:var(--ks-ink);color:var(--ks-paper-2)}
 
-.ks-origin-index{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--ks-border);border-left:1px solid var(--ks-border)}
-.ks-origin-index-card{min-height:170px;position:relative;border:0;border-right:1px solid var(--ks-border);border-bottom:1px solid var(--ks-border);background:transparent;text-align:left;padding:22px 22px 48px;color:var(--ks-ink);transition:background .2s,color .2s}
-.ks-origin-index-card>span{display:block;font-size:8px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--ks-dim);margin-bottom:13px}
-.ks-origin-index-card strong{display:block;font-family:'Bodoni Moda',Georgia,serif;font-size:clamp(24px,2.2vw,36px);font-weight:800;line-height:.93;letter-spacing:-.04em}
-.ks-origin-index-card small{display:block;margin-top:12px;font-size:10px;line-height:1.45;color:var(--ks-dim)}
-.ks-origin-index-card i{position:absolute;right:18px;bottom:18px;font-style:normal;font-size:16px;color:var(--ks-orange);transition:transform .18s}
-.ks-origin-index-card:hover,.ks-origin-index-card.is-active{background:var(--ks-ink);color:var(--ks-paper-2)}
-.ks-origin-index-card:hover>span,.ks-origin-index-card:hover small,.ks-origin-index-card.is-active>span,.ks-origin-index-card.is-active small{color:rgba(247,241,232,.58)}
-.ks-origin-index-card:hover i,.ks-origin-index-card.is-active i{transform:translateX(4px)}
 .ks-origin-empty{padding:40px 0;color:var(--ks-dim);font-size:13px}
 
 .ks-origin-live-card{display:flex;align-items:center;justify-content:space-between;gap:36px;padding:28px 0;border-bottom:1px solid var(--ks-border)}
@@ -382,13 +374,170 @@ a{color:inherit}
 .ks-origin-calendar-legacy button{font-family:'DM Sans',sans-serif!important}
 .ks-origin-calendar-legacy a{color:var(--ks-ink)!important}
 
+
+
+.ks-origin-map-layout{
+  display:grid;
+  grid-template-columns:minmax(0,1.7fr) minmax(260px,.58fr);
+  gap:18px;
+  align-items:stretch
+}
+.ks-origin-map{
+  min-height:500px;
+  background:var(--ks-ink);
+  border-radius:18px;
+  padding:18px;
+  color:var(--ks-paper-2);
+  display:flex;
+  flex-direction:column;
+  overflow:hidden
+}
+.ks-origin-map-topline{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:20px;
+  padding:2px 2px 14px;
+  border-bottom:1px solid rgba(247,241,232,.14)
+}
+.ks-origin-map-topline span,
+.ks-origin-map-results-head span{
+  font-size:8px;
+  font-weight:700;
+  letter-spacing:.18em;
+  color:rgba(247,241,232,.52)
+}
+.ks-origin-map-topline small{
+  font-size:8px;
+  font-weight:700;
+  letter-spacing:.1em;
+  color:var(--ks-orange)
+}
+.ks-origin-world{
+  width:100%;
+  flex:1 1 auto;
+  min-height:390px;
+  display:block;
+  overflow:visible
+}
+.ks-origin-world-land{
+  fill:rgba(247,241,232,.12);
+  stroke:rgba(247,241,232,.24);
+  stroke-width:1.2;
+  vector-effect:non-scaling-stroke
+}
+.ks-origin-marker{cursor:pointer;outline:none}
+.ks-origin-marker-ring{
+  fill:rgba(218,93,22,.12);
+  stroke:rgba(218,93,22,.5);
+  stroke-width:1.5;
+  transition:r .18s ease,fill .18s ease,stroke .18s ease
+}
+.ks-origin-marker-core{
+  fill:var(--ks-orange);
+  stroke:var(--ks-paper-2);
+  stroke-width:1.2;
+  transition:r .18s ease
+}
+.ks-origin-marker:hover .ks-origin-marker-ring,
+.ks-origin-marker:focus .ks-origin-marker-ring,
+.ks-origin-marker.is-active .ks-origin-marker-ring{
+  r:14;
+  fill:rgba(218,93,22,.22);
+  stroke:var(--ks-orange)
+}
+.ks-origin-marker:hover .ks-origin-marker-core,
+.ks-origin-marker:focus .ks-origin-marker-core,
+.ks-origin-marker.is-active .ks-origin-marker-core{r:6.2}
+.ks-origin-map-legend{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+  padding:13px 2px 2px;
+  border-top:1px solid rgba(247,241,232,.14);
+  color:rgba(247,241,232,.5);
+  font-size:9px
+}
+.ks-origin-map-legend>span{display:flex;align-items:center;gap:7px}
+.ks-origin-map-legend i{width:7px;height:7px;border-radius:50%;background:var(--ks-orange);display:block}
+.ks-origin-map-legend small{font-size:8px}
+.ks-origin-map-results{
+  background:var(--ks-paper-2);
+  border:1px solid var(--ks-border);
+  border-radius:18px;
+  overflow:hidden;
+  min-height:500px;
+  display:flex;
+  flex-direction:column
+}
+.ks-origin-map-results-head{
+  min-height:52px;
+  padding:0 16px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  border-bottom:1px solid var(--ks-border)
+}
+.ks-origin-map-results-head span{color:var(--ks-dim)}
+.ks-origin-map-results-head strong{font-family:'Bodoni Moda',Georgia,serif;font-size:24px;color:var(--ks-orange)}
+.ks-origin-map-results-list{overflow:auto;max-height:448px}
+.ks-origin-map-results-list button{
+  width:100%;
+  position:relative;
+  border:0;
+  border-bottom:1px solid var(--ks-border);
+  background:transparent;
+  color:var(--ks-ink);
+  text-align:left;
+  padding:15px 38px 15px 16px;
+  transition:background .18s ease,color .18s ease
+}
+.ks-origin-map-results-list button>span{
+  display:block;
+  font-size:7px;
+  font-weight:700;
+  letter-spacing:.13em;
+  text-transform:uppercase;
+  color:var(--ks-dim);
+  margin-bottom:4px
+}
+.ks-origin-map-results-list button strong{display:block;font-family:'Bodoni Moda',Georgia,serif;font-size:21px;line-height:1;letter-spacing:-.03em}
+.ks-origin-map-results-list button small{display:block;margin-top:6px;color:var(--ks-dim);font-size:9px;line-height:1.4}
+.ks-origin-map-results-list button i{position:absolute;right:15px;top:50%;transform:translateY(-50%);font-style:normal;color:var(--ks-orange)}
+.ks-origin-map-results-list button:hover,
+.ks-origin-map-results-list button.is-active{background:var(--ks-ink);color:var(--ks-paper-2)}
+.ks-origin-map-results-list button:hover>span,
+.ks-origin-map-results-list button:hover small,
+.ks-origin-map-results-list button.is-active>span,
+.ks-origin-map-results-list button.is-active small{color:rgba(247,241,232,.56)}
+.ks-origin-map-selection{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:18px 0 0}
+.ks-origin-map-selection>div span{display:block;font-size:7px;font-weight:700;letter-spacing:.16em;color:var(--ks-orange);margin-bottom:5px}
+.ks-origin-map-selection>div strong{display:inline;font-family:'Bodoni Moda',Georgia,serif;font-size:26px;line-height:1}
+.ks-origin-map-selection>div small{margin-left:10px;font-size:9px;color:var(--ks-dim)}
+.ks-origin-map-selection button{border:0;background:transparent;color:var(--ks-ink);font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;display:flex;align-items:center;gap:10px}
+.ks-origin-map-selection button span{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--ks-orange);color:white;font-size:12px}
+
+@media(max-width:980px){
+  .ks-origin-map-layout{grid-template-columns:1fr}
+  .ks-origin-map-results{min-height:0}
+  .ks-origin-map-results-list{max-height:300px}
+}
+@media(max-width:700px){
+  .ks-origin-map{min-height:390px;padding:13px;border-radius:14px}
+  .ks-origin-world{min-height:285px}
+  .ks-origin-map-legend{align-items:flex-start;flex-direction:column;gap:5px}
+  .ks-origin-map-results{border-radius:14px}
+  .ks-origin-map-selection{align-items:flex-start;flex-direction:column}
+  .ks-origin-map-selection button{width:100%;justify-content:space-between}
+}
+
 @media(max-width:980px){
   .ks-origin-feature{grid-template-columns:1fr;gap:34px}
   .ks-origin-facts{border-left:0;border-top:1px solid rgba(247,241,232,.18);padding:22px 0 0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:24px}
   .ks-origin-facts-title{grid-column:1/-1}
   .ks-origin-controls{grid-template-columns:1fr}
   .ks-origin-regions{justify-content:flex-start}
-  .ks-origin-index{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
 @media(max-width:700px){
   .ks-origin-page{padding-bottom:80px}
@@ -402,20 +551,16 @@ a{color:inherit}
   .ks-origin-copy,.ks-origin-history p{font-size:13px}
   .ks-origin-facts{grid-template-columns:1fr}
   .ks-origin-facts-title{grid-column:auto}
-  .ks-origin-browser,.ks-origin-live{margin-top:54px}
+  .ks-origin-live{margin-top:26px}
+  .ks-origin-browser{margin-top:54px}
   .ks-origin-section-head{align-items:flex-start}
   .ks-origin-section-head>p{padding-top:8px;text-align:right}
   .ks-origin-controls{gap:20px}
   .ks-origin-regions{flex-wrap:nowrap;overflow-x:auto;padding-bottom:5px;scrollbar-width:none}
   .ks-origin-regions::-webkit-scrollbar{display:none}
   .ks-origin-regions button{flex:0 0 auto}
-  .ks-origin-index{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .ks-origin-index-card{min-height:150px;padding:18px 16px 42px}
-  .ks-origin-index-card strong{font-size:25px}
   .ks-origin-live-card{align-items:flex-start;flex-direction:column;gap:22px}
   .ks-origin-calendar-toggle{width:100%;justify-content:space-between}
 }
 @media(max-width:430px){
-  .ks-origin-index{grid-template-columns:1fr}
-  .ks-origin-index-card{min-height:132px}
 }
