@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import HarvestPanel from './components/HarvestPanel'
 import InstaVeillePanel from './components/InstaVeillePanel'
+import { ORIGIN_COUNTRIES } from './data/origins'
 import './kissa.css'
 
 // GaufreGentille brand palette
@@ -500,6 +501,216 @@ function GearCard({ item, i, T }) {
 }
 
 
+function OriginFact({ label, value }) {
+  if (!value) return null
+  return (
+    <div className="ks-origin-fact">
+      <span>{label}</span>
+      <strong>{value}</strong>
+    </div>
+  )
+}
+
+function OriginsPage({ harvestData, harvestLoading, harvestError }) {
+  const [featuredId, setFeaturedId] = useState(() => {
+    if (!ORIGIN_COUNTRIES.length) return null
+    return ORIGIN_COUNTRIES[Math.floor(Math.random() * ORIGIN_COUNTRIES.length)].id
+  })
+  const [query, setQuery] = useState('')
+  const [region, setRegion] = useState('Toutes')
+  const [showCalendar, setShowCalendar] = useState(false)
+
+  const featured = ORIGIN_COUNTRIES.find(origin => origin.id === featuredId) || ORIGIN_COUNTRIES[0]
+  const regions = ['Toutes', ...Array.from(new Set(ORIGIN_COUNTRIES.map(origin => origin.region).filter(Boolean)))]
+
+  const norm = value => String(value || '')
+    .toLocaleLowerCase('fr-FR')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+
+  const q = norm(query.trim())
+  const visibleOrigins = ORIGIN_COUNTRIES.filter(origin => {
+    const regionOk = region === 'Toutes' || origin.region === region
+    const text = norm([
+      origin.name,
+      origin.region,
+      origin.species,
+      origin.varieties,
+      origin.altitude,
+      origin.harvestPeriod,
+      origin.processing,
+    ].filter(Boolean).join(' '))
+    return regionOk && (!q || text.includes(q))
+  })
+
+  const pickAnother = () => {
+    if (ORIGIN_COUNTRIES.length < 2) return
+    const pool = ORIGIN_COUNTRIES.filter(origin => origin.id !== featured?.id)
+    const next = pool[Math.floor(Math.random() * pool.length)]
+    setFeaturedId(next.id)
+  }
+
+  const selectOrigin = id => {
+    setFeaturedId(id)
+    requestAnimationFrame(() => {
+      document.getElementById('ks-origin-feature')?.scrollIntoView({ behavior:'smooth', block:'start' })
+    })
+  }
+
+  const liveCount = Array.isArray(harvestData?.origins) ? harvestData.origins.length : null
+  const liveSource = harvestData?.source || harvestData?.meta?.source || harvestData?.provider || null
+  const liveUpdated = harvestData?.updatedAt || harvestData?.updated || harvestData?.generatedAt || null
+
+  return (
+    <section className="ks-editorial-page ks-origin-page">
+      <PageIntro
+        title="Origines"
+        meta={`${ORIGIN_COUNTRIES.length} pays documentés · récoltes & saisonnalité`}
+        deck="Un atlas vivant du café : comprendre les pays producteurs, leurs récoltes et ce qui façonne leurs cafés."
+      />
+
+      {featured && (
+        <section className="ks-origin-feature" id="ks-origin-feature">
+          <div className="ks-origin-feature-main">
+            <div className="ks-origin-feature-eyebrow">
+              <span>UNE ORIGINE À DÉCOUVRIR</span>
+              <button onClick={pickAnother}>↻ Une autre origine</button>
+            </div>
+
+            <p className="ks-origin-region">{featured.region}</p>
+            <h2>{featured.name}<span>.</span></h2>
+
+            {featured.intro?.[0] && <p className="ks-origin-lead">{featured.intro[0]}</p>}
+            {featured.intro?.[1] && <p className="ks-origin-copy">{featured.intro[1]}</p>}
+
+            {featured.history && (
+              <details className="ks-origin-history">
+                <summary>Un peu d'histoire <span>↓</span></summary>
+                <p>{featured.history}</p>
+              </details>
+            )}
+
+            <p className="ks-origin-source">{featured.source}</p>
+          </div>
+
+          <aside className="ks-origin-facts" aria-label={`Repères sur ${featured.name}`}>
+            <div className="ks-origin-facts-title">REPÈRES</div>
+            <OriginFact label="Espèces" value={featured.species} />
+            <OriginFact label="Variétés" value={featured.varieties} />
+            <OriginFact label="Altitude" value={featured.altitude} />
+            <OriginFact label="Récolte" value={featured.harvestPeriod} />
+            <OriginFact label="Cueillette" value={featured.harvestMethod} />
+            <OriginFact label="Traitement" value={featured.processing} />
+          </aside>
+        </section>
+      )}
+
+      <section className="ks-origin-browser">
+        <div className="ks-origin-section-head">
+          <div>
+            <span>ATLAS</span>
+            <h3>Toutes les origines</h3>
+          </div>
+          <p>{visibleOrigins.length} sur {ORIGIN_COUNTRIES.length}</p>
+        </div>
+
+        <div className="ks-origin-controls">
+          <label className="ks-origin-search">
+            <span>Rechercher</span>
+            <input
+              value={query}
+              onChange={e=>setQuery(e.target.value)}
+              placeholder="Pays, variété, process..."
+            />
+          </label>
+
+          <div className="ks-origin-regions" aria-label="Filtrer par région">
+            {regions.map(item => (
+              <button
+                key={item}
+                className={region === item ? 'is-active' : ''}
+                onClick={()=>setRegion(item)}
+              >
+                {item}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="ks-origin-index">
+          {visibleOrigins.map(origin => (
+            <button
+              key={origin.id}
+              className={origin.id === featured?.id ? 'ks-origin-index-card is-active' : 'ks-origin-index-card'}
+              onClick={()=>selectOrigin(origin.id)}
+            >
+              <span>{origin.region}</span>
+              <strong>{origin.name}</strong>
+              <small>{origin.harvestPeriod || origin.altitude || 'Fiche pays documentée'}</small>
+              <i>→</i>
+            </button>
+          ))}
+        </div>
+
+        {!visibleOrigins.length && (
+          <div className="ks-origin-empty">Aucune origine ne correspond à cette recherche.</div>
+        )}
+      </section>
+
+      <section className="ks-origin-live">
+        <div className="ks-origin-section-head">
+          <div>
+            <span>SAISONNALITÉ</span>
+            <h3>Calendrier des récoltes</h3>
+          </div>
+          <p>Flux dynamique</p>
+        </div>
+
+        <div className="ks-origin-live-card">
+          <div className="ks-origin-live-copy">
+            <span className="ks-origin-live-dot" />
+            <div>
+              <strong>
+                {harvestLoading
+                  ? 'Mise à jour du calendrier…'
+                  : harvestError
+                    ? 'Le calendrier live est temporairement indisponible'
+                    : 'Calendrier live chargé'}
+              </strong>
+              <p>
+                Les fiches pays ci-dessus sont documentaires. Les fenêtres d'achat et statuts ci-dessous
+                proviennent du flux récoltes et restent séparés des anciens volumes historiques.
+              </p>
+              {!harvestLoading && !harvestError && harvestData && (
+                <div className="ks-origin-live-meta">
+                  {liveCount !== null && <span>{liveCount} origines suivies</span>}
+                  {liveSource && <span>{liveSource}</span>}
+                  {liveUpdated && <span>MAJ {String(liveUpdated)}</span>}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {harvestData && !harvestLoading && (
+            <button className="ks-origin-calendar-toggle" onClick={()=>setShowCalendar(v=>!v)}>
+              {showCalendar ? 'Fermer le calendrier' : 'Voir le calendrier détaillé'}
+              <span>{showCalendar ? '↑' : '↓'}</span>
+            </button>
+          )}
+        </div>
+
+        {harvestError && <ErrMsg msg={harvestError} />}
+
+        {showCalendar && harvestData && (
+          <div className="ks-origin-calendar-legacy">
+            <HarvestPanel data={harvestData} />
+          </div>
+        )}
+      </section>
+    </section>
+  )
+}
+
 function SiteHeader({ tab, setTab, refresh, lastRefresh, showMusic, setShowMusic }) {
   const nav = TABS.filter(t => t.id !== 'home')
   return (
@@ -672,14 +883,11 @@ export default function App() {
             )}
 
             {tab==='harvest' && (
-              harvest.loading ? <Spinner label="Chargement du calendrier des origines..." /> :
-              harvest.error ? <ErrMsg msg={harvest.error} /> :
-              harvest.data ? (
-                <section className="ks-editorial-page ks-legacy-panel">
-                  <PageIntro title="Origines" meta="Récoltes, fenêtres d'achat et saisonnalité" />
-                  <HarvestPanel data={harvest.data} />
-                </section>
-              ) : <ErrMsg msg="Calendrier des origines indisponible." />
+              <OriginsPage
+                harvestData={harvest.data}
+                harvestLoading={harvest.loading}
+                harvestError={harvest.error}
+              />
             )}
           </main>
         </>
