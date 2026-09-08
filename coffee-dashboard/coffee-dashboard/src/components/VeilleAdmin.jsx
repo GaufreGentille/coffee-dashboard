@@ -91,14 +91,15 @@ export default function VeilleAdmin() {
   };
 
   const inputStyle = {
-    background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.12)",
-    borderRadius: 8, color: "#eee", fontSize: 11, padding: "5px 10px", outline: "none",
+    background: "var(--ks-paper-2)", border: "1px solid var(--ks-border-strong)",
+    borderRadius: 8, color: "var(--ks-ink)", caretColor: "var(--ks-orange)",
+    fontSize: 11, padding: "5px 10px", outline: "none",
   };
   const btnStyle = (accent = false) => ({
     cursor: busy ? "wait" : "pointer", fontSize: 11, borderRadius: 8, padding: "5px 14px",
-    border: `1px solid ${accent ? "rgba(254,210,56,0.4)" : "rgba(255,255,255,0.15)"}`,
-    background: accent ? "rgba(254,210,56,0.12)" : "rgba(255,255,255,0.05)",
-    color: accent ? "#fed238" : "#ccc", opacity: busy ? 0.5 : 1,
+    border: `1px solid ${accent ? "rgba(218,93,22,0.45)" : "var(--ks-border-strong)"}`,
+    background: accent ? "rgba(218,93,22,0.10)" : "var(--ks-paper-2)",
+    color: accent ? "var(--ks-orange)" : "var(--ks-ink)", opacity: busy ? 0.5 : 1,
   });
 
   const filtered = list.filter((e) => {
@@ -107,10 +108,10 @@ export default function VeilleAdmin() {
   });
 
   return (
-    <div style={{ marginTop: 28, paddingTop: 14, borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+    <div style={{ marginTop: 28, paddingTop: 14, borderTop: "1px solid var(--ks-border)" }}>
       <button onClick={() => setOpen(!open)} style={{
         cursor: "pointer", background: "none", border: "none",
-        color: "#555", fontSize: 10, padding: 0,
+        color: "var(--ks-dim)", fontSize: 11, padding: 0,
       }}>
         ⚙️ Gérer la veille {open ? "▲" : "▼"}
       </button>
@@ -120,8 +121,8 @@ export default function VeilleAdmin() {
           {msg && (
             <div style={{
               fontSize: 11, marginBottom: 10, padding: "5px 10px", borderRadius: 8,
-              color: msg.ok ? "#4ade80" : "#f87171",
-              background: msg.ok ? "rgba(74,222,128,0.08)" : "rgba(248,113,113,0.08)",
+              color: msg.ok ? "#2f7a4d" : "#b4402f",
+              background: msg.ok ? "rgba(47,122,77,0.10)" : "rgba(180,64,47,0.09)",
             }}>{msg.text}</div>
           )}
 
@@ -143,8 +144,8 @@ export default function VeilleAdmin() {
               {list.length === 0 && (
                 <div style={{
                   fontSize: 11, lineHeight: 1.5, marginBottom: 12, padding: "8px 12px",
-                  borderRadius: 8, border: "1px solid rgba(234,149,36,0.4)",
-                  background: "rgba(234,149,36,0.08)", color: "#ea9524",
+                  borderRadius: 8, border: "1px solid rgba(218,93,22,0.40)",
+                  background: "rgba(218,93,22,0.07)", color: "var(--ks-orange)",
                 }}>
                   ⚠️ <b>La liste gérée est vide.</b> Tant qu'elle l'est, le collecteur du mardi
                   utilise la liste de base du repo : tes ajouts et retraits ne sont pas pris en
@@ -185,31 +186,32 @@ export default function VeilleAdmin() {
                   placeholder="Filtrer la liste…"
                   style={{ ...inputStyle, width: 160 }}
                 />
-                <span style={{ fontSize: 10, color: "#666" }}>{list.length} comptes suivis</span>
+                <span style={{ fontSize: 11, color: "var(--ks-dim)" }}>{list.length} comptes suivis</span>
                 {list.length === 0 && (
                   <button onClick={importSeed} disabled={busy} style={btnStyle(true)}>
                     Importer la liste de base ({SEED.length})
                   </button>
                 )}
               </div>
-              <div style={{ maxHeight: 220, overflowY: "auto", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 10 }}>
+              <div style={{ maxHeight: 260, overflowY: "auto", border: "1px solid var(--ks-border)", borderRadius: 10,
+                background: "rgba(255,255,255,0.45)" }}>
                 {filtered.slice(0, 200).map((e) => (
                   <div key={e.handle} style={{
                     display: "flex", alignItems: "center", gap: 8,
-                    padding: "4px 10px", fontSize: 11,
-                    borderBottom: "1px solid rgba(255,255,255,0.04)",
+                    padding: "6px 10px", fontSize: 11,
+                    borderBottom: "1px solid rgba(7,23,43,0.07)",
                   }}>
-                    <span style={{ color: "#eee" }}>@{e.handle}</span>
-                    <span style={{ color: "#666", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.name}</span>
-                    <span style={{ color: "#888", fontSize: 9, marginLeft: "auto", flexShrink: 0 }}>{e.category}</span>
+                    <span style={{ color: "var(--ks-ink)", fontWeight: 600, flexShrink: 0 }}>@{e.handle}</span>
+                    <span style={{ color: "var(--ks-dim)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.name}</span>
+                    <span style={{ color: "var(--ks-faint)", fontSize: 9, marginLeft: "auto", flexShrink: 0 }}>{e.category}</span>
                     <button onClick={() => remove(e.handle)} disabled={busy} style={{
                       cursor: "pointer", background: "none", border: "none",
-                      color: "#f87171", fontSize: 12, padding: "0 2px", flexShrink: 0,
+                      color: "#b4402f", fontSize: 12, padding: "0 2px", flexShrink: 0,
                     }}>✕</button>
                   </div>
                 ))}
                 {filtered.length > 200 && (
-                  <div style={{ padding: 8, fontSize: 10, color: "#666", textAlign: "center" }}>
+                  <div style={{ padding: 8, fontSize: 10, color: "var(--ks-dim)", textAlign: "center" }}>
                     … {filtered.length - 200} de plus — affine le filtre
                   </div>
                 )}
