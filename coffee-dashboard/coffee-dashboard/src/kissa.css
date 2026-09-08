@@ -609,3 +609,79 @@ a{color:inherit}
 }
 @media(max-width:430px){
 }
+
+
+/* =========================================================
+   INSTAGRAM — lisibilité de l'ancien module de gestion
+   Le composant garde sa logique, Kissa Soko reprend seulement
+   sa couche visuelle afin d'écraser les anciennes couleurs dark.
+   ========================================================= */
+.ks-instagram-panel-skin{
+  position:relative;
+  z-index:2;
+  color:var(--ks-ink);
+  padding:clamp(20px,2.6vw,34px);
+  background:rgba(255,255,255,.28);
+  border:1px solid var(--ks-border);
+  border-radius:18px;
+}
+
+/* Les handles de comptes sont des liens : ils étaient quasi blancs sur ivoire. */
+.ks-instagram-panel-skin a,
+.ks-instagram-panel-skin a:visited,
+.ks-instagram-panel-skin a[href*="instagram.com"]{
+  color:var(--ks-orange)!important;
+  font-weight:700!important;
+  text-decoration:none!important;
+}
+.ks-instagram-panel-skin a:hover{
+  color:var(--ks-ink)!important;
+  text-decoration:underline!important;
+  text-underline-offset:3px;
+}
+
+/* Formulaire de gestion : contraste explicite, même si le composant possède
+   encore des styles inline hérités de son ancienne version sombre. */
+.ks-instagram-panel-skin input,
+.ks-instagram-panel-skin select,
+.ks-instagram-panel-skin textarea{
+  color:var(--ks-ink)!important;
+  background:rgba(247,241,232,.92)!important;
+  border-color:rgba(7,23,43,.20)!important;
+  caret-color:var(--ks-orange)!important;
+}
+.ks-instagram-panel-skin input::placeholder,
+.ks-instagram-panel-skin textarea::placeholder{
+  color:var(--ks-dim)!important;
+  opacity:.72!important;
+}
+.ks-instagram-panel-skin select option{
+  color:var(--ks-ink)!important;
+  background:var(--ks-paper-2)!important;
+}
+.ks-instagram-panel-skin input:focus,
+.ks-instagram-panel-skin select:focus,
+.ks-instagram-panel-skin textarea:focus{
+  outline:2px solid rgba(218,93,22,.22)!important;
+  outline-offset:1px;
+  border-color:var(--ks-orange)!important;
+}
+
+/* Titres et libellés structurels du panneau. */
+.ks-instagram-panel-skin summary,
+.ks-instagram-panel-skin label{
+  color:var(--ks-ink)!important;
+}
+
+/* Scrollbar interne plus cohérente avec la DA. */
+.ks-instagram-panel-skin ::-webkit-scrollbar{width:7px;height:7px}
+.ks-instagram-panel-skin ::-webkit-scrollbar-track{background:transparent}
+.ks-instagram-panel-skin ::-webkit-scrollbar-thumb{background:rgba(7,23,43,.26);border-radius:99px}
+.ks-instagram-panel-skin *{scrollbar-color:rgba(7,23,43,.26) transparent}
+
+@media(max-width:760px){
+  .ks-instagram-panel-skin{
+    padding:16px 12px;
+    border-radius:14px;
+  }
+}
