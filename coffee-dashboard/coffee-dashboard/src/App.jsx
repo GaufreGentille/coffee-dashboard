@@ -306,58 +306,6 @@ function PageIntro({ title, meta, deck }) {
 }
 
 
-function InstagramVeilleReadable() {
-  const rootRef = useRef(null)
-
-  useEffect(() => {
-    const paintHandles = () => {
-      const root = rootRef.current
-      if (!root) return
-
-      root.querySelectorAll('details *').forEach(el => {
-        const ownText = Array.from(el.childNodes)
-          .filter(node => node.nodeType === Node.TEXT_NODE)
-          .map(node => node.textContent || '')
-          .join('')
-          .trim()
-
-        const fullText = (el.textContent || '').trim()
-        const isHandle =
-          /^@[A-Za-z0-9._]+$/.test(ownText) ||
-          /^@[A-Za-z0-9._]+$/.test(fullText)
-
-        if (!isHandle) return
-
-        el.dataset.ksInstagramHandle = 'true'
-        el.style.setProperty('color', '#07172b', 'important')
-        el.style.setProperty('-webkit-text-fill-color', '#07172b', 'important')
-        el.style.setProperty('opacity', '1', 'important')
-        el.style.setProperty('visibility', 'visible', 'important')
-        el.style.setProperty('filter', 'none', 'important')
-      })
-    }
-
-    paintHandles()
-
-    const observer = new MutationObserver(paintHandles)
-    if (rootRef.current) {
-      observer.observe(rootRef.current, {
-        childList:true,
-        subtree:true,
-        characterData:true,
-      })
-    }
-
-    return () => observer.disconnect()
-  }, [])
-
-  return (
-    <div ref={rootRef} className="ks-instagram-panel-skin">
-      <InstaVeillePanel />
-    </div>
-  )
-}
-
 function PageOrnament({ page }) {
   const art = PAGE_ART[page]
   if (!art) return null
@@ -1137,7 +1085,9 @@ export default function App() {
               <section className="ks-editorial-page ks-instagram-page ks-legacy-panel ks-page-has-art">
                 <PageOrnament page="instagram" />
                 <PageIntro title="Instagram" meta="Veille visuelle" />
-                <InstagramVeilleReadable />
+                <div className="ks-instagram-panel-skin">
+                  <InstaVeillePanel />
+                </div>
               </section>
             )}
 
