@@ -45,7 +45,7 @@ const PLAYLISTS = [
     vibe: 'Tokyo nights · Neon · Electronic',
   },
   {
-    name: 'Sakura',
+    name: 'Kowareta Kagami',
     url: 'https://suno.com/playlist/b6243889-9e57-46cb-90ae-fad1f0adb8a0',
     tracks: '—',
     cover: '/playlist-sakura.jpg',
