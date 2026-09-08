@@ -398,15 +398,9 @@ a{color:inherit}
 .ks-origin-calendar-toggle{flex:0 0 auto;border:0;background:var(--ks-ink);color:var(--ks-paper-2);border-radius:999px;padding:11px 15px 11px 18px;font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;display:flex;align-items:center;gap:12px;transition:background .18s,transform .18s}
 .ks-origin-calendar-toggle:hover{background:var(--ks-orange);transform:translateY(-1px)}
 .ks-origin-calendar-toggle span{font-size:12px}
+/* HarvestPanel porte desormais ses propres couleurs ivoire :
+   il ne reste ici que l'espacement du bloc. */
 .ks-origin-calendar-legacy{margin-top:28px;padding-top:6px}
-.ks-origin-calendar-legacy,
-.ks-origin-calendar-legacy *{color:var(--ks-ink)!important}
-.ks-origin-calendar-legacy [style*="opacity"]{opacity:1!important}
-.ks-origin-calendar-legacy [style*="color: rgb(255"],
-.ks-origin-calendar-legacy [style*="color:#fff"],
-.ks-origin-calendar-legacy [style*="color: #fff"]{color:var(--ks-ink)!important}
-.ks-origin-calendar-legacy button{font-family:'DM Sans',sans-serif!important}
-.ks-origin-calendar-legacy a{color:var(--ks-ink)!important}
 
 
 
