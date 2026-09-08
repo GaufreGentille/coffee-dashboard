@@ -76,9 +76,9 @@ const PAGE_ART = {
   news:      { src:'/kissa-hero-botanical.png',    side:'right', variant:'is-news' },
   science:   { src:'/kissa-bottom-botanical.png',  side:'left',  variant:'is-science' },
   harvest:   { src:'/kissa-hero-botanical.png',    side:'right', variant:'is-harvest' },
-  gear:      { src:'/kissa-bottom-botanical.png',  side:'right', variant:'is-gear' },
-  reddit:    { src:'/kissa-hero-botanical.png',    side:'left',  variant:'is-reddit' },
-  instagram: { src:'/kissa-bottom-botanical.png',  side:'right', variant:'is-instagram' },
+  gear:      { src:'/kissa-bottom-botanical.png',  side:'left',  variant:'is-gear' },
+  reddit:    { src:'/kissa-hero-botanical.png',    side:'right', variant:'is-reddit' },
+  instagram: { src:'/kissa-bottom-botanical.png',  side:'left',  variant:'is-instagram' },
 }
 
 /* ---------- Chargement des flux ---------- */
