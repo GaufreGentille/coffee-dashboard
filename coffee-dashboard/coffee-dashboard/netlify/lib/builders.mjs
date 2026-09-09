@@ -14,6 +14,21 @@ const NEWS_SOURCES = [
   { url: 'https://sca.coffee/news/rss',          name: 'SCA News',            topic: 'association', lang: 'en' },
 ]
 
+// Certains flux préfixent chaque résumé d'une mention de leur propre RSS.
+const BOILERPLATE = [
+  /^This article is from the coffee website Sprudge at \S+\s*/i,
+  /^This is the RSS feed version\.\s*/i,
+  /\bThe post .{0,120}appeared first on .{0,60}\.\s*$/i,
+  /\[\.\.\.\]\s*$/,
+]
+
+export function cleanSummary(text) {
+  let out = text
+  // Deux passes : les deux phrases Sprudge se suivent.
+  for (let i = 0; i < 2; i++) for (const rx of BOILERPLATE) out = out.replace(rx, '')
+  return out.trim()
+}
+
 export async function buildNews() {
   const results = await Promise.allSettled(
     NEWS_SOURCES.map(async (src) => {
@@ -21,7 +36,7 @@ export async function buildNews() {
       return rssItems(xml, 4).map((i) => ({
         source: src.name,
         title: i.title,
-        summary: i.summary.slice(0, 220),
+        summary: cleanSummary(i.summary).slice(0, 220),
         url: i.url,
         topic: src.topic,
         lang: src.lang,
@@ -75,6 +90,10 @@ const GEAR_KW = [
 const SKIP_KW = [
   'world of coffee', 'coffee expo', 'trade show', 'booth', 'exhibitor', 'convention center',
   'san diego', 'houston', 'milan', 'amsterdam', 'chicago', 'coffee show',
+  // Évènements et culture : « since launching » suffisait à faire passer un festival.
+  'festival', 'throwdown', 'championship', 'competition', 'barista battle', 'zine',
+  'launch party', 'pop-up', 'opens in', 'now open', 'build-outs', 'build outs',
+  'hiring', 'acquires', 'acquisition', 'obituary', 'passes away',
 ]
 
 const CAT_IMGS = {
@@ -122,18 +141,23 @@ export async function buildGear() {
     .join('\n')
 
   const prompt =
-    'You are a specialty coffee equipment editor. For each article below: 1) translate title to French, ' +
+    'You are a specialty coffee equipment editor. For each article below, first decide whether it is ' +
+    'genuinely about a piece of coffee equipment: a product, a launch, a review or a hands-on. ' +
+    'Articles about cafe openings, festivals, competitions, people, business news or culture are NOT ' +
+    'equipment articles, even when a machine is mentioned in passing. Set "is_gear":false for those. ' +
+    'Then, for the equipment articles only: 1) translate title to French, ' +
     '2) write a French summary of 3-5 sentences with good context about what the product is, why it matters, ' +
     'who it is for and what makes it interesting, 3) determine category (Moulin, Machine, Dripper, Accessories, ' +
     'Tasse, Filtre, Torrefacteur, Tech), 4) hot:true if new release/launch, hot:false if review or general news. ' +
-    'Return ONLY valid JSON array, no markdown:\n' +
-    '[{"i":0,"title":"french title","summary":"3-5 sentence french summary with real context","category":"category","hot":true}]\n\n' +
+    'Return ONLY valid JSON array, no markdown, one object per article including the rejected ones:\n' +
+    '[{"i":0,"is_gear":true,"title":"french title","summary":"3-5 sentence french summary with real context","category":"category","hot":true}]\n\n' +
     'Articles:\n' + list
 
   const translated = await claude(prompt, 3500)
   if (!Array.isArray(translated) || translated.length === 0) throw new Error('Traduction materiel vide')
 
   const gear = translated.map((t, idx) => {
+    if (t.is_gear === false) return null
     const original = shortlist[typeof t.i === 'number' ? t.i : idx]
     if (!original) return null
     return {
