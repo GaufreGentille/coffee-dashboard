@@ -39,16 +39,16 @@ export function strip(s) {
 function stripOnce(s) {
   return (s || '')
     .replace(/<[^>]+>/g, '')
+    // Les entités numériques sont décodées, pas supprimées : WordPress
+    // encode l'esperluette des URLs en &#038;, la jeter casse les liens.
+    .replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16)))
+    .replace(/&#([0-9]+);/g, (_, d) => String.fromCodePoint(parseInt(d, 10)))
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
     .replace(/&#039;/g, "'")
     .replace(/&nbsp;/g, ' ')
-    .replace(/&#8220;/g, '"').replace(/&#8221;/g, '"')
-    .replace(/&#8216;/g, "'").replace(/&#8217;/g, "'")
-    .replace(/&#8230;/g, '...')
-    .replace(/&#[0-9]+;/g, '')
     .replace(/\u2018/g, "'").replace(/\u2019/g, "'")
     .replace(/\u201C/g, '"').replace(/\u201D/g, '"')
     .replace(/\u2026/g, '...')
@@ -79,11 +79,27 @@ export function rssItems(xml, limit = 20) {
         item.match(/<description>([\s\S]*?)<\/description>/) || [])[1] || ''
     )
     const pubDate = (item.match(/<pubDate>([\s\S]*?)<\/pubDate>/) || [])[1] || ''
-    const img =
-      (item.match(/url="(https?:\/\/[^"]+\.(?:jpg|jpeg|png|webp))[^"]*"/) ||
-        item.match(/<media:thumbnail[^>]+url="([^"]+)"/) || [])[1] || null
-    return { title, url, summary, date: frDate(pubDate), img }
+    return { title, url, summary, date: frDate(pubDate), img: pickImage(item) }
   }).filter((i) => i.title && i.url)
+}
+
+// Les flux WordPress logent leur vignette à cinq endroits différents selon
+// le thème et les extensions. On les essaie dans l'ordre du plus fiable.
+function pickImage(item) {
+  const patterns = [
+    /<media:content[^>]+url="(https?:\/\/[^"]+)"/,
+    /<media:thumbnail[^>]+url="(https?:\/\/[^"]+)"/,
+    /<enclosure[^>]+url="(https?:\/\/[^"]+\.(?:jpg|jpeg|png|webp))[^"]*"/,
+    /<img[^>]+src="(https?:\/\/[^"]+)"/,        // image dans content:encoded
+    /&lt;img[^&]*src="(https?:\/\/[^"]+)"/,     // description échappée
+    /src=&quot;(https?:\/\/[^&]+\.(?:jpg|jpeg|png|webp))/,
+    /url="(https?:\/\/[^"]+\.(?:jpg|jpeg|png|webp))[^"]*"/,
+  ]
+  for (const rx of patterns) {
+    const m = item.match(rx)
+    if (m) return m[1]
+  }
+  return null
 }
 
 // Parseur JSON tolérant : retire les fences markdown et referme un objet tronqué.
