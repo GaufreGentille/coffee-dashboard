@@ -3,9 +3,11 @@
 //
 // Principe : les crons écrivent, les functions get-* lisent. Une lecture
 // normale ne fait plus aucun appel réseau sortant.
+//
+// Aucune dépendance hors @netlify/blobs. Le cache CDN expire tout seul
+// au bout d'une heure, il n'y a donc pas de purge à déclencher après un cron.
 
 import { getStore } from '@netlify/blobs'
-import { purgeCache } from '@netlify/functions'
 
 const STORE_NAME = 'kissa-feeds'
 
@@ -37,16 +39,10 @@ export async function writeFeed(key, data) {
   return record
 }
 
-// Reconstruit un flux, l'écrit en blob et purge le cache CDN correspondant.
+// Reconstruit un flux et l'écrit en blob.
 export async function refreshFeed(key, build) {
   const data = await build()
-  const record = await writeFeed(key, data)
-  try {
-    await purgeCache({ tags: [key] })
-  } catch (e) {
-    console.error('purge CDN KO:', key, e.message)
-  }
-  return record
+  return writeFeed(key, data)
 }
 
 /**
@@ -94,7 +90,6 @@ export async function serveFeed(req, { key, build, transform, maxAge = 3600 }) {
       ? 'no-store'
       : `public, durable, s-maxage=${maxAge}, stale-while-revalidate=86400`,
     'Cache-Control': 'public, max-age=0, must-revalidate',
-    'Netlify-Cache-Tag': key,
     'X-Feed': origin,
   })
 }
