@@ -79,7 +79,15 @@ export function rssItems(xml, limit = 20) {
         item.match(/<description>([\s\S]*?)<\/description>/) || [])[1] || ''
     )
     const pubDate = (item.match(/<pubDate>([\s\S]*?)<\/pubDate>/) || [])[1] || ''
-    return { title, url, summary, date: frDate(pubDate), img: pickImage(item) }
+    const parsed = pubDate ? new Date(pubDate).getTime() : NaN
+    return {
+      title,
+      url,
+      summary,
+      date: frDate(pubDate),
+      ts: Number.isNaN(parsed) ? 0 : parsed,  // brut, pour trier entre sources
+      img: pickImage(item),
+    }
   }).filter((i) => i.title && i.url)
 }
 
