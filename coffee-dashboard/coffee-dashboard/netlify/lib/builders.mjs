@@ -126,16 +126,21 @@ export async function buildGear() {
     for (const item of r.value) {
       if (seen.has(item.url)) continue
       const text = (item.title + ' ' + item.summary).toLowerCase()
+      // Les mots clés matériel se cherchent partout, les rejets uniquement
+      // dans le titre : un festival mentionné en passant dans le résumé ne
+      // doit pas écarter un test de moulin.
       if (!GEAR_KW.some((k) => text.includes(k))) continue
-      if (SKIP_KW.some((k) => text.includes(k))) continue
+      if (SKIP_KW.some((k) => item.title.toLowerCase().includes(k))) continue
       seen.add(item.url)
       items.push(item)
     }
   })
 
-  if (items.length < 3) throw new Error(`Materiel : seulement ${items.length} articles retenus`)
+  // Un seul article suffit. Le seuil à trois datait d'un filtre plus large ;
+  // avec le filtre actuel il rejetait des résultats parfaitement valides.
+  if (items.length === 0) throw new Error('Materiel : aucun article retenu')
 
-  const shortlist = items.slice(0, 24)
+  const shortlist = items.slice(0, 20)
   const list = shortlist
     .map((g, i) => [i, g.title, g.summary, g.source, g.date, g.url].join('|||'))
     .join('\n')
@@ -171,6 +176,10 @@ export async function buildGear() {
       img: CAT_IMGS[t.category] || CAT_IMGS.default,
     }
   }).filter(Boolean)
+
+  // Rien de valide : on préfère lever pour conserver le blob précédent
+  // plutôt que d'écraser une bonne réponse par une liste vide.
+  if (gear.length === 0) throw new Error('Materiel : tous les articles ecartes apres relecture')
 
   return { gear }
 }
