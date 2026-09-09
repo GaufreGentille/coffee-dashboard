@@ -5,6 +5,14 @@ const headers = {
   'Content-Type': 'application/json',
 }
 
+// Le marché reste hors blob : un cours périmé est pire que pas de cours.
+// Cache CDN de 10 minutes, avec tolérance de 5 minutes si la source tombe.
+const CACHE_HEADERS = {
+  'Netlify-CDN-Cache-Control': 'public, durable, s-maxage=600, stale-while-revalidate=300',
+  'Cache-Control': 'public, max-age=0, must-revalidate',
+  'Netlify-Cache-Tag': 'markets',
+}
+
 function httpsGet(url) {
   return new Promise((resolve, reject) => {
     https.get(url, { headers: { 'User-Agent': 'KissaSoko/1.0' } }, (res) => {
@@ -64,7 +72,7 @@ exports.handler = async function(event, context) {
 
   return {
     statusCode: 200,
-    headers,
+    headers: { ...headers, ...CACHE_HEADERS },
     body: JSON.stringify({
       markets,
       updatedAt: new Date().toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' })
