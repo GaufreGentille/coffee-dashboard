@@ -3,6 +3,11 @@
   publish = "dist"
   functions = "netlify/functions"
 
+[functions]
+  # esbuild suit les imports relatifs vers netlify/lib et les embarque
+  # dans chaque bundle de function.
+  node_bundler = "esbuild"
+
 [functions."*"]
   timeout = 30
 
