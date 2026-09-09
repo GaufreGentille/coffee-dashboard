@@ -68,7 +68,11 @@ export async function buildScience() {
 
 /* ═══════════════════════ MATÉRIEL ═══════════════════════ */
 
+// trusted : flux entièrement consacré au matériel. Le filtre par mots clés
+// est conçu pour trier des magazines généralistes, il n'a rien à faire ici et
+// écarterait des tests légitimes dont le titre ne contient aucun mot clé.
 const GEAR_SOURCES = [
+  { url: 'https://coffeegeek.com/reviews/feed/',                name: 'CoffeeGeek', trusted: true },
   { url: 'https://dailycoffeenews.com/feed/?posts_per_page=50', name: 'Daily Coffee News' },
   { url: 'https://perfectdailygrind.com/feed/',                 name: 'Perfect Daily Grind' },
   { url: 'https://www.baristamagazine.com/feed/',               name: 'Barista Magazine' },
@@ -123,13 +127,14 @@ export async function buildGear() {
       console.error('gear RSS KO:', GEAR_SOURCES[idx].name, r.reason?.message)
       return
     }
+    const trusted = GEAR_SOURCES[idx].trusted
     for (const item of r.value) {
       if (seen.has(item.url)) continue
       const text = (item.title + ' ' + item.summary).toLowerCase()
       // Les mots clés matériel se cherchent partout, les rejets uniquement
       // dans le titre : un festival mentionné en passant dans le résumé ne
       // doit pas écarter un test de moulin.
-      if (!GEAR_KW.some((k) => text.includes(k))) continue
+      if (!trusted && !GEAR_KW.some((k) => text.includes(k))) continue
       if (SKIP_KW.some((k) => item.title.toLowerCase().includes(k))) continue
       seen.add(item.url)
       items.push(item)
@@ -140,7 +145,10 @@ export async function buildGear() {
   // avec le filtre actuel il rejetait des résultats parfaitement valides.
   if (items.length === 0) throw new Error('Materiel : aucun article retenu')
 
-  const shortlist = items.slice(0, 20)
+  // Les sources n'ont pas la même cadence : sans tri, un test CoffeeGeek de
+  // janvier passerait devant une annonce de la semaine.
+  items.sort((a, b) => (b.ts || 0) - (a.ts || 0))
+  const shortlist = items.slice(0, 14)
   const list = shortlist
     .map((g, i) => [i, g.title, g.summary, g.source, g.date, g.url].join('|||'))
     .join('\n')
@@ -173,7 +181,9 @@ export async function buildGear() {
       url: original.url,
       source: original.source,
       date: original.date,
-      img: CAT_IMGS[t.category] || CAT_IMGS.default,
+      // La vraie photo du flux prime ; l'illustration par catégorie n'est
+      // qu'un pis-aller quand la source n'en fournit aucune.
+      img: original.img || CAT_IMGS[t.category] || CAT_IMGS.default,
     }
   }).filter(Boolean)
 
