@@ -149,29 +149,55 @@ export async function buildGear() {
   // janvier passerait devant une annonce de la semaine.
   items.sort((a, b) => (b.ts || 0) - (a.ts || 0))
   const shortlist = items.slice(0, 14)
-  const list = shortlist
-    .map((g, i) => [i, g.title, g.summary, g.source, g.date, g.url].join('|||'))
+
+  // Le temps d'un appel à Haiku est dominé par les tokens de sortie. Une
+  // requête de quatorze articles dépassait les 25 secondes ; deux lots de
+  // sept lancés en parallèle prennent à peu près moitié moins.
+  const batches = []
+  for (let i = 0; i < shortlist.length; i += 7) batches.push(shortlist.slice(i, i + 7))
+
+  const batchResults = await Promise.allSettled(batches.map((batch) => translateGear(batch)))
+
+  const gear = []
+  batchResults.forEach((r, i) => {
+    if (r.status === 'fulfilled') gear.push(...r.value)
+    else console.error('lot materiel KO:', i, r.reason?.message)
+  })
+
+  // Rien de valide : on préfère lever pour conserver le blob précédent
+  // plutôt que d'écraser une bonne réponse par une liste vide.
+  if (gear.length === 0) throw new Error('Materiel : aucun article exploitable apres relecture')
+
+  gear.sort((a, b) => (b.ts || 0) - (a.ts || 0))
+  return { gear }
+}
+
+// Traduit et qualifie un lot d'articles. Résumés courts et lot restreint :
+// c'est la longueur de la réponse qui fait la latence, pas la question posée.
+async function translateGear(batch) {
+  const list = batch
+    .map((g, i) => [i, g.title, g.summary, g.source, g.date].join('|||'))
     .join('\n')
 
   const prompt =
     'You are a specialty coffee equipment editor. For each article below, first decide whether it is ' +
     'genuinely about a piece of coffee equipment: a product, a launch, a review or a hands-on. ' +
     'Articles about cafe openings, festivals, competitions, people, business news or culture are NOT ' +
-    'equipment articles, even when a machine is mentioned in passing. Set "is_gear":false for those. ' +
-    'Then, for the equipment articles only: 1) translate title to French, ' +
-    '2) write a French summary of 3-5 sentences with good context about what the product is, why it matters, ' +
-    'who it is for and what makes it interesting, 3) determine category (Moulin, Machine, Dripper, Accessories, ' +
-    'Tasse, Filtre, Torrefacteur, Tech), 4) hot:true if new release/launch, hot:false if review or general news. ' +
+    'equipment articles, even when a machine is mentioned in passing. Set "is_gear":false for those ' +
+    'and leave their other fields empty. Then, for the equipment articles only: 1) translate the title ' +
+    'to French, 2) write a French summary of 2 or 3 sentences saying what the product is and who it is for, ' +
+    '3) determine category (Moulin, Machine, Dripper, Accessories, Tasse, Filtre, Torrefacteur, Tech), ' +
+    '4) hot:true if new release/launch, hot:false if review or general news. Be concise. ' +
     'Return ONLY valid JSON array, no markdown, one object per article including the rejected ones:\n' +
-    '[{"i":0,"is_gear":true,"title":"french title","summary":"3-5 sentence french summary with real context","category":"category","hot":true}]\n\n' +
+    '[{"i":0,"is_gear":true,"title":"titre francais","summary":"2 a 3 phrases","category":"category","hot":true}]\n\n' +
     'Articles:\n' + list
 
-  const translated = await claude(prompt, 3500)
-  if (!Array.isArray(translated) || translated.length === 0) throw new Error('Traduction materiel vide')
+  const translated = await claude(prompt, 1800)
+  if (!Array.isArray(translated)) throw new Error('Reponse de traduction inattendue')
 
-  const gear = translated.map((t, idx) => {
+  return translated.map((t, idx) => {
     if (t.is_gear === false) return null
-    const original = shortlist[typeof t.i === 'number' ? t.i : idx]
+    const original = batch[typeof t.i === 'number' ? t.i : idx]
     if (!original) return null
     return {
       title: t.title || original.title,
@@ -181,17 +207,12 @@ export async function buildGear() {
       url: original.url,
       source: original.source,
       date: original.date,
+      ts: original.ts || 0,
       // La vraie photo du flux prime ; l'illustration par catégorie n'est
       // qu'un pis-aller quand la source n'en fournit aucune.
       img: original.img || CAT_IMGS[t.category] || CAT_IMGS.default,
     }
   }).filter(Boolean)
-
-  // Rien de valide : on préfère lever pour conserver le blob précédent
-  // plutôt que d'écraser une bonne réponse par une liste vide.
-  if (gear.length === 0) throw new Error('Materiel : tous les articles ecartes apres relecture')
-
-  return { gear }
 }
 
 /* ═══════════════════════ SPRUDGE REPORT ═══════════════════════ */
