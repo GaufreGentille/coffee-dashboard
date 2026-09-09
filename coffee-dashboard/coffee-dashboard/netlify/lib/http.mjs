@@ -1,7 +1,11 @@
 // netlify/lib/http.mjs
 // Helpers partagés par tous les builders de flux.
 
-const UA = 'Mozilla/5.0 (compatible; KissaSoko/1.0)'
+// Un agent annonçant un robot se fait refuser par les pare-feux de plusieurs
+// sources (Perfect Daily Grind renvoyait 403). On annonce un navigateur.
+const UA =
+  'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 ' +
+  '(KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36'
 
 export async function fetchText(url, { timeout = 12000, headers = {} } = {}) {
   const res = await fetch(url, {
