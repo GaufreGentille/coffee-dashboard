@@ -67,6 +67,7 @@ export async function serveFeed(req, { key, build, transform, maxAge = 3600 }) {
       origin = force ? 'refresh' : 'cold'
     } catch (err) {
       // Le build a échoué : on ressert le blob existant plutôt que rien.
+      console.error('build KO:', key, err.message)
       const fallback = await readFeed(key)
       if (!fallback) {
         console.error('feed KO sans secours:', key, err.message)
