@@ -58,12 +58,125 @@ export async function buildNews() {
 
 /* ═══════════════════════ SCIENCE ═══════════════════════ */
 
-export async function buildScience() {
-  const body = await fetchJSON('https://kissa-soko-science.raphimignon.workers.dev', { timeout: 20000 })
-  if (!Array.isArray(body?.science) || body.science.length === 0) {
-    throw new Error('Worker science : reponse vide')
+// Appel direct à PubMed, sans passer par le worker Cloudflare.
+// Le worker s'arrêtait à esummary, qui ne renvoie pas les résumés : il
+// recopiait donc le titre dans le champ abstract. efetch les fournit.
+
+const EUTILS = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils'
+const REQUETE = 'coffee[Title/Abstract] OR coffea[Title/Abstract]'
+
+const CHAMPS = [
+  { mots: ['ferment', 'anaerob', 'microb', 'yeast', 'lactic'],                     champ: 'Fermentation',  emoji: '🧪' },
+  { mots: ['genomic', 'crispr', 'breed', 'genetic', 'drought', 'resistance'],       champ: 'Génomique',     emoji: '🍃' },
+  { mots: ['roast', 'maillard', 'pyrazine', 'melanoidin', 'thermal'],               champ: 'Torréfaction',  emoji: '🔥' },
+  { mots: ['chlorogenic', 'polyphenol', 'antioxidant', 'phenolic'],                 champ: 'Biochimie',     emoji: '⚛️' },
+  { mots: ['sensory', 'cupping', 'flavor', 'aroma', 'volatile', 'taste'],           champ: 'Sensoriel',     emoji: '👃' },
+  { mots: ['agronomy', 'yield', 'soil', 'shade', 'cultivation', 'crop'],            champ: 'Agronomie',     emoji: '🌱' },
+]
+
+function classer(texte) {
+  const t = texte.toLowerCase()
+  for (const { mots, champ, emoji } of CHAMPS) {
+    if (mots.some((m) => t.includes(m))) return { field: champ, emoji }
   }
-  return { science: body.science }
+  return { field: 'Recherche', emoji: '🔬' }
+}
+
+const MOIS = {
+  jan: 'janv.', feb: 'févr.', mar: 'mars',  apr: 'avr.',  may: 'mai',  jun: 'juin',
+  jul: 'juil.', aug: 'août',  sep: 'sept.', oct: 'oct.',  nov: 'nov.', dec: 'déc.',
+  '01': 'janv.', '02': 'févr.', '03': 'mars', '04': 'avr.', '05': 'mai',  '06': 'juin',
+  '07': 'juil.', '08': 'août',  '09': 'sept.', '10': 'oct.', '11': 'nov.', '12': 'déc.',
+}
+
+// PubMed donne soit <Year>/<Month>, soit un <MedlineDate> en texte libre.
+// L'ancien worker tronquait la chaîne à sept caractères, d'où « 2026 Se ».
+function datePubMed(bloc) {
+  const pub = (bloc.match(/<PubDate>([\s\S]*?)<\/PubDate>/) || [])[1] || ''
+  const annee = (pub.match(/<Year>(\d{4})<\/Year>/) || [])[1]
+  const moisBrut = (pub.match(/<Month>([A-Za-z0-9]+)<\/Month>/) || [])[1]
+  if (annee) {
+    const mois = moisBrut ? MOIS[moisBrut.toLowerCase().slice(0, 3)] || MOIS[moisBrut] : null
+    return mois ? `${mois} ${annee}` : annee
+  }
+  const medline = (pub.match(/<MedlineDate>([\s\S]*?)<\/MedlineDate>/) || [])[1] || ''
+  const m = medline.match(/(\d{4})\s*([A-Za-z]{3})?/)
+  if (!m) return ''
+  const mois = m[2] ? MOIS[m[2].toLowerCase()] : null
+  return mois ? `${mois} ${m[1]}` : m[1]
+}
+
+function texteXML(valeur) {
+  return strip(valeur || '')
+    .replace(/&lt;/g, '<').replace(/&gt;/g, '>')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+export async function buildScience() {
+  const recherche = await fetchJSON(
+    `${EUTILS}/esearch.fcgi?db=pubmed&term=${encodeURIComponent(REQUETE)}&retmax=40&sort=date&retmode=json`,
+    { timeout: 15000 }
+  )
+  const ids = recherche?.esearchresult?.idlist || []
+  if (!ids.length) throw new Error('PubMed : aucun identifiant renvoye')
+
+  // efetch, et non esummary : c'est le seul des deux à porter les résumés.
+  const xml = await fetchText(
+    `${EUTILS}/efetch.fcgi?db=pubmed&id=${ids.join(',')}&retmode=xml`,
+    { timeout: 20000, headers: { Accept: 'application/xml' } }
+  )
+
+  const articles = xml.split('</PubmedArticle>').slice(0, -1)
+  const candidats = []
+
+  for (const bloc of articles) {
+    const pmid = (bloc.match(/<PMID[^>]*>(\d+)<\/PMID>/) || [])[1]
+    const titre = texteXML((bloc.match(/<ArticleTitle[^>]*>([\s\S]*?)<\/ArticleTitle>/) || [])[1])
+      .replace(/\.$/, '')
+    if (!pmid || !titre) continue
+
+    // Les résumés structurés arrivent en plusieurs <AbstractText> étiquetés.
+    const morceaux = [...bloc.matchAll(/<AbstractText[^>]*>([\s\S]*?)<\/AbstractText>/g)]
+      .map((m) => texteXML(m[1]))
+      .filter(Boolean)
+    const resume = morceaux.join(' ')
+
+    const journal =
+      texteXML((bloc.match(/<Journal>[\s\S]*?<Title>([\s\S]*?)<\/Title>/) || [])[1]) ||
+      texteXML((bloc.match(/<ISOAbbreviation>([\s\S]*?)<\/ISOAbbreviation>/) || [])[1]) ||
+      'PubMed'
+
+    candidats.push({
+      journal,
+      title: titre,
+      // Sans résumé publié, on laisse le champ vide plutôt que d'y recopier
+      // le titre : une fiche qui se répète a l'air cassée.
+      abstract: resume,
+      url: `https://pubmed.ncbi.nlm.nih.gov/${pmid}/`,
+      date: datePubMed(bloc),
+      ...classer(`${titre} ${resume}`),
+    })
+  }
+
+  if (!candidats.length) throw new Error('PubMed : aucun article exploitable')
+
+  // Un article par domaine d'abord, pour éviter six papiers d'agronomie,
+  // puis on complète dans l'ordre de publication.
+  const retenus = []
+  const domaines = new Set()
+  for (const c of candidats) {
+    if (retenus.length >= 6) break
+    if (domaines.has(c.field)) continue
+    domaines.add(c.field)
+    retenus.push(c)
+  }
+  for (const c of candidats) {
+    if (retenus.length >= 6) break
+    if (!retenus.includes(c)) retenus.push(c)
+  }
+
+  return { science: retenus }
 }
 
 /* ═══════════════════════ MATÉRIEL ═══════════════════════ */
