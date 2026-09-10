@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Connexion · Kissa Soko</title>
+<style>
+  :root { color-scheme: light; }
+  body {
+    margin: 0; min-height: 100vh; display: grid; place-items: center;
+    background: #f2ede6; color: #16203a;
+    font: 16px/1.5 ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  .boite { width: min(360px, 90vw); }
+  h1 { font-size: 1.4rem; margin: 0 0 .25rem; letter-spacing: -.01em; }
+  p.sous { margin: 0 0 1.5rem; color: #6b6558; font-size: .9rem; }
+  label { display: block; font-size: .8rem; text-transform: uppercase;
+          letter-spacing: .08em; color: #6b6558; margin-bottom: .4rem; }
+  input {
+    width: 100%; box-sizing: border-box; padding: .7rem .8rem; font-size: 1rem;
+    border: 1px solid #d6cec1; border-radius: 8px; background: #fbf8f4; color: inherit;
+  }
+  input:focus { outline: 2px solid #c8622c; outline-offset: 1px; }
+  button {
+    margin-top: .9rem; width: 100%; padding: .7rem; font-size: 1rem; font-weight: 600;
+    border: 0; border-radius: 8px; background: #16203a; color: #f2ede6; cursor: pointer;
+  }
+  button:disabled { opacity: .5; cursor: default; }
+  .message { margin-top: .9rem; font-size: .9rem; min-height: 1.4em; }
+  .ko { color: #a3341f; }
+  .ok { color: #2f6b46; }
+  a { color: #c8622c; }
+</style>
+</head>
+<body>
+  <div class="boite">
+    <h1>Kissa Soko</h1>
+    <p class="sous">Espace privé. Connexion requise pour le studio et le rafraîchissement des flux.</p>
+
+    <label for="mdp">Mot de passe</label>
+    <input id="mdp" type="password" autocomplete="current-password" autofocus>
+    <button id="valider">Se connecter</button>
+    <div class="message" id="message"></div>
+  </div>
+
+<script>
+const champ = document.getElementById('mdp')
+const bouton = document.getElementById('valider')
+const message = document.getElementById('message')
+
+function dire(texte, classe) {
+  message.textContent = texte
+  message.className = 'message ' + (classe || '')
+}
+
+async function etat() {
+  try {
+    const r = await fetch('/.netlify/functions/login')
+    const d = await r.json()
+    if (d.connecte) dire('Déjà connecté sur cet appareil.', 'ok')
+  } catch {}
+}
+
+async function connecter() {
+  const motdepasse = champ.value
+  if (!motdepasse) return dire('Saisis le mot de passe.', 'ko')
+  bouton.disabled = true
+  dire('Vérification...')
+  try {
+    const r = await fetch('/.netlify/functions/login', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ motdepasse }),
+    })
+    const d = await r.json()
+    if (r.ok && d.ok) {
+      dire('Connecté. Ce navigateur reste autorisé 30 jours.', 'ok')
+      champ.value = ''
+    } else {
+      dire(d.erreur || 'Refusé.', 'ko')
+    }
+  } catch (e) {
+    dire('Erreur réseau : ' + e.message, 'ko')
+  } finally {
+    bouton.disabled = false
+  }
+}
+
+bouton.addEventListener('click', connecter)
+champ.addEventListener('keydown', (e) => { if (e.key === 'Enter') connecter() })
+etat()
+</script>
+</body>
+</html>
