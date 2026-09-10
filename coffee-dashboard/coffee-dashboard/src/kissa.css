@@ -59,7 +59,7 @@ a{color:inherit}
 .ks-gg-logo{display:inline-block;font-family:'Bodoni Moda',Georgia,serif;font-style:italic;font-weight:800;font-size:44px;line-height:.82;letter-spacing:-.08em}
 .ks-gg-logo>span{color:var(--ks-orange);font-style:normal;margin-left:3px}
 .ks-top-links{display:flex;align-items:center;justify-content:center;gap:clamp(16px,2vw,34px);min-width:0}
-.ks-top-links button{border:0;background:transparent;padding:7px 0;color:var(--ks-ink);font-size:9px;font-weight:700;letter-spacing:.18em;white-space:nowrap;transition:color .18s ease,transform .18s ease}
+.ks-top-links button{border:0;background:transparent;padding:7px 0;color:var(--ks-ink);font-size:9px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;white-space:nowrap;transition:color .18s ease,transform .18s ease}
 .ks-top-links button:hover{color:var(--ks-orange);transform:translateY(-1px)}
 .ks-menu-button{width:44px;height:44px;border-radius:50%;border:0;background:var(--ks-ink);display:grid;place-content:center;gap:6px;box-shadow:none;transition:transform .25s ease,background .25s ease}
 .ks-menu-button span{display:block;width:17px;height:1.5px;border-radius:2px;background:#fff}
