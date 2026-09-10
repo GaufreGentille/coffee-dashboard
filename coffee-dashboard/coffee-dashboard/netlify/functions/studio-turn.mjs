@@ -3,6 +3,11 @@
  * La cle longue duree reste ici, cote serveur : elle ne descend jamais
  * dans le navigateur.
  *
+ * ACCES RESERVE. Un relais TURN, c'est de la bande passante facturee sur
+ * ton compte Cloudflare : ouvert a tous, c'est un relais gratuit pour
+ * n'importe qui, avec n'importe quel trafic.
+ * Connexion par cookie (page /connexion.html) ou par ?jeton=... dans l'URL.
+ *
  * Sans variables d'environnement, la fonction repond quand meme avec
  * des serveurs STUN publics. La connexion marchera alors en WiFi local
  * mais echouera souvent en 4G, ou le relais est indispensable.
@@ -12,6 +17,12 @@
  *   CLOUDFLARE_TURN_TOKEN
  */
 
+import { autorise, refus } from '../lib/auth.mjs'
+
+// Une session demarre dans la foulee de la demande : deux heures de validite
+// n'avaient aucune utilite, dix minutes suffisent largement.
+const DUREE_IDENTIFIANTS = 600
+
 const SECOURS = {
   iceServers: [
     { urls: ['stun:stun.cloudflare.com:3478', 'stun:stun.l.google.com:19302'] },
@@ -19,7 +30,9 @@ const SECOURS = {
   relais: false,
 };
 
-export default async () => {
+export default async (req) => {
+  if (!autorise(req)) return refus()
+
   const id = process.env.CLOUDFLARE_TURN_KEY_ID;
   const jeton = process.env.CLOUDFLARE_TURN_TOKEN;
 
@@ -34,7 +47,7 @@ export default async () => {
           authorization: `Bearer ${jeton}`,
           'content-type': 'application/json',
         },
-        body: JSON.stringify({ ttl: 7200, customIdentifier: 'kissasoko-studio' }),
+        body: JSON.stringify({ ttl: DUREE_IDENTIFIANTS, customIdentifier: 'kissasoko-studio' }),
       }
     );
 
