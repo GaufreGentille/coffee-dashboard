@@ -1,10 +1,16 @@
 import { getStore } from '@netlify/blobs';
+import { autorise, refus } from '../lib/auth.mjs';
 
 /**
  * Boite aux lettres de signalisation du studio.
  * Deux cases par session : l'offre deposee par le telephone,
  * la reponse deposee par le PC. Rien d'autre ne transite ici,
  * le flux video passe en direct entre les deux appareils.
+ *
+ * ACCES RESERVE. Qui lit l'offre peut deposer sa propre reponse et
+ * recevoir le flux camera a la place du PC. La seule protection etait
+ * de ne pas connaitre le code de session, ce qui n'en est pas une.
+ * Connexion par cookie (page /connexion.html) ou par ?jeton=... dans l'URL.
  *
  * GET    /api/studio-signal?code=XXX&type=offre
  * POST   /api/studio-signal?code=XXX&type=offre    { session, sdp }
@@ -14,8 +20,11 @@ import { getStore } from '@netlify/blobs';
 const DUREE_VIE = 5 * 60 * 1000;
 const CODE_VALIDE = /^[A-Za-z0-9_-]{8,48}$/;
 const TYPES = ['offre', 'reponse'];
+const TAILLE_SDP_MAX = 100 * 1024;
 
 export default async (req) => {
+  if (!autorise(req)) return refus();
+
   const url = new URL(req.url);
   const code = url.searchParams.get('code') || '';
   const type = url.searchParams.get('type') || '';
@@ -41,6 +50,20 @@ export default async (req) => {
     if (req.method === 'POST') {
       const corps = await req.json();
       if (!corps?.sdp || !corps?.session) return reponse({ erreur: 'charge invalide' }, 400);
+      if (String(corps.sdp).length > TAILLE_SDP_MAX) {
+        return reponse({ erreur: 'sdp trop volumineux' }, 413);
+      }
+
+      // Une reponse deja deposee ne se remplace pas : sinon un second
+      // repondeur peut prendre la place du PC en cours de negociation.
+      // L'offre, elle, reste remplacable, le telephone peut reessayer.
+      if (type === 'reponse') {
+        const existante = await store.get(cle, { type: 'json' });
+        if (existante && Date.now() - existante.horodatage <= DUREE_VIE) {
+          return reponse({ erreur: 'reponse deja deposee pour cette session' }, 409);
+        }
+      }
+
       await store.setJSON(cle, {
         session: String(corps.session).slice(0, 64),
         sdp: corps.sdp,
