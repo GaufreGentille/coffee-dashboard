@@ -53,15 +53,32 @@ const PLAYLISTS = [
   },
 ]
 
+// Source unique de la navigation. L'en-tete d'accueil, l'en-tete des pages
+// interieures et la grille des univers lisent tous cette liste : un libelle
+// se change ici, et il se change partout.
+//   nav   : apparait dans les deux barres de navigation
+//   tile  : chemin de l'image dans la grille des univers, ou null
+//   goTo  : onglet reellement ouvert, quand il differe de l'id
+//   href  : lien externe, la tuile sort du site
+//   music : ouvre le panneau musique au lieu d'un onglet
 const TABS = [
-  { id:'home',      label:'Accueil' },
-  { id:'news',      label:'Actualités' },
-  { id:'science',   label:'Science' },
-  { id:'harvest',   label:'Origines' },
-  { id:'gear',      label:'Matériel' },
-  { id:'reddit',    label:'Communauté' },
-  { id:'instagram', label:'Instagram' },
+  { id:'home',      label:'Accueil',    nav:false, tile:null },
+  { id:'news',      label:'Actualités', nav:true,  tile:'/tiles/actualites.png' },
+  { id:'science',   label:'Science',    nav:true,  tile:'/tiles/science.png' },
+  { id:'harvest',   label:'Origines',   nav:true,  tile:'/tiles/origines.png' },
+  { id:'gear',      label:'Matériel',   nav:true,  tile:'/tiles/materiel.png' },
+  { id:'reddit',    label:'Communauté', nav:true,  tile:'/tiles/communaute.png' },
+  { id:'instagram', label:'Instagram',  nav:true,  tile:'/tiles/instagram.png' },
+  // Marche n'est pas une page : le bandeau des cours est visible partout.
+  // Il reste une tuile, qui ouvre les actualites, mais sort de la navigation
+  // ou il promettait une destination qui n'existe pas.
+  { id:'market',    label:'Marché',     nav:false, tile:'/tiles/marche.png', goTo:'news' },
+  { id:'music',     label:'Musique',    nav:false, tile:'/tiles/musique.png', music:true },
+  { id:'game',      label:'Jeu',        nav:false, tile:'/tiles/jeu.png', href:'https://kissasoko.netlify.app/hangar-torref-843/' },
 ]
+
+const NAV_TABS  = TABS.filter(t => t.nav)
+const HOME_TILES = TABS.filter(t => t.tile)
 
 const MARKET_PLACEHOLDER = [
   { label:'Arabica ICE', val:'--', unit:'c/lb', chg:'', up:true  },
@@ -147,7 +164,10 @@ function GGCursor() {
 }
 
 function HomePage({ setTab, setShowMusic }) {
-  const onNavigate = (id) => setTab(id === 'market' ? 'news' : id)
+  const onNavigate = (id) => {
+    const cible = TABS.find(t => t.id === id)
+    setTab(cible?.goTo || id)
+  }
   const onMusic = () => { setShowMusic(true); setTab('news') }
   const [stuck, setStuck] = useState(false)
 
@@ -160,20 +180,10 @@ function HomePage({ setTab, setShowMusic }) {
 
   const scrollToUniverses = () => document.getElementById('ks-universes')?.scrollIntoView({ behavior:'smooth', block:'start' })
 
-  const tiles = [
-    { id:'news',      label:'Actualités', image:'/tiles/actualites.png' },
-    { id:'harvest',   label:'Origines',   image:'/tiles/origines.png' },
-    { id:'science',   label:'Science',    image:'/tiles/science.png' },
-    { id:'gear',      label:'Matériel',   image:'/tiles/materiel.png' },
-    { id:'market',    label:'Marché',     image:'/tiles/marche.png' },
-    { id:'reddit',    label:'Communauté', image:'/tiles/communaute.png' },
-    { id:'instagram', label:'Instagram',  image:'/tiles/instagram.png' },
-    { id:'music',     label:'Musique',    image:'/tiles/musique.png' },
-    { id:'game',      label:'Jeu',        image:'/tiles/jeu.png', href:'https://kissasoko.netlify.app/hangar-torref-843/' },
-  ]
+  const tiles = HOME_TILES
 
   const openTile = (tile) => {
-    if (tile.id === 'music') return onMusic()
+    if (tile.music) return onMusic()
     if (tile.href) return
     onNavigate(tile.id)
   }
@@ -186,12 +196,9 @@ function HomePage({ setTab, setShowMusic }) {
       </button>
 
       <nav className="ks-top-links" aria-label="Navigation principale">
-        <button onClick={()=>onNavigate('news')}>ACTUALITÉS</button>
-        <button onClick={()=>onNavigate('science')}>SCIENCE</button>
-        <button onClick={()=>onNavigate('harvest')}>ORIGINES</button>
-        <button onClick={()=>onNavigate('gear')}>MATÉRIEL</button>
-        <button onClick={()=>onNavigate('market')}>MARCHÉ</button>
-        <button onClick={()=>onNavigate('reddit')}>COMMUNAUTÉ</button>
+        {NAV_TABS.map(t => (
+          <button key={t.id} onClick={()=>onNavigate(t.id)}>{t.label}</button>
+        ))}
       </nav>
 
       <button className="ks-menu-button" onClick={scrollToUniverses} data-cursor="active" aria-label="Voir les univers">
@@ -372,7 +379,7 @@ function NewsPage({ items, dateStr }) {
       <PageIntro
         title="Actualités"
         meta={`${items.length} articles · ${dateStr}`}
-        deck="Toute l'actu café réunie au même endroit"
+        deck="Le café bouge vite. Ici, on garde les signaux qui méritent vraiment qu'on s'y attarde."
       />
       <NewsLead item={lead} />
       {rest.length > 0 && (
@@ -793,7 +800,7 @@ function OriginsPage({ harvestData, harvestLoading, harvestError }) {
       <PageIntro
         title="Origines"
         meta={`${ORIGIN_COUNTRIES.length} pays documentés · récoltes & saisonnalité`}
-        deck="Les origines dans les grandes lignes, achats, dégust et réception."
+        deck="Un atlas vivant du café : comprendre les pays producteurs, leurs récoltes et ce qui façonne leurs cafés."
       />
 
       {featured && (
@@ -967,7 +974,7 @@ function OriginsPage({ harvestData, harvestLoading, harvestError }) {
 }
 
 function SiteHeader({ tab, setTab, refresh, lastRefresh, showMusic, setShowMusic }) {
-  const nav = TABS.filter(t => t.id !== 'home')
+  const nav = NAV_TABS
   return (
     <header className="ks-site-header">
       <button className="ks-site-brand" onClick={()=>setTab('home')} aria-label="Retour à l'accueil">
@@ -1096,7 +1103,7 @@ export default function App() {
                 <PageIntro
                   title="Instagram"
                   meta="Veille visuelle · collecte hebdomadaire"
-                  deck="Bien connaître le café commence par bien le regarder."
+                  deck="Ce que publient les torréfacteurs, producteurs et fabricants qu'on suit de près."
                 />
                 <div className="ks-instagram-panel-skin">
                   <InstaVeillePanel />
@@ -1131,7 +1138,7 @@ export default function App() {
                   <PageIntro
                     title="Science"
                     meta={`${science.data.length} articles · via PubMed NCBI`}
-                    deck="Les artciles les plus récents et disponibles dans la sphère café."
+                    deck="Ce que la recherche publie vraiment sur le café, sans passer par le filtre des titres accrocheurs."
                   />
                   <div className="ks-science-list">
                     {science.data.map((item,i) => <SciCard key={item.url || item.title || i} item={item} i={i} T={T} />)}
