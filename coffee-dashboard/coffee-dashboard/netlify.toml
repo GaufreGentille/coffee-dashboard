@@ -11,6 +11,25 @@
 [functions."*"]
   timeout = 30
 
+# En-têtes de sécurité. Volontairement sans Content-Security-Policy :
+# une CSP écrite sans tester casse le site en silence, elle se met en place
+# à part, en mode report-only d'abord.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    # camera et micro restent autorisés pour la page studio, sur ce site seulement
+    Permissions-Policy = "geolocation=(), payment=(), usb=(), camera=(self), microphone=(self)"
+
+# La page de connexion ne doit jamais être mise en cache ni indexée.
+[[headers]]
+  for = "/connexion.html"
+  [headers.values]
+    Cache-Control = "no-store"
+    X-Robots-Tag = "noindex, nofollow"
+
 [[redirects]]
   from = "/*"
   to = "/index.html"
