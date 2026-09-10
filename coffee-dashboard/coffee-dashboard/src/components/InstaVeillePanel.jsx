@@ -502,9 +502,11 @@ export default function InstaVeillePanel() {
         <PseudoModal onConfirm={confirmPseudo} onCancel={() => setPendingVote(null)} />
       )}
 
-      {/* ─── Header ─── */}
+      {/* ─── Barre d'etat ───
+          Le titre « Veille Instagram » a ete retire : la page porte deja son
+          nom en grand juste au-dessus, c'etait le seul onglet a s'annoncer
+          deux fois. Il ne reste ici que les compteurs. */}
       <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap", marginBottom: 10 }}>
-        <span style={{ fontWeight: 700, fontSize: 15, color: "var(--ks-ink)" }}>Veille Instagram</span>
         <span style={{ fontSize: 10, color: "var(--ks-dim)" }}>
           {data.stats?.ok ?? "?"} comptes suivis · {feed.length} posts
         </span>
