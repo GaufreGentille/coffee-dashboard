@@ -372,7 +372,7 @@ function NewsPage({ items, dateStr }) {
       <PageIntro
         title="Actualités"
         meta={`${items.length} articles · ${dateStr}`}
-        deck="Le café bouge vite. Ici, on garde les signaux qui méritent vraiment qu'on s'y attarde."
+        deck="Toute l'actu café réunie au même endroit"
       />
       <NewsLead item={lead} />
       {rest.length > 0 && (
@@ -793,7 +793,7 @@ function OriginsPage({ harvestData, harvestLoading, harvestError }) {
       <PageIntro
         title="Origines"
         meta={`${ORIGIN_COUNTRIES.length} pays documentés · récoltes & saisonnalité`}
-        deck="Un atlas vivant du café : comprendre les pays producteurs, leurs récoltes et ce qui façonne leurs cafés."
+        deck="Les origines dans les grandes lignes, achats, dégust et réception."
       />
 
       {featured && (
@@ -1096,7 +1096,7 @@ export default function App() {
                 <PageIntro
                   title="Instagram"
                   meta="Veille visuelle · collecte hebdomadaire"
-                  deck="Ce que publient les torréfacteurs, producteurs et fabricants qu'on suit de près."
+                  deck="Bien connaître le café commence par bien le regarder."
                 />
                 <div className="ks-instagram-panel-skin">
                   <InstaVeillePanel />
@@ -1131,7 +1131,7 @@ export default function App() {
                   <PageIntro
                     title="Science"
                     meta={`${science.data.length} articles · via PubMed NCBI`}
-                    deck="Ce que la recherche publie vraiment sur le café, sans passer par le filtre des titres accrocheurs."
+                    deck="Les artciles les plus récents et disponibles dans la sphère café."
                   />
                   <div className="ks-science-list">
                     {science.data.map((item,i) => <SciCard key={item.url || item.title || i} item={item} i={i} T={T} />)}
