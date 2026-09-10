@@ -4,17 +4,44 @@
 //
 // Stockage : Blob "votes" = { [postId]: { u, d, v: {userId: dir}, t: firstVoteTs } }
 // Identité légère : userId généré côté navigateur (localStorage), pseudo déclaratif.
+//
+// LIMITE ASSUMÉE : cette identité n'en est pas une, le navigateur fabrique son
+// propre identifiant. Un script qui en génère mille votera mille fois. Ce qui
+// suit ne rend pas le vote honnête, ça empêche seulement qu'on casse la
+// fonctionnalité pour de bon en saturant le blob.
 import { getStore } from "@netlify/blobs";
+import { cors, origineConnue } from "../lib/auth.mjs";
 
-const json = (data, status = 200) =>
-  new Response(JSON.stringify(data), {
-    status,
-    headers: { "Content-Type": "application/json" },
-  });
+const MAX_POSTS_TRACKED = 3000;  // au-delà, on purge les votes les plus anciens
+const MAX_VOTANTS_PAR_POST = 800; // au-delà, plus de nouveau votant sur ce post
+const VOTES_PAR_IP_PAR_MINUTE = 20;
 
-const MAX_POSTS_TRACKED = 3000; // au-delà, on purge les votes les plus anciens
+// Compteur par IP. Il vit dans l'instance et disparaît avec elle : ça freine
+// le script naïf, pas l'attaquant patient. C'est un ralentisseur, pas un mur.
+const compteurs = new Map();
+
+function tropRapide(ip) {
+  if (!ip) return false;
+  const maintenant = Date.now();
+  const c = compteurs.get(ip);
+  if (!c || maintenant - c.debut > 60_000) {
+    compteurs.set(ip, { debut: maintenant, n: 1 });
+    if (compteurs.size > 5000) compteurs.clear(); // borne mémoire
+    return false;
+  }
+  c.n += 1;
+  return c.n > VOTES_PAR_IP_PAR_MINUTE;
+}
 
 export default async (req) => {
+  const enTetes = { "Content-Type": "application/json", ...cors(req) };
+  const json = (data, status = 200) =>
+    new Response(JSON.stringify(data), { status, headers: enTetes });
+
+  if (req.method === "OPTIONS") {
+    return new Response("ok", { headers: { ...enTetes, "Access-Control-Allow-Headers": "*" } });
+  }
+
   const store = getStore({ name: "insta-veille", consistency: "strong" });
 
   if (req.method === "GET") {
@@ -31,6 +58,11 @@ export default async (req) => {
   }
 
   if (req.method !== "POST") return json({ error: "GET ou POST uniquement" }, 405);
+
+  if (!origineConnue(req)) return json({ error: "origine non autorisee" }, 403);
+
+  const ip = req.headers.get("x-nf-client-connection-ip") || "";
+  if (tropRapide(ip)) return json({ error: "trop de votes, reessaie dans une minute" }, 429);
 
   let body;
   try { body = await req.json(); } catch { return json({ error: "JSON invalide" }, 400); }
@@ -51,6 +83,13 @@ export default async (req) => {
   if (prev === dir) {
     // rien à changer (double-clic, requête rejouée…)
     return json({ ok: true, u: rec.u, d: rec.d, mine: dir });
+  }
+
+  // Plafond de votants par post : sans lui, la carte v grossit sans fin
+  // jusqu'à ce que le blob dépasse la taille maximale et que plus aucune
+  // écriture ne passe, y compris les légitimes.
+  if (!prev && dir !== 0 && Object.keys(rec.v).length >= MAX_VOTANTS_PAR_POST) {
+    return json({ error: "trop de votes sur ce post" }, 429);
   }
 
   // retirer l'ancien vote
