@@ -100,17 +100,9 @@ const SKIP_KW = [
   'hiring', 'acquires', 'acquisition', 'obituary', 'passes away',
 ]
 
-const CAT_IMGS = {
-  'Moulin':       'https://images.unsplash.com/photo-1485808191679-5f86510bd9d4?w=600&q=80',
-  'Machine':      'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600&q=80',
-  'Dripper':      'https://images.unsplash.com/photo-1516743619420-154b70a65fea?w=600&q=80',
-  'Accessories':  'https://images.unsplash.com/photo-1511920170033-f8396924c348?w=600&q=80',
-  'Tasse':        'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=600&q=80',
-  'Filtre':       'https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=600&q=80',
-  'Torrefacteur': 'https://images.unsplash.com/photo-1447933601403-0c6688de566e?w=600&q=80',
-  'Tech':         'https://images.unsplash.com/photo-1611854779393-1b2da9d400fe?w=600&q=80',
-  'default':      'https://images.unsplash.com/photo-1504630083234-14187a9df0f5?w=600&q=80',
-}
+// Plus d'illustration generique par categorie : une photo Unsplash de latte
+// posee sur un test de moulin ne montre pas le produit dont on parle. Sans
+// vraie photo, la carte s'affiche sans image, et c'est tres bien.
 
 export async function buildGear() {
   const results = await Promise.allSettled(
@@ -208,9 +200,7 @@ async function translateGear(batch) {
       source: original.source,
       date: original.date,
       ts: original.ts || 0,
-      // La vraie photo du flux prime ; l'illustration par catégorie n'est
-      // qu'un pis-aller quand la source n'en fournit aucune.
-      img: original.img || CAT_IMGS[t.category] || CAT_IMGS.default,
+      img: original.img || null,
     }
   }).filter(Boolean)
 }
