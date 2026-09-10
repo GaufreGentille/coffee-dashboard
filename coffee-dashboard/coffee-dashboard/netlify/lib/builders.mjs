@@ -63,16 +63,25 @@ export async function buildNews() {
 // recopiait donc le titre dans le champ abstract. efetch les fournit.
 
 const EUTILS = 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils'
-const REQUETE = 'coffee[Title/Abstract] OR coffea[Title/Abstract]'
+// Le café doit figurer dans le titre. Chercher aussi dans le résumé faisait
+// remonter une enquête sur les boissons, des poulets nourris au café vert et
+// une microaiguille dont le seul lien était un film de marc de café.
+const REQUETE = 'coffee[Title] OR coffea[Title] OR espresso[Title] OR "coffee"[MeSH Major Topic]'
 
 const CHAMPS = [
   { mots: ['ferment', 'anaerob', 'microb', 'yeast', 'lactic'],                     champ: 'Fermentation',  emoji: '🧪' },
-  { mots: ['genomic', 'crispr', 'breed', 'genetic', 'drought', 'resistance'],       champ: 'Génomique',     emoji: '🍃' },
-  { mots: ['roast', 'maillard', 'pyrazine', 'melanoidin', 'thermal'],               champ: 'Torréfaction',  emoji: '🔥' },
+  { mots: ['genom', 'crispr', 'breeding', 'cultivar', 'genotype', 'leaf rust'],     champ: 'Génomique',     emoji: '🍃' },
+  { mots: ['roast', 'maillard', 'pyrazine', 'melanoidin', 'torref'],                champ: 'Torréfaction',  emoji: '🔥' },
   { mots: ['chlorogenic', 'polyphenol', 'antioxidant', 'phenolic'],                 champ: 'Biochimie',     emoji: '⚛️' },
   { mots: ['sensory', 'cupping', 'flavor', 'aroma', 'volatile', 'taste'],           champ: 'Sensoriel',     emoji: '👃' },
   { mots: ['agronomy', 'yield', 'soil', 'shade', 'cultivation', 'crop'],            champ: 'Agronomie',     emoji: '🌱' },
 ]
+
+function classerArticle(titre, resume) {
+  const parTitre = classer(titre)
+  if (parTitre.field !== 'Recherche') return parTitre
+  return classer(resume)
+}
 
 function classer(texte) {
   const t = texte.toLowerCase()
@@ -155,7 +164,10 @@ export async function buildScience() {
       abstract: resume,
       url: `https://pubmed.ncbi.nlm.nih.gov/${pmid}/`,
       date: datePubMed(bloc),
-      ...classer(`${titre} ${resume}`),
+      // Le titre décide. Un résumé de trois cents mots contient toujours un
+      // mot clé de quelque chose, et c'est ainsi qu'on classe une étude sur
+      // la goutte en « Torréfaction ».
+      ...classerArticle(titre, resume),
     })
   }
 
