@@ -134,7 +134,6 @@ function Reveal() {
         </div>
 
         <figure className="ks-reveal-plate" ref={zoneRef}>
-          <span className="ks-reveal-rule" aria-hidden="true" />
           <img className="ks-reveal-art" src={source} alt="" />
           <figcaption>
             <span>PLANCHE 01</span>
