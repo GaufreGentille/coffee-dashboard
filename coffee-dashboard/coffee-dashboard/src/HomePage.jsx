@@ -133,10 +133,15 @@ function Reveal() {
           </ol>
         </div>
 
-        <div className="ks-reveal-stage" ref={zoneRef} aria-hidden="true">
-          <span className="ks-reveal-halo" />
+        <figure className="ks-reveal-plate" ref={zoneRef}>
+          <span className="ks-reveal-rule" aria-hidden="true" />
           <img className="ks-reveal-art" src={source} alt="" />
-        </div>
+          <figcaption>
+            <span>PLANCHE 01</span>
+            <em>Coffea arabica</em>
+            <small>cerise · parche · grain vert</small>
+          </figcaption>
+        </figure>
       </div>
     </section>
   )
