@@ -279,6 +279,143 @@ function Workshop({ onMusic }) {
   )
 }
 
+/* ── L'aventure café : les chapitres de Tasse imparfaite ───── */
+
+const COFFEE_JOURNEY = [
+  {
+    id:'taxonomie', chapter:'01', title:'Taxonomie', kicker:'LE VIVANT',
+    summary:"Morphologie, espèces, groupes génétiques et variétés : comprendre Coffea avant même de parler de goût.",
+    href:'/tasse-imparfaite#chapitre-1', x:'8%', y:'35%', card:'down', mark:'leaf',
+  },
+  {
+    id:'histoire', chapter:'02', title:'Histoire', kicker:'LES ROUTES',
+    summary:"Du Rift au Yémen, puis au reste du monde : domestication, routes commerciales, Typica, Bourbon et sélection.",
+    href:'/tasse-imparfaite#chapitre-2', x:'25%', y:'20%', card:'down', mark:'route',
+  },
+  {
+    id:'process', chapter:'03', title:'Process', kicker:'LA TRANSFORMATION',
+    summary:"Lavé, nature, honey et fermentations : ce qui arrive au fruit après la récolte façonne déjà la tasse.",
+    href:'/tasse-imparfaite#chapitre-3', x:'44%', y:'36%', card:'down', mark:'process',
+  },
+  {
+    id:'chimie', chapter:'04', title:'Chimie aromatique', kicker:'LES MOLÉCULES',
+    summary:"Précurseurs, réactions et composés aromatiques : relier ce qui se passe dans le grain à ce que l'on perçoit.",
+    href:'/tasse-imparfaite#chapitre-4', x:'63%', y:'19%', card:'down', mark:'molecule',
+  },
+  {
+    id:'defauts', chapter:'05', title:'Défauts', kicker:'LES ACCIDENTS',
+    summary:"Identifier ce qui a mal tourné, du fruit au stockage puis à la torréfaction, et remonter jusqu'à la cause.",
+    href:'/tasse-imparfaite#chapitre-5', x:'82%', y:'36%', card:'left', mark:'defect',
+  },
+  {
+    id:'extraction', chapter:'06', title:'Extraction', kicker:'LA TASSE',
+    summary:"Eau, mouture, température, temps et pression : la dernière transformation avant la dégustation.",
+    href:'/tasse-imparfaite#chapitre-6', x:'82%', y:'73%', card:'up-left', mark:'cup',
+  },
+  {
+    id:'decafeination', chapter:'07', title:'Décaféination', kicker:'LE DÉTOUR',
+    summary:"Retirer la caféine sans emporter les précurseurs aromatiques : un détour technique au milieu du voyage.",
+    href:'/tasse-imparfaite#chapitre-7', x:'49%', y:'76%', card:'up', mark:'drop', detour:true,
+  },
+]
+
+function JourneyMark({ kind }) {
+  const common = {
+    fill:'none', stroke:'currentColor', strokeWidth:1.55,
+    strokeLinecap:'round', strokeLinejoin:'round',
+  }
+  return (
+    <svg viewBox="0 0 44 44" aria-hidden="true" {...common}>
+      {kind === 'leaf' && <>
+        <path d="M35 8C23 8 11 14 11 26c0 6 4 10 10 10 12 0 17-14 14-28Z" />
+        <path d="M12 34c7-9 13-14 21-19" />
+      </>}
+      {kind === 'route' && <>
+        <circle cx="11" cy="31" r="3" /><circle cx="33" cy="12" r="3" />
+        <path d="M14 29c6-2 5-9 11-10s4-5 5-5" />
+        <path d="M8 10c4 0 6 2 6 6s-2 6-6 6M36 24c-4 0-6 2-6 6s2 6 6 6" />
+      </>}
+      {kind === 'process' && <>
+        <path d="M10 13h24l-3 21H13L10 13Z" />
+        <path d="M15 13V9h14v4M17 23c3-4 7 4 10 0s5 1 5 1" />
+        <circle cx="18" cy="29" r="1.7" /><circle cx="26" cy="27" r="1.7" />
+      </>}
+      {kind === 'molecule' && <>
+        <circle cx="11" cy="22" r="4" /><circle cx="30" cy="11" r="4" /><circle cx="32" cy="31" r="4" />
+        <path d="M15 20l11-7M15 24l13 5M30 15l1 12" />
+      </>}
+      {kind === 'defect' && <>
+        <path d="M22 7 38 35H6L22 7Z" />
+        <path d="M22 17v9M22 31h.01" />
+      </>}
+      {kind === 'cup' && <>
+        <path d="M10 13h21v10a10 10 0 0 1-10 10h-1A10 10 0 0 1 10 23V13Z" />
+        <path d="M31 16h3a5 5 0 0 1 0 10h-3M8 36h27" />
+        <path d="M16 9c0-2 2-2 2-4M24 9c0-2 2-2 2-4" />
+      </>}
+      {kind === 'drop' && <>
+        <path d="M22 6c7 10 11 16 11 22a11 11 0 0 1-22 0c0-6 4-12 11-22Z" />
+        <path d="M17 29c2 3 6 4 9 1" />
+      </>}
+    </svg>
+  )
+}
+
+function CoffeeJourney() {
+  return (
+    <section className="ks-journey" id="ks-journey">
+      <div className="ks-shell">
+        <header className="ks-journey-head">
+          <span className="ks-eyebrow">TASSE IMPARFAITE</span>
+          <h2>L&apos;aventure<br />du café<span>.</span></h2>
+          <p>
+            De la plante à la tasse, avec quelques détours par l&apos;histoire,
+            la chimie et les accidents de parcours. Chaque escale ouvre un chapitre du livre.
+          </p>
+        </header>
+
+        <div className="ks-journey-map" aria-label="Les chapitres de Tasse imparfaite">
+          <svg className="ks-journey-route" viewBox="0 0 1000 560" preserveAspectRatio="none" aria-hidden="true">
+            <path className="ks-journey-route-main" d="M80 196 C150 82 220 82 270 112 S390 245 455 201 S560 80 635 106 S750 225 820 201 C888 178 903 260 870 344 S854 410 820 410" />
+            <path className="ks-journey-route-detour" d="M455 201 C466 300 454 360 490 426" />
+          </svg>
+
+          {COFFEE_JOURNEY.map(stage => (
+            <article
+              key={stage.id}
+              className={`ks-journey-stop${stage.detour ? ' is-detour' : ''}`}
+              style={{ '--jx':stage.x, '--jy':stage.y }}
+              data-card={stage.card}
+            >
+              <a href={stage.href} data-cursor="active" aria-label={`Chapitre ${stage.chapter} — ${stage.title}`}>
+                <span className="ks-journey-point">
+                  <i>{stage.chapter}</i>
+                  <span className="ks-journey-icon"><JourneyMark kind={stage.mark} /></span>
+                </span>
+
+                <span className="ks-journey-label">
+                  <small>{stage.kicker}</small>
+                  <strong>{stage.title}</strong>
+                </span>
+
+                <span className="ks-journey-card">
+                  <small>CHAPITRE {stage.chapter}</small>
+                  <strong>{stage.title}</strong>
+                  <span>{stage.summary}</span>
+                  <b>LIRE PLUS <i>→</i></b>
+                </span>
+              </a>
+            </article>
+          ))}
+
+          <span className="ks-journey-start">DE L&apos;ARBRE</span>
+          <span className="ks-journey-end">À LA TASSE</span>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 /* ── Page ───────────────────────────────────────────────────── */
 
 export default function HomePage({
@@ -317,8 +454,8 @@ export default function HomePage({
         ))}
       </nav>
 
-      <button className="ks-menu-button" onClick={() => scrollTo('ks-universes')}
-        data-cursor="active" aria-label="Aller à l'index des univers">
+      <button className="ks-menu-button" onClick={() => scrollTo('ks-journey')}
+        data-cursor="active" aria-label="Aller à l'aventure café">
         <span></span><span></span>
       </button>
     </header>
@@ -350,30 +487,10 @@ export default function HomePage({
       {/* 3 — Preuve de vie */}
       <LiveNow news={news} markets={markets} harvest={harvest} setTab={setTab} />
 
-      {/* 4 — L'atelier */}
-      <Workshop onMusic={onMusic} />
+      {/* 4 — L'aventure café */}
+      <CoffeeJourney />
 
-      {/* 5 — Index des univers */}
-      <section className="ks-universes" id="ks-universes">
-        <div className="ks-shell">
-          <span className="ks-eyebrow">TOUT LE SITE</span>
-          <nav className="ks-index-strip" aria-label="Index des univers">
-            {tiles.map((t, i) => {
-              const inner = <>
-                <i>{String(i + 1).padStart(2, '0')}</i>
-                <span>{t.label}</span>
-                <b>&rarr;</b>
-              </>
-              return t.href
-                ? <a key={t.id} href={t.href} data-cursor="active">{inner}</a>
-                : <button key={t.id} data-cursor="active"
-                    onClick={() => t.music ? onMusic() : onNavigate(t.id)}>{inner}</button>
-            })}
-          </nav>
-        </div>
-      </section>
-
-      {/* 6 — Signature */}
+      {/* 5 — Signature */}
       <section className="ks-closing">
         <div className="ks-closing-art" aria-hidden="true">
           <img className="ks-closing-botanical" src="/kissa-bottom-botanical.png" alt="" />
