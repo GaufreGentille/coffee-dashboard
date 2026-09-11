@@ -285,37 +285,37 @@ const COFFEE_JOURNEY = [
   {
     id:'taxonomie', chapter:'01', title:'Taxonomie', kicker:'LE VIVANT',
     summary:"Morphologie, espèces, groupes génétiques et variétés : comprendre Coffea avant même de parler de goût.",
-    href:'/tasse-imparfaite#chapitre-1', x:'8%', y:'35%', card:'down', mark:'leaf',
+    href:'/tasse-imparfaite/chapitre-1.html', x:'8%', y:'35%', card:'down', mark:'leaf',
   },
   {
     id:'histoire', chapter:'02', title:'Histoire', kicker:'LES ROUTES',
     summary:"Du Rift au Yémen, puis au reste du monde : domestication, routes commerciales, Typica, Bourbon et sélection.",
-    href:'/tasse-imparfaite#chapitre-2', x:'25%', y:'20%', card:'down', mark:'route',
+    href:'/tasse-imparfaite/chapitre-2.html', x:'25%', y:'20%', card:'down', mark:'route',
   },
   {
     id:'process', chapter:'03', title:'Process', kicker:'LA TRANSFORMATION',
     summary:"Lavé, nature, honey et fermentations : ce qui arrive au fruit après la récolte façonne déjà la tasse.",
-    href:'/tasse-imparfaite#chapitre-3', x:'44%', y:'36%', card:'down', mark:'process',
+    href:'/tasse-imparfaite/chapitre-3.html', x:'44%', y:'36%', card:'down', mark:'process',
   },
   {
     id:'chimie', chapter:'04', title:'Chimie aromatique', kicker:'LES MOLÉCULES',
     summary:"Précurseurs, réactions et composés aromatiques : relier ce qui se passe dans le grain à ce que l'on perçoit.",
-    href:'/tasse-imparfaite#chapitre-4', x:'63%', y:'19%', card:'down', mark:'molecule',
+    href:'/tasse-imparfaite/chapitre-4.html', x:'63%', y:'19%', card:'down', mark:'molecule',
   },
   {
     id:'defauts', chapter:'05', title:'Défauts', kicker:'LES ACCIDENTS',
     summary:"Identifier ce qui a mal tourné, du fruit au stockage puis à la torréfaction, et remonter jusqu'à la cause.",
-    href:'/tasse-imparfaite#chapitre-5', x:'82%', y:'36%', card:'left', mark:'defect',
+    href:'/tasse-imparfaite/chapitre-5.html', x:'82%', y:'36%', card:'left', mark:'defect',
   },
   {
     id:'extraction', chapter:'06', title:'Extraction', kicker:'LA TASSE',
     summary:"Eau, mouture, température, temps et pression : la dernière transformation avant la dégustation.",
-    href:'/tasse-imparfaite#chapitre-6', x:'82%', y:'73%', card:'up-left', mark:'cup',
+    href:'/tasse-imparfaite/chapitre-6.html', x:'82%', y:'73%', card:'up-left', mark:'cup',
   },
   {
     id:'decafeination', chapter:'07', title:'Décaféination', kicker:'LE DÉTOUR',
     summary:"Retirer la caféine sans emporter les précurseurs aromatiques : un détour technique au milieu du voyage.",
-    href:'/tasse-imparfaite#chapitre-7', x:'49%', y:'76%', card:'up', mark:'drop', detour:true,
+    href:'/tasse-imparfaite/chapitre-7.html', x:'49%', y:'76%', card:'up', mark:'drop', detour:true,
   },
 ]
 
