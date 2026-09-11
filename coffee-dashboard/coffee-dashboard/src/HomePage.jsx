@@ -88,52 +88,55 @@ function BranchOrnament() {
 }
 
 /* ── La transformation : cerise, parche, grain vert ─────────── */
-/* La video ne tourne que lorsqu'elle est visible a l'ecran, et
-   pas du tout si l'utilisateur a demande moins d'animations. */
+/* WebP anime a fond transparent : le sujet flotte sur le bloc
+   encre. On ne le charge qu'a l'approche de la section, et pas
+   du tout si l'utilisateur a demande moins d'animations. */
 
 function Reveal() {
-  const videoRef = useRef(null)
+  const zoneRef = useRef(null)
+  const [source, setSource] = useState('/grain-poster.webp')
 
   useEffect(() => {
-    const v = videoRef.current
-    if (!v) return
+    const el = zoneRef.current
+    if (!el) return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
     const io = new IntersectionObserver(
-      ([entry]) => { entry.isIntersecting ? v.play().catch(() => {}) : v.pause() },
-      { threshold: .2 }
+      ([entry]) => {
+        if (!entry.isIntersecting) return
+        setSource('/grain.webp')
+        io.disconnect()
+      },
+      { rootMargin: '400px' }
     )
-    io.observe(v)
+    io.observe(el)
     return () => io.disconnect()
   }, [])
 
   return (
     <section className="ks-reveal" id="ks-reveal">
-      <video
-        ref={videoRef}
-        className="ks-reveal-video"
-        src="/grain.mp4"
-        poster="/grain-poster.jpg"
-        muted loop playsInline preload="metadata"
-        aria-hidden="true"
-      />
-      <div className="ks-reveal-veil" aria-hidden="true" />
+      <div className="ks-shell ks-reveal-grid">
+        <div className="ks-reveal-copy">
+          <span className="ks-reveal-kicker">DE LA CERISE AU GRAIN</span>
+          <h2>Tout part<br />d&rsquo;un fruit<span>.</span></h2>
+          <p>
+            Dépulpage, fermentation, lavage, séchage, déparchage.
+            Cinq gestes entre la cerise cueillie et le grain vert,
+            et chacun décide de ce qu&rsquo;il restera dans la tasse.
+          </p>
+          <ol className="ks-reveal-steps">
+            <li><i>01</i><span>Cerise</span></li>
+            <li><i>02</i><span>Dépulpage</span></li>
+            <li><i>03</i><span>Fermentation</span></li>
+            <li><i>04</i><span>Séchage</span></li>
+            <li><i>05</i><span>Grain vert</span></li>
+          </ol>
+        </div>
 
-      <div className="ks-shell ks-reveal-copy">
-        <span className="ks-reveal-kicker">DE LA CERISE AU GRAIN</span>
-        <h2>Tout part<br />d&rsquo;un fruit<span>.</span></h2>
-        <p>
-          Dépulpage, fermentation, lavage, séchage, déparchage.
-          Cinq gestes entre la cerise cueillie et le grain vert,
-          et chacun décide de ce qu&rsquo;il restera dans la tasse.
-        </p>
-        <ol className="ks-reveal-steps">
-          <li><i>01</i><span>Cerise</span></li>
-          <li><i>02</i><span>Dépulpage</span></li>
-          <li><i>03</i><span>Fermentation</span></li>
-          <li><i>04</i><span>Séchage</span></li>
-          <li><i>05</i><span>Grain vert</span></li>
-        </ol>
+        <div className="ks-reveal-stage" ref={zoneRef} aria-hidden="true">
+          <span className="ks-reveal-halo" />
+          <img className="ks-reveal-art" src={source} alt="" />
+        </div>
       </div>
     </section>
   )
