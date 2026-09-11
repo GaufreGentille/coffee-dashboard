@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import HarvestPanel from './components/HarvestPanel'
 import InstaVeillePanel from './components/InstaVeillePanel'
+import HomePage from './HomePage'
 import { ORIGIN_COUNTRIES } from './data/origins'
 import './kissa.css'
 
@@ -54,30 +55,30 @@ const PLAYLISTS = [
 ]
 
 // Source unique de la navigation. L'en-tete d'accueil, l'en-tete des pages
-// interieures et la grille des univers lisent tous cette liste : un libelle
+// interieures et l'index des univers lisent tous cette liste : un libelle
 // se change ici, et il se change partout.
 //   nav   : apparait dans les deux barres de navigation
-//   tile  : chemin de l'image dans la grille des univers, ou null
+//   tile  : entre dans l'index des univers en bas de l'accueil
 //   goTo  : onglet reellement ouvert, quand il differe de l'id
-//   href  : lien externe, la tuile sort du site
+//   href  : lien externe, l'entree sort du site
 //   music : ouvre le panneau musique au lieu d'un onglet
 const TABS = [
-  { id:'home',      label:'Accueil',    nav:false, tile:null },
-  { id:'news',      label:'Actualités', nav:true,  tile:'/tiles/actualites.png' },
-  { id:'science',   label:'Science',    nav:true,  tile:'/tiles/science.png' },
-  { id:'harvest',   label:'Origines',   nav:true,  tile:'/tiles/origines.png' },
-  { id:'gear',      label:'Matériel',   nav:true,  tile:'/tiles/materiel.png' },
-  { id:'reddit',    label:'Communauté', nav:true,  tile:'/tiles/communaute.png' },
-  { id:'instagram', label:'Instagram',  nav:true,  tile:'/tiles/instagram.png' },
+  { id:'home',      label:'Accueil',    nav:false, tile:false },
+  { id:'news',      label:'Actualités', nav:true,  tile:true },
+  { id:'science',   label:'Science',    nav:true,  tile:true },
+  { id:'harvest',   label:'Origines',   nav:true,  tile:true },
+  { id:'gear',      label:'Matériel',   nav:true,  tile:true },
+  { id:'reddit',    label:'Communauté', nav:true,  tile:true },
+  { id:'instagram', label:'Instagram',  nav:true,  tile:true },
   // Marche n'est pas une page : le bandeau des cours est visible partout.
-  // Il reste une tuile, qui ouvre les actualites, mais sort de la navigation
-  // ou il promettait une destination qui n'existe pas.
-  { id:'market',    label:'Marché',     nav:false, tile:'/tiles/marche.png', goTo:'news' },
-  { id:'music',     label:'Musique',    nav:false, tile:'/tiles/musique.png', music:true },
-  { id:'game',      label:'Jeu',        nav:false, tile:'/tiles/jeu.png', href:'https://kissasoko.netlify.app/hangar-torref-843/' },
+  // Il reste dans l'index, ou il ouvre les actualites, mais sort de la
+  // navigation ou il promettait une destination qui n'existe pas.
+  { id:'market',    label:'Marché',     nav:false, tile:true, goTo:'news' },
+  { id:'music',     label:'Musique',    nav:false, tile:true, music:true },
+  { id:'game',      label:'Jeu',        nav:false, tile:true, href:'https://kissasoko.netlify.app/hangar-torref-843/' },
 ]
 
-const NAV_TABS  = TABS.filter(t => t.nav)
+const NAV_TABS   = TABS.filter(t => t.nav)
 const HOME_TILES = TABS.filter(t => t.tile)
 
 const MARKET_PLACEHOLDER = [
@@ -161,113 +162,6 @@ function GGCursor() {
     <div ref={cursorRef} className={`ggc-cursor ${active?'is-active':''}`} />
     <div ref={dotRef} className="ggc-cursor-dot" />
   </>
-}
-
-function HomePage({ setTab, setShowMusic }) {
-  const onNavigate = (id) => {
-    const cible = TABS.find(t => t.id === id)
-    setTab(cible?.goTo || id)
-  }
-  const onMusic = () => { setShowMusic(true); setTab('news') }
-  const [stuck, setStuck] = useState(false)
-
-  useEffect(() => {
-    const onScroll = () => setStuck(window.scrollY > 88)
-    onScroll()
-    window.addEventListener('scroll', onScroll, { passive:true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
-  const scrollToUniverses = () => document.getElementById('ks-universes')?.scrollIntoView({ behavior:'smooth', block:'start' })
-
-  const tiles = HOME_TILES
-
-  const openTile = (tile) => {
-    if (tile.music) return onMusic()
-    if (tile.href) return
-    onNavigate(tile.id)
-  }
-
-  return <div className="ks-home" style={{'--ks-orange':GG_ORANGE}}>
-
-    <header className={`ks-home-nav${stuck ? ' is-stuck' : ''}`}>
-      <button className="ks-logo" onClick={()=>window.scrollTo({top:0,behavior:'smooth'})} data-cursor="active" aria-label="GG, retour en haut de page">
-        <span className="ks-gg-logo">GG<span>.</span></span>
-      </button>
-
-      <nav className="ks-top-links" aria-label="Navigation principale">
-        {NAV_TABS.map(t => (
-          <button key={t.id} onClick={()=>onNavigate(t.id)}>{t.label}</button>
-        ))}
-      </nav>
-
-      <button className="ks-menu-button" onClick={scrollToUniverses} data-cursor="active" aria-label="Voir les univers">
-        <span></span><span></span>
-      </button>
-    </header>
-
-    <main>
-      <section className="ks-hero">
-        <div className="ks-hero-art" aria-hidden="true">
-          <img className="ks-hero-botanical" src="/kissa-hero-botanical.png" alt="" />
-        </div>
-
-        <div className="ks-shell ks-hero-shell">
-          <div className="ks-hero-copy">
-            <p className="ks-eyebrow">LE CAFÉ<br/>SOUS TOUTES SES FORMES</p>
-            <h1><span>GOOD</span><span>COFFEE</span><span>GO FURTHER</span></h1>
-            <button className="ks-explore" onClick={scrollToUniverses} data-cursor="active">
-              <i>→</i><span>EXPLORER</span>
-            </button>
-          </div>
-
-        </div>
-      </section>
-
-      <section className="ks-universes" id="ks-universes">
-        <div className="ks-shell">
-          <div className="ks-tile-grid">
-            {tiles.map((tile, i) => {
-              const content = <>
-                <span className="ks-tile-photo" style={{backgroundImage:`url(${tile.image})`, backgroundPosition:'center'}} />
-                <span className="ks-tile-shade" />
-                <strong>{tile.label}</strong>
-                <span className="ks-tile-arrow">→</span>
-                <span className="ks-tile-index">{String(i+1).padStart(2,'0')}</span>
-              </>
-
-              return tile.href ? (
-                <a key={tile.id} className="ks-tile" href={tile.href} data-cursor="active" aria-label={`Ouvrir ${tile.label}`}>
-                  {content}
-                </a>
-              ) : (
-                <button key={tile.id} className="ks-tile" onClick={()=>openTile(tile)} data-cursor="active" aria-label={`Ouvrir ${tile.label}`}>
-                  {content}
-                </button>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      <section className="ks-closing">
-        <div className="ks-closing-art" aria-hidden="true">
-          <img className="ks-closing-botanical" src="/kissa-bottom-botanical.png" alt="" />
-        </div>
-        <div className="ks-shell ks-closing-shell">
-          <div className="ks-closing-copy">
-            <p className="ks-closing-kicker">PLUS QU’UNE BOISSON</p>
-            <h2>Le café comme<br/>terrain de jeu<span>.</span></h2>
-            <p>Origines, science, matériel, marché, culture et création. Kissa Soko rassemble tout ce qui fait bouger le café aujourd’hui.</p>
-            <button onClick={()=>onNavigate('news')} className="ks-closing-link" data-cursor="active"><i></i><span>EN SAVOIR PLUS</span><b>→</b></button>
-            <div className="ks-footer-brand" aria-label="Kissa Soko">
-              <img src="/kissa-soko-logo.png" alt="Kissa Soko" />
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
-  </div>
 }
 
 /* ---------- Briques d'interface ---------- */
@@ -468,31 +362,28 @@ function RedditCard({ post, i, T }) {
 
 function GearHeroCard({ item, T }) {
   const [h, setH] = useState(false)
-  const image = getContentImage(item)
   return (
     <a href={item.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration:'none' }}>
       <div onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
         style={{ background:T.surf, border:`1px solid ${h?BRAND.amber+'88':T.border2}`, borderRadius:14, overflow:'hidden', marginBottom:12, cursor:'pointer', transition:'all 0.2s', boxShadow:h?`0 4px 24px ${BRAND.amber}18`:'none' }}>
-        {/* Pas d'image plutot qu'une illustration generique : une photo qui ne
-            montre pas le produit dont on parle dessert la page. */}
-        {image && (
-          <div style={{ height:220, backgroundImage:`url(${image})`, backgroundSize:'cover', backgroundPosition:'center', position:'relative' }}>
-            <div style={{ position:'absolute', inset:0, background:`linear-gradient(to top, ${T.surf}f0 0%, ${T.surf}22 55%, transparent 100%)` }} />
-            <div style={{ position:'absolute', top:14, left:16, display:'flex', gap:8, alignItems:'center' }}>
-              {item.hot && <span style={{ fontSize:'1.1rem' }}>🔥</span>}
-              <span style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', background:T.surf+'cc', backdropFilter:'blur(8px)', color:BRAND.amber, border:`1px solid ${BRAND.amber}44`, borderRadius:5, padding:'3px 9px' }}>{item.category}</span>
-            </div>
+        <div style={{ height:220, backgroundImage:`url(${item.img})`, backgroundSize:'cover', backgroundPosition:'center', position:'relative' }}>
+          <div style={{ position:'absolute', inset:0, background:`linear-gradient(to top, ${T.surf}f0 0%, ${T.surf}44 50%, transparent 100%)` }} />
+          <div style={{ position:'absolute', top:14, left:16, display:'flex', gap:8, alignItems:'center' }}>
+            {item.hot && <span style={{ fontSize:'1.1rem' }}>🔥</span>}
+            <span style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', background:T.surf+'cc', backdropFilter:'blur(8px)', color:BRAND.amber, border:`1px solid ${BRAND.amber}44`, borderRadius:5, padding:'3px 9px' }}>{item.category}</span>
           </div>
-        )}
-        <div style={{ padding:'18px 20px 20px' }}>
-          <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:8, flexWrap:'wrap' }}>
-            {!image && item.hot && <span style={{ fontSize:'1rem' }}>🔥</span>}
-            {!image && <span style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', color:BRAND.amber, border:`1px solid ${BRAND.amber}44`, borderRadius:5, padding:'2px 8px' }}>{item.category}</span>}
-            {item.source && <span style={{ fontSize:'0.7rem', color:T.faint }}>{item.source}{item.date ? ` · ${item.date}` : ''}</span>}
+          <div style={{ position:'absolute', bottom:16, left:18, right:18 }}>
+            <div style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', color:BRAND.amber, marginBottom:6 }}>{item.brand}</div>
+            <div style={{ fontFamily:'Georgia,serif', fontSize:'1.25rem', fontWeight:700, color:'#fff', lineHeight:1.3, textShadow:'0 1px 8px rgba(0,0,0,0.6)' }}>{item.name}</div>
           </div>
-          <div style={{ fontFamily:'Georgia,serif', fontSize:'1.45rem', fontWeight:700, color:T.text, lineHeight:1.28, marginBottom:10 }}>{item.title}</div>
-          <div style={{ fontSize:'0.9rem', color:T.dim, lineHeight:1.7, marginBottom:12, display:'-webkit-box', WebkitLineClamp:5, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.summary}</div>
-          <span style={{ fontSize:'0.8rem', color:BRAND.orange, fontWeight:700 }}>Voir l'article →</span>
+        </div>
+        <div style={{ padding:'16px 18px 20px' }}>
+          <div style={{ fontSize:'0.9rem', color:T.dim, lineHeight:1.7, marginBottom:12, display:'-webkit-box', WebkitLineClamp:5, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.description || item.summary}</div>
+          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+            {item.price && <span style={{ fontSize:'1rem', fontWeight:700, color:BRAND.yellow }}>{item.price}</span>}
+            {item.source && <span style={{ fontSize:'0.7rem', color:T.faint }}>{item.source} · {item.date}</span>}
+            <span style={{ fontSize:'0.72rem', color:BRAND.purple, fontWeight:600 }}>Voir →</span>
+          </div>
         </div>
       </div>
     </a>
@@ -501,35 +392,29 @@ function GearHeroCard({ item, T }) {
 
 function GearCard({ item, i, T }) {
   const [h, setH] = useState(false)
-  const image = getContentImage(item)
   return (
     <a href={item.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration:'none' }}>
       <div onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
-        style={{ background:T.surf, border:`1px solid ${h?T.border2:T.border}`, borderRadius:12, overflow:'hidden', cursor:'pointer', transform:h?'translateY(-3px)':'translateY(0)', transition:'all 0.2s', boxShadow:h?`0 8px 24px rgba(0,0,0,0.12)`:'none', animation:`fadeUp 0.35s ease ${i*60}ms both`, display:'flex', flexDirection:'column', height:'100%' }}>
-        {image && (
-          <div style={{ height:160, backgroundImage:`url(${image})`, backgroundSize:'cover', backgroundPosition:'center', position:'relative', flexShrink:0 }}>
-            <div style={{ position:'absolute', inset:0, background:`linear-gradient(to top, ${T.surf}ee 0%, transparent 50%)` }} />
-            {item.hot && (
-              <div style={{ position:'absolute', top:10, left:12 }}>
-                <span style={{ fontSize:'1rem' }}>🔥</span>
-              </div>
-            )}
-            <div style={{ position:'absolute', bottom:10, left:12 }}>
-              <span style={{ fontSize:9, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', color:BRAND.amber, background:T.surf+'dd', borderRadius:4, padding:'2px 7px' }}>{item.category}</span>
+        style={{ background:T.surf, border:`1px solid ${h?T.border2:T.border}`, borderRadius:12, overflow:'hidden', cursor:'pointer', transform:h?'translateY(-3px)':'translateY(0)', transition:'all 0.2s', boxShadow:h?`0 8px 24px rgba(0,0,0,0.12)`:'none', animation:`fadeUp 0.35s ease ${i*60}ms both` }}>
+        <div style={{ height:160, backgroundImage:`url(${item.img})`, backgroundSize:'cover', backgroundPosition:'center', position:'relative' }}>
+          <div style={{ position:'absolute', inset:0, background:`linear-gradient(to top, ${T.surf}ee 0%, transparent 50%)` }} />
+          {item.hot && (
+            <div style={{ position:'absolute', top:10, left:12, display:'flex', gap:6, alignItems:'center' }}>
+              <span style={{ fontSize:'1rem' }}>🔥</span>
             </div>
+          )}
+          <div style={{ position:'absolute', bottom:10, left:12 }}>
+            <span style={{ fontSize:9, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', color:BRAND.amber, background:T.surf+'dd', borderRadius:4, padding:'2px 7px' }}>{item.category}</span>
           </div>
-        )}
-        <div style={{ padding:'14px 16px 16px', flex:1, display:'flex', flexDirection:'column' }}>
-          <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:6, flexWrap:'wrap' }}>
-            {!image && item.hot && <span style={{ fontSize:'0.95rem' }}>🔥</span>}
-            {!image && <span style={{ fontSize:9, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', color:BRAND.amber, border:`1px solid ${BRAND.amber}44`, borderRadius:4, padding:'2px 7px' }}>{item.category}</span>}
-            {item.source && <span style={{ fontSize:'0.68rem', color:T.faint }}>{item.source}</span>}
-          </div>
-          <div style={{ fontSize:'1rem', fontWeight:700, color:T.text, lineHeight:1.35, marginBottom:7, display:'-webkit-box', WebkitLineClamp:3, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.title}</div>
-          <div style={{ fontSize:'0.78rem', color:T.dim, lineHeight:1.55, display:'-webkit-box', WebkitLineClamp:4, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.summary}</div>
-          <div style={{ marginTop:'auto', paddingTop:12, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            {item.date && <span style={{ fontSize:'0.68rem', color:T.faint }}>{item.date}</span>}
-            <span style={{ fontSize:'0.72rem', color:BRAND.orange, fontWeight:700, marginLeft:'auto' }}>Voir l'article →</span>
+        </div>
+        <div style={{ padding:'13px 15px 16px' }}>
+          <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.09em', color:BRAND.amber, marginBottom:5 }}>{item.brand}</div>
+          <div style={{ fontSize:'0.95rem', fontWeight:700, color:T.text, lineHeight:1.35, marginBottom:7, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.name}</div>
+          <div style={{ fontSize:'0.78rem', color:T.dim, lineHeight:1.55, display:'-webkit-box', WebkitLineClamp:4, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.description || item.summary}</div>
+          <div style={{ marginTop:10, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
+            {item.price && <span style={{ fontSize:'0.88rem', fontWeight:700, color:BRAND.yellow }}>{item.price}</span>}
+            {item.source && !item.price && <span style={{ fontSize:'0.68rem', color:T.faint }}>{item.source}</span>}
+            <span style={{ fontSize:'0.7rem', color:BRAND.purple, fontWeight:600 }}>Voir →</span>
           </div>
         </div>
       </div>
@@ -1052,12 +937,12 @@ export default function App() {
   const T = THEME
   const isHome = tab === 'home'
 
-  const markets   = useFeed('/.netlify/functions/get-markets', pickMarkets, !isHome)
-  const news      = useFeed('/.netlify/functions/get-news',    pickNews,    tab === 'news')
+  const markets   = useFeed('/.netlify/functions/get-markets', pickMarkets, true)
+  const news      = useFeed('/.netlify/functions/get-news',    pickNews,    isHome || tab === 'news')
   const science   = useFeed('/.netlify/functions/get-science', pickScience, tab === 'science')
   const gear      = useFeed('/.netlify/functions/get-gear',    pickGear,    tab === 'gear')
   const community = useFeed('/.netlify/functions/get-sprudge', pickSprudge, tab === 'reddit')
-  const harvest   = useFeed('/.netlify/functions/get-harvest', pickHarvest, tab === 'harvest')
+  const harvest   = useFeed('/.netlify/functions/get-harvest', pickHarvest, isHome || tab === 'harvest')
 
   const feeds = { news, science, gear, reddit: community, harvest }
 
@@ -1075,7 +960,11 @@ export default function App() {
       <GGCursor />
 
       {isHome ? (
-        <HomePage setTab={setTab} setShowMusic={setShowMusic} />
+        <HomePage
+          setTab={setTab} setShowMusic={setShowMusic}
+          tabs={TABS} navTabs={NAV_TABS} tiles={HOME_TILES}
+          news={news} markets={markets} harvest={harvest}
+        />
       ) : (
         <>
           <SiteHeader
@@ -1100,11 +989,7 @@ export default function App() {
             {tab==='instagram' && (
               <section className="ks-editorial-page ks-instagram-page ks-legacy-panel ks-page-has-art">
                 <PageOrnament page="instagram" />
-                <PageIntro
-                  title="Instagram"
-                  meta="Veille visuelle · collecte hebdomadaire"
-                  deck="Ce que publient les torréfacteurs, producteurs et fabricants qu'on suit de près."
-                />
+                <PageIntro title="Instagram" meta="Veille visuelle" />
                 <div className="ks-instagram-panel-skin">
                   <InstaVeillePanel />
                 </div>
@@ -1117,11 +1002,7 @@ export default function App() {
               community.data?.length ? (
                 <section className="ks-editorial-page ks-community-page ks-legacy-panel ks-page-has-art">
                   <PageOrnament page="reddit" />
-                  <PageIntro
-                    title="Communauté"
-                    meta={`${community.data.length} articles · The Sprudge Report · ${dateStr}`}
-                    deck="Ce dont le milieu parle cette semaine, vu depuis les newsletters qui comptent."
-                  />
+                  <PageIntro title="Communauté" meta={`The Sprudge Report · ${community.data.length} articles · ${dateStr}`} />
                   <div className="ks-legacy-grid">
                     {community.data.map((post,i) => <RedditCard key={post.url || post.title || i} post={post} i={i} T={T} />)}
                   </div>
@@ -1135,11 +1016,7 @@ export default function App() {
               science.data?.length ? (
                 <section className="ks-editorial-page ks-science-page ks-legacy-panel ks-page-has-art">
                   <PageOrnament page="science" />
-                  <PageIntro
-                    title="Science"
-                    meta={`${science.data.length} articles · via PubMed NCBI`}
-                    deck="Ce que la recherche publie vraiment sur le café, sans passer par le filtre des titres accrocheurs."
-                  />
+                  <PageIntro title="Science" meta={`${science.data.length} articles · via PubMed NCBI`} />
                   <div className="ks-science-list">
                     {science.data.map((item,i) => <SciCard key={item.url || item.title || i} item={item} i={i} T={T} />)}
                   </div>
@@ -1153,14 +1030,10 @@ export default function App() {
               gear.data?.length ? (
                 <section className="ks-editorial-page ks-gear-page ks-legacy-panel ks-page-has-art">
                   <PageOrnament page="gear" />
-                  <PageIntro
-                    title="Matériel"
-                    meta={`${gear.data.length} tests et nouveautés · moulins, machines, drippers`}
-                    deck="Les moulins, machines et accessoires qui sortent, et ceux qui valent vraiment qu'on s'y arrête."
-                  />
+                  <PageIntro title="Matériel" meta={`${gear.data.length} nouveautés · moulins, machines, tasses, drippers`} />
                   <GearHeroCard item={gear.data[0]} T={T} />
                   <div className="ks-gear-grid">
-                    {gear.data.slice(1).map((item,i) => <GearCard key={item.url || item.title || i} item={item} i={i} T={T} />)}
+                    {gear.data.slice(1).map((item,i) => <GearCard key={item.url || item.name || i} item={item} i={i} T={T} />)}
                   </div>
                 </section>
               ) : <ErrMsg msg="Aucune nouveauté disponible." />
