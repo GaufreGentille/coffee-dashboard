@@ -962,29 +962,24 @@ a{color:inherit}
   white-space:nowrap
 }
 
-/* Planche : carte ivoire sur l'encre. Image a fond perdu en haut,
-   legende en bandeau dessous. Pas de filet interieur : le contraste
-   ivoire sur bleu nuit suffit a faire le cadre. */
+/* Planche : carte brun chaud sur l'encre bleu nuit. Le fond doit
+   rester sombre parce que la fente du grain est transparente dans
+   l'animation : sur fond clair elle se lirait comme un trou.
+   Le contraste avec la section se fait donc par la temperature. */
 .ks-reveal-plate{
   position:relative;
   margin:0;
   padding:0;
-  background:var(--ks-paper);
-  border:1px solid rgba(7,23,43,.14);
+  background:#31190a;
+  border:1px solid rgba(247,241,232,.13);
   border-radius:18px;
   overflow:hidden;
-  box-shadow:0 30px 64px rgba(0,0,0,.42)
+  box-shadow:0 30px 64px rgba(0,0,0,.46)
 }
-/* Les demi-cerises sont coupees net dans le GIF source quand elles
-   sortent du cadre. Le degrade lateral dissout la coupe : on lit une
-   sortie de champ au lieu d'un bord tranche. A retirer le jour ou
-   l'animation est reexportee avec un canevas plus large. */
 .ks-reveal-art{
   display:block;
   width:100%;
-  height:auto;
-  -webkit-mask-image:linear-gradient(to right,transparent 0,#000 7%,#000 93%,transparent 100%);
-  mask-image:linear-gradient(to right,transparent 0,#000 7%,#000 93%,transparent 100%)
+  height:auto
 }
 .ks-reveal-plate figcaption{
   display:flex;
@@ -992,7 +987,7 @@ a{color:inherit}
   gap:12px;
   flex-wrap:wrap;
   padding:15px clamp(16px,1.8vw,24px) 17px;
-  border-top:1px solid rgba(7,23,43,.14)
+  border-top:1px solid rgba(247,241,232,.14)
 }
 .ks-reveal-plate figcaption span{
   font:700 8px/1 'DM Sans',sans-serif;
@@ -1005,14 +1000,14 @@ a{color:inherit}
   font-weight:700;
   font-size:17px;
   letter-spacing:-.02em;
-  color:var(--ks-ink)
+  color:var(--ks-paper-2)
 }
 .ks-reveal-plate figcaption small{
   margin-left:auto;
   font:500 9px/1 'DM Sans',sans-serif;
   letter-spacing:.1em;
   text-transform:uppercase;
-  color:var(--ks-dim)
+  color:rgba(247,241,232,.58)
 }
 
 @media(max-width:980px){
