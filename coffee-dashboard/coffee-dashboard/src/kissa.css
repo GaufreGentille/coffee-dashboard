@@ -869,45 +869,45 @@ a{color:inherit}
   .ks-index-strip span{font-size:13px}
 }
 
+
 /* =========================================================
    REVEAL — la transformation, cerise vers grain vert
-   Bande pleine largeur en brun sombre : c'est la masse de
-   contraste qui manquait entre l'ouverture et le reste.
-   Assets attendus dans public/ : grain.mp4, grain-poster.jpg
+   Bloc encre pleine largeur : la masse de contraste de la page.
+   Assets attendus dans public/ :
+     grain.webp         (WebP anime, fond transparent)
+     grain-poster.webp  (premiere image, affichee avant chargement)
    ========================================================= */
 
 .ks-reveal{
   position:relative;
-  min-height:min(88vh,760px);
-  display:flex;
-  align-items:flex-end;
-  padding:clamp(60px,9vw,120px) 0 clamp(48px,6vw,86px);
-  background:#3a1d08;
+  background:var(--ks-ink);
   color:var(--ks-paper-2);
+  padding:clamp(60px,8vw,110px) 0;
   overflow:hidden;
   isolation:isolate;
   scroll-margin-top:72px
 }
-.ks-reveal-video{
+/* Arc orange en peripherie, meme signature que le bloc Origines. */
+.ks-reveal:after{
+  content:'';
   position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  object-fit:cover;
-  z-index:0;
-  pointer-events:none
-}
-/* Voile : le texte doit rester lisible par dessus l'image. */
-.ks-reveal-veil{
-  position:absolute;
-  inset:0;
-  z-index:1;
+  left:-140px;
+  top:-180px;
+  width:420px;
+  height:420px;
+  border:84px solid rgba(218,93,22,.14);
+  border-radius:50%;
   pointer-events:none;
-  background:
-    linear-gradient(to right, rgba(28,13,4,.92) 0%, rgba(28,13,4,.72) 38%, rgba(28,13,4,.18) 68%, rgba(28,13,4,.35) 100%),
-    linear-gradient(to top, rgba(28,13,4,.85) 0%, transparent 42%)
+  z-index:0
 }
-.ks-reveal-copy{position:relative;z-index:2;width:100%}
+.ks-reveal-grid{
+  position:relative;
+  z-index:2;
+  display:grid;
+  grid-template-columns:minmax(0,1.05fr) minmax(300px,.95fr);
+  gap:clamp(30px,5vw,80px);
+  align-items:center
+}
 
 .ks-reveal-kicker{
   display:block;
@@ -921,7 +921,7 @@ a{color:inherit}
   font-family:'Bodoni Moda',Georgia,serif;
   font-style:italic;
   font-weight:800;
-  font-size:clamp(54px,8vw,132px);
+  font-size:clamp(52px,6.6vw,116px);
   line-height:.82;
   letter-spacing:-.065em;
   color:var(--ks-paper-2)
@@ -929,14 +929,14 @@ a{color:inherit}
 .ks-reveal h2 span{color:var(--ks-orange);font-style:normal}
 .ks-reveal-copy>p{
   margin-top:26px;
-  max-width:46ch;
-  color:rgba(247,241,232,.78);
+  max-width:44ch;
+  color:rgba(247,241,232,.76);
   font:500 15px/1.72 'DM Sans',sans-serif
 }
 
 .ks-reveal-steps{
   list-style:none;
-  margin:clamp(34px,4vw,54px) 0 0;
+  margin:clamp(30px,3.6vw,46px) 0 0;
   padding:0;
   display:flex;
   flex-wrap:wrap;
@@ -946,8 +946,8 @@ a{color:inherit}
   display:flex;
   align-items:baseline;
   gap:9px;
-  padding:12px 26px 12px 0;
-  margin-right:26px;
+  padding:12px 24px 12px 0;
+  margin-right:24px;
   border-top:1px solid rgba(247,241,232,.22)
 }
 .ks-reveal-steps i{
@@ -958,31 +958,47 @@ a{color:inherit}
 }
 .ks-reveal-steps span{
   font:600 12px/1 'DM Sans',sans-serif;
-  letter-spacing:.02em;
   color:rgba(247,241,232,.86);
   white-space:nowrap
 }
 
+/* Scene : le sujet est detoure, il flotte sur l'encre. */
+.ks-reveal-stage{
+  position:relative;
+  display:grid;
+  place-items:center;
+  min-height:clamp(300px,38vw,520px)
+}
+.ks-reveal-halo{
+  position:absolute;
+  width:min(86%,480px);
+  aspect-ratio:1;
+  border-radius:50%;
+  background:radial-gradient(circle,rgba(218,93,22,.30) 0%,rgba(218,93,22,.07) 48%,transparent 70%);
+  filter:blur(14px);
+  pointer-events:none
+}
+.ks-reveal-art{
+  position:relative;
+  width:min(100%,520px);
+  height:auto;
+  display:block;
+  filter:drop-shadow(0 34px 54px rgba(0,0,0,.5))
+}
+
 @media(max-width:980px){
-  .ks-reveal{min-height:0;align-items:flex-start;padding:clamp(48px,8vw,80px) 0}
-  .ks-reveal-video{opacity:.5}
-  .ks-reveal-veil{
-    background:
-      linear-gradient(to top, rgba(28,13,4,.9) 0%, rgba(28,13,4,.55) 55%, rgba(28,13,4,.3) 100%)
-  }
+  .ks-reveal-grid{grid-template-columns:1fr;gap:34px}
+  .ks-reveal-stage{order:-1;min-height:0}
+  .ks-reveal-art{width:min(78%,420px)}
+  .ks-reveal:after{left:auto;right:-150px;top:auto;bottom:-190px}
 }
 
 @media(max-width:760px){
   .ks-reveal{padding:44px 0 40px}
-  .ks-reveal h2{font-size:clamp(44px,13vw,64px)}
+  .ks-reveal h2{font-size:clamp(42px,12.5vw,62px)}
   .ks-reveal-copy>p{font-size:14px;margin-top:18px;max-width:100%}
-  .ks-reveal-steps{margin-top:28px}
+  .ks-reveal-steps{margin-top:26px}
   .ks-reveal-steps li{padding:9px 14px 9px 0;margin-right:14px}
   .ks-reveal-steps span{font-size:11px}
-}
-
-/* Moins d'animation : on garde l'affiche fixe, pas la video. */
-@media(prefers-reduced-motion:reduce){
-  .ks-reveal-video{display:none}
-  .ks-reveal{background:#3a1d08 url('/grain-poster.jpg') center/cover}
+  .ks-reveal-art{width:min(84%,320px)}
 }
