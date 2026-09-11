@@ -88,29 +88,31 @@ function BranchOrnament() {
 }
 
 /* ── La transformation : cerise, parche, grain vert ─────────── */
-/* WebP anime a fond transparent : le sujet flotte sur le bloc
-   encre. On ne le charge qu'a l'approche de la section, et pas
-   du tout si l'utilisateur a demande moins d'animations. */
+/* MP4 muet en boucle. L'affiche fixe s'affiche d'abord ; la video
+   n'est telechargee qu'a l'approche de la section, et mise en pause
+   des qu'elle en sort. Rien ne se charge si l'utilisateur a demande
+   moins d'animations. */
 
 function Reveal() {
-  const zoneRef = useRef(null)
-  const [source, setSource] = useState('/grain-poster.webp')
+  const videoRef = useRef(null)
+  const [armed, setArmed] = useState(false)
 
   useEffect(() => {
-    const el = zoneRef.current
-    if (!el) return
+    const v = videoRef.current
+    if (!v) return
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return
 
-    const io = new IntersectionObserver(
-      ([entry]) => {
-        if (!entry.isIntersecting) return
-        setSource('/grain.webp')
-        io.disconnect()
-      },
-      { rootMargin: '400px' }
+    const near = new IntersectionObserver(
+      ([e]) => { if (e.isIntersecting) { setArmed(true); near.disconnect() } },
+      { rootMargin: '500px' }
     )
-    io.observe(el)
-    return () => io.disconnect()
+    const visible = new IntersectionObserver(
+      ([e]) => { e.isIntersecting ? v.play().catch(() => {}) : v.pause() },
+      { threshold: .15 }
+    )
+    near.observe(v)
+    visible.observe(v)
+    return () => { near.disconnect(); visible.disconnect() }
   }, [])
 
   return (
@@ -133,8 +135,15 @@ function Reveal() {
           </ol>
         </div>
 
-        <figure className="ks-reveal-plate" ref={zoneRef}>
-          <img className="ks-reveal-art" src={source} alt="" />
+        <figure className="ks-reveal-plate">
+          <video
+            ref={videoRef}
+            className="ks-reveal-art"
+            src={armed ? '/grain.mp4' : undefined}
+            poster="/grain-poster.webp"
+            muted loop playsInline preload="none"
+            aria-hidden="true"
+          />
           <figcaption>
             <span>PLANCHE 01</span>
             <em>Coffea arabica</em>
