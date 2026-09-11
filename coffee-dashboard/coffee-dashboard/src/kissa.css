@@ -59,8 +59,10 @@ a{color:inherit}
 .ks-gg-logo{display:inline-block;font-family:'Bodoni Moda',Georgia,serif;font-style:italic;font-weight:800;font-size:44px;line-height:.82;letter-spacing:-.08em}
 .ks-gg-logo>span{color:var(--ks-orange);font-style:normal;margin-left:3px}
 .ks-top-links{display:flex;align-items:center;justify-content:center;gap:clamp(16px,2vw,34px);min-width:0}
-.ks-top-links button{border:0;background:transparent;padding:7px 0;color:var(--ks-ink);font-size:9px;font-weight:700;letter-spacing:.18em;white-space:nowrap;transition:color .18s ease,transform .18s ease}
-.ks-top-links button:hover{color:var(--ks-orange);transform:translateY(-1px)}
+/* Memes reglages que .ks-site-nav button : une seule typographie de
+   navigation sur tout le site. */
+.ks-top-links button{position:relative;border:0;background:transparent;color:var(--ks-ink);padding:9px 0;font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap;opacity:.62;transition:opacity .18s,color .18s,transform .18s}
+.ks-top-links button:hover{opacity:1;color:var(--ks-orange);transform:translateY(-1px)}
 .ks-menu-button{width:44px;height:44px;border-radius:50%;border:0;background:var(--ks-ink);display:grid;place-content:center;gap:6px;box-shadow:none;transition:transform .25s ease,background .25s ease}
 .ks-menu-button span{display:block;width:17px;height:1.5px;border-radius:2px;background:#fff}
 .ks-menu-button:hover{transform:scale(1.06);background:#132942}
@@ -239,7 +241,7 @@ a{color:inherit}
 .ks-science-list{display:flex;flex-direction:column;gap:10px}
 
 @media(max-width:980px){
-  .ks-top-links{gap:14px}.ks-top-links button{font-size:8px;letter-spacing:.13em}
+  .ks-top-links{gap:12px}.ks-top-links button{font-size:8px;letter-spacing:.11em}
   .ks-hero{min-height:720px;align-items:flex-end;padding-top:130px;padding-bottom:74px}.ks-hero-copy{width:76%}.ks-hero h1{font-size:clamp(62px,11vw,108px)}.ks-hero-art{width:67vw}
   .ks-closing-copy{width:58%}.ks-closing-art{width:72vw}
   .ks-site-nav{gap:12px}.ks-site-nav button{font-size:8px;letter-spacing:.11em}
@@ -887,19 +889,6 @@ a{color:inherit}
   isolation:isolate;
   scroll-margin-top:72px
 }
-/* Arc orange en peripherie, meme signature que le bloc Origines. */
-.ks-reveal:after{
-  content:'';
-  position:absolute;
-  left:-140px;
-  top:-180px;
-  width:420px;
-  height:420px;
-  border:84px solid rgba(218,93,22,.14);
-  border-radius:50%;
-  pointer-events:none;
-  z-index:0
-}
 .ks-reveal-grid{
   position:relative;
   z-index:2;
@@ -962,19 +951,20 @@ a{color:inherit}
   white-space:nowrap
 }
 
-/* Planche : carte brun chaud sur l'encre bleu nuit. Le fond doit
-   rester sombre parce que la fente du grain est transparente dans
-   l'animation : sur fond clair elle se lirait comme un trou.
-   Le contraste avec la section se fait donc par la temperature. */
+/* Planche : carte bleu nuit, un ton au dessus du fond de section.
+   Le fond doit rester sombre parce que la fente du grain est
+   transparente dans l'animation : sur fond clair elle se lirait
+   comme un trou. C'est donc la bordure et l'ombre qui delimitent
+   la carte, pas un changement de couleur franc. */
 .ks-reveal-plate{
   position:relative;
   margin:0;
   padding:0;
-  background:#31190a;
-  border:1px solid rgba(247,241,232,.13);
+  background:#0e2138;
+  border:1px solid rgba(247,241,232,.20);
   border-radius:18px;
   overflow:hidden;
-  box-shadow:0 30px 64px rgba(0,0,0,.46)
+  box-shadow:0 30px 64px rgba(0,0,0,.5)
 }
 .ks-reveal-art{
   display:block;
@@ -1013,7 +1003,6 @@ a{color:inherit}
 @media(max-width:980px){
   .ks-reveal-grid{grid-template-columns:1fr;gap:34px}
   .ks-reveal-plate{order:-1;max-width:460px}
-  .ks-reveal:after{left:auto;right:-150px;top:auto;bottom:-190px}
 }
 
 @media(max-width:760px){
