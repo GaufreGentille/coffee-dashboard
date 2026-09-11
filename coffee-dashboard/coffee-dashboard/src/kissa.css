@@ -962,40 +962,36 @@ a{color:inherit}
   white-space:nowrap
 }
 
-/* Planche : cadre ivoire sur l'encre, comme un herbier.
-   Le sujet detoure retrouve le fond clair pour lequel il a ete rendu,
-   et l'ombre portee fonctionne enfin, clair sur sombre. */
+/* Planche : carte ivoire sur l'encre. Image a fond perdu en haut,
+   legende en bandeau dessous. Pas de filet interieur : le contraste
+   ivoire sur bleu nuit suffit a faire le cadre. */
 .ks-reveal-plate{
   position:relative;
   margin:0;
-  padding:clamp(20px,2.4vw,34px);
+  padding:0;
   background:var(--ks-paper);
-  border:1px solid rgba(7,23,43,.16);
-  box-shadow:0 30px 64px rgba(0,0,0,.42);
-  display:flex;
-  flex-direction:column;
-  gap:14px
-}
-/* Filet interieur, a distance du bord : c'est ce qui fait la planche. */
-.ks-reveal-rule{
-  position:absolute;
-  inset:9px;
   border:1px solid rgba(7,23,43,.14);
-  pointer-events:none
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:0 30px 64px rgba(0,0,0,.42)
 }
+/* Les demi-cerises sont coupees net dans le GIF source quand elles
+   sortent du cadre. Le degrade lateral dissout la coupe : on lit une
+   sortie de champ au lieu d'un bord tranche. A retirer le jour ou
+   l'animation est reexportee avec un canevas plus large. */
 .ks-reveal-art{
-  position:relative;
+  display:block;
   width:100%;
   height:auto;
-  display:block
+  -webkit-mask-image:linear-gradient(to right,transparent 0,#000 7%,#000 93%,transparent 100%);
+  mask-image:linear-gradient(to right,transparent 0,#000 7%,#000 93%,transparent 100%)
 }
 .ks-reveal-plate figcaption{
-  position:relative;
   display:flex;
   align-items:baseline;
   gap:12px;
   flex-wrap:wrap;
-  padding-top:13px;
+  padding:15px clamp(16px,1.8vw,24px) 17px;
   border-top:1px solid rgba(7,23,43,.14)
 }
 .ks-reveal-plate figcaption span{
@@ -1032,9 +1028,8 @@ a{color:inherit}
   .ks-reveal-steps{margin-top:26px}
   .ks-reveal-steps li{padding:9px 14px 9px 0;margin-right:14px}
   .ks-reveal-steps span{font-size:11px}
-  .ks-reveal-plate{padding:14px;gap:10px;max-width:100%}
-  .ks-reveal-rule{inset:6px}
-  .ks-reveal-plate figcaption{padding-top:10px;gap:9px}
+  .ks-reveal-plate{max-width:100%;border-radius:14px}
+  .ks-reveal-plate figcaption{padding:12px 14px 14px;gap:9px}
   .ks-reveal-plate figcaption em{font-size:15px}
   .ks-reveal-plate figcaption small{margin-left:0;font-size:8px}
 }
