@@ -31,3 +31,69 @@
 .ti-toc a:before{content:counter(ti,decimal-leading-zero);flex:0 0 18px;color:var(--orange);font-weight:700;font-size:9px;padding-top:2px}
 .ti-toc a:hover{color:var(--orange)}
 @media(max-width:820px){.ti-toc{margin-top:14px}.ti-toc ol{columns:2;column-gap:20px}}
+/* =========================================================
+   À COLLER À LA FIN DE tasse-imparfaite.css
+
+   Deux choses ici : la correction du bloc gris du pied de page,
+   et les styles des éléments que le générateur produit désormais
+   (encadrés, sommaire de chapitre, index des process).
+   ========================================================= */
+
+/* ── 1. Le bloc gris sous les titres de pied de chapitre ─────
+   .ti-pager portait background:var(--border) pour dessiner le
+   filet de 1 px entre les deux cartes. Le fond se peignait aussi
+   sous les 72 px de padding latéral et les 90 px du bas, d'où la
+   dalle grise. Le filet passe sur les cartes elles-mêmes. */
+
+.ti-pager{gap:0;background:transparent}
+.ti-pager a{background:transparent;border-top:1px solid var(--border);padding:24px 24px 26px}
+.ti-pager a+a{border-left:1px solid var(--border)}
+
+/* ── 2. Encadrés du manuscrit ────────────────────────────────
+   À RETENIR, LE CONSEIL DU TORRÉFACTEUR, LE POINT DE DÉPART
+   COMMUN. Ils sortaient en tableau d'une cellule, tout le texte
+   coincé dans un <th> orange en majuscules. */
+
+.ti-note{margin:30px 0 36px;border-left:3px solid var(--orange);padding:16px 18px;background:rgba(255,255,255,.3)}
+.ti-note>strong{display:block;margin-bottom:10px;font:700 9px/1.4 'DM Sans',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--orange)}
+.ti-note p{margin:0 0 9px;font-size:14px;line-height:1.62;color:var(--ink)}
+.ti-note p:last-child{margin-bottom:0}
+
+/* ── 3. Sommaire du chapitre, colonne de droite ──────────────
+   La colonne .ti-side est déjà sticky : elle sert enfin. */
+
+.ti-toc{margin-top:22px;border-top:1px solid var(--border);padding-top:14px}
+.ti-toc>span{display:block;font:700 8px/1 'DM Sans',sans-serif;letter-spacing:.18em;color:var(--orange);margin-bottom:10px}
+.ti-toc ol{list-style:none;margin:0;padding:0;counter-reset:ti}
+.ti-toc li{counter-increment:ti;border-bottom:1px solid var(--border)}
+.ti-toc a{display:flex;gap:9px;padding:9px 0;text-decoration:none;border:0;font-size:12px;line-height:1.35;color:var(--ink2);text-transform:none;letter-spacing:0;font-weight:500}
+.ti-toc a:before{content:counter(ti,decimal-leading-zero);flex:0 0 18px;color:var(--orange);font-weight:700;font-size:9px;padding-top:2px}
+.ti-toc a:hover{color:var(--orange)}
+.ti-toc a.is-active{color:var(--orange);font-weight:700}
+
+/* ── 4. Index des process, dans chapitre-3.html ──────────────── */
+
+.ti-subindex{margin-top:34px}
+.ti-subindex .ti-index-card{min-height:118px;padding:22px}
+.ti-subindex .ti-index-card h2{font-size:26px;margin:10px 0 0}
+
+.ti-index-heading{margin:64px 0 22px;font-family:'Bodoni Moda',serif;font-style:italic;font-size:clamp(34px,4.5vw,54px);line-height:1;letter-spacing:-.05em}
+.ti-index-lead{margin:-34px 0 40px}
+.ti-index-lead a{font:700 9px/1 'DM Sans',sans-serif;letter-spacing:.18em;text-transform:uppercase;text-decoration:none;border-bottom:1px solid var(--ink);padding-bottom:5px}
+.ti-index-lead a:hover{color:var(--orange);border-color:var(--orange)}
+.ti-index-card em{display:block;margin-top:8px;font-style:normal;font:700 8px/1 'DM Sans',sans-serif;letter-spacing:.16em;text-transform:uppercase;color:var(--orange)}
+
+/* ── 5. Cellules de tableau ──────────────────────────────────── */
+
+td>p,th>p{margin:0 0 7px;font-size:inherit;line-height:inherit}
+td>p:last-child,th>p:last-child{margin-bottom:0}
+td>p>span,th>p>span{color:var(--orange);font-weight:700;margin-right:5px}
+
+@media(max-width:820px){
+  .ti-toc ol{columns:2;column-gap:22px}
+  .ti-toc li{break-inside:avoid}
+}
+@media(max-width:560px){
+  .ti-toc ol{columns:1}
+  .ti-subindex .ti-index-card{min-height:0}
+}
