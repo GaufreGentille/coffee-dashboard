@@ -39,6 +39,7 @@ function monthIndex(date = new Date(), baseYear = BASE_YEAR) {
 function Reveal() {
   const videoRef = useRef(null)
   const [armed, setArmed] = useState(false)
+  const onScreen = useRef(false)
 
   useEffect(() => {
     const v = videoRef.current
@@ -50,13 +51,33 @@ function Reveal() {
       { rootMargin: '500px' }
     )
     const visible = new IntersectionObserver(
-      ([e]) => { e.isIntersecting ? v.play().catch(() => {}) : v.pause() },
+      ([e]) => {
+        onScreen.current = e.isIntersecting
+        if (e.isIntersecting) {
+          if (v.currentSrc || v.src) v.play().catch(() => {})
+        } else {
+          v.pause()
+        }
+      },
       { threshold: .15 }
     )
     near.observe(v)
     visible.observe(v)
     return () => { near.disconnect(); visible.disconnect() }
   }, [])
+
+  /* Le fichier n'est attaché qu'au moment où la section approche.
+     Les deux observateurs se déclenchent dès l'appel à observe(),
+     donc quand on arrive directement au milieu de la page, play()
+     part avant que le src existe : la promesse est rejetée, elle est
+     avalée, et plus personne ne relance la lecture. L'affiche fixe
+     reste alors à l'écran. Ce second effet relance une fois le
+     fichier posé. */
+  useEffect(() => {
+    const v = videoRef.current
+    if (!armed || !v || !onScreen.current) return
+    v.play().catch(() => {})
+  }, [armed])
 
   return (
     <section className="ks-reveal" id="ks-reveal">
