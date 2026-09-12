@@ -348,15 +348,19 @@
 .ks-origin-page .ks-origin-live{margin-top:clamp(44px,5vw,78px)}
 
 /* La colonne de droite porte maintenant la recherche, les filtres
-   et les résultats. Elle a besoin d'un peu plus de large. */
+   et les résultats. Elle a besoin d'un peu plus de large.
+   Sa hauteur reste bornée : sans cela la liste déroule ses 32
+   origines en entier, la grille aligne les deux colonnes sur la
+   plus haute, et la carte part sur 2 500 px. */
 .ks-origin-map-layout{grid-template-columns:minmax(0,1.6fr) minmax(300px,.76fr)}
-.ks-origin-map-results{min-height:560px}
-.ks-origin-map{min-height:560px}
+.ks-origin-map{min-height:520px}
+.ks-origin-map-results{height:520px;min-height:0}
 
 .ks-origin-search-panel{
   padding:16px;
   border-bottom:1px solid var(--ks-border);
-  display:grid;gap:14px
+  display:grid;gap:14px;
+  flex:0 0 auto
 }
 .ks-origin-search-panel .ks-origin-controls{
   display:block;padding:0;gap:0
@@ -364,12 +368,14 @@
 .ks-origin-search-panel .ks-origin-regions{
   justify-content:flex-start;margin-top:14px
 }
-.ks-origin-map-results-list{max-height:none;flex:1 1 auto;min-height:180px}
+.ks-origin-map-results-head{flex:0 0 auto}
+.ks-origin-map-results-list{flex:1 1 auto;min-height:0;max-height:none;overflow:auto}
 
 @media(max-width:980px){
   .ks-origin-map-layout{grid-template-columns:1fr}
-  .ks-origin-map,.ks-origin-map-results{min-height:0}
-  .ks-origin-map-results-list{max-height:320px}
+  .ks-origin-map{min-height:0}
+  .ks-origin-map-results{height:auto}
+  .ks-origin-map-results-list{flex:0 0 auto;max-height:320px}
 }
 
 /* ── 9. Ménage ────────────────────────────────────────────────
