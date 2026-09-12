@@ -10,8 +10,8 @@
    roue des arômes à la chimie. Un trait pointillé fait la liaison.
 
    ready:false  = la page HTML n'existe pas encore. L'entrée
-                  s'affiche, mais sans lien mort : passer à true
-                  dès que le fichier est dans public/tasse-imparfaite.
+                  s'affiche, mais sans lien mort. Les six annexes sont
+                  passées à true : build-tasse-imparfaite.py les génère.
 
    Les positions x/y sont en pourcentage de la carte. Elles ont été
    calées pour que ni les points, ni les libellés, ni les repères de
@@ -86,42 +86,42 @@ export const BOOK_ANNEXES = [
   {
     kind: 'annexe', parent: 'chimie',
     id: 'annexe-a', n: 'A', title: 'Composés volatils', kicker: 'ANNEXE A',
-    file: 'annexe-a.html', ready: false,
+    file: 'annexe-a.html', ready: true,
     line: 'Les principaux composés volatils du café torréfié, famille par famille.',
     x: '76%', y: '5%', card: 'down', mark: 'vapor',
   },
   {
     kind: 'annexe', parent: 'defauts',
     id: 'annexe-b', n: 'B', title: 'Acrylamide', kicker: 'ANNEXE B',
-    file: 'annexe-b.html', ready: false,
+    file: 'annexe-b.html', ready: true,
     line: 'Cinétique de formation au cours de la torréfaction.',
     x: '68%', y: '39%', card: 'down', mark: 'flask',
   },
   {
     kind: 'annexe', parent: 'extraction',
     id: 'annexe-c', n: 'C', title: "L'eau dans le café", kicker: 'ANNEXE C',
-    file: 'annexe-c.html', ready: false,
+    file: 'annexe-c.html', ready: true,
     line: 'Minéralisation, pH, normes SCA, fabriquer son eau, comparatif des eaux du commerce.',
     x: '69%', y: '76%', card: 'up', mark: 'wave',
   },
   {
     kind: 'annexe', parent: 'process',
     id: 'annexe-d', n: 'D', title: 'Fermentation Koji', kicker: 'ANNEXE D',
-    file: 'annexe-d.html', ready: false,
+    file: 'annexe-d.html', ready: true,
     line: "Culture d'Aspergillus oryzae et protocoles ASP1.1, ASP1.2, ASP2.2.",
     x: '32%', y: '51%', card: 'down', mark: 'microbe',
   },
   {
     kind: 'annexe', parent: 'chimie',
     id: 'annexe-e', n: 'E', title: 'Roue des arômes', kicker: 'ANNEXE E',
-    file: 'annexe-e.html', ready: false,
+    file: 'annexe-e.html', ready: true,
     line: 'La roue des arômes du livre, pensée pour la dégustation en production.',
     x: '51%', y: '6%', card: 'down', mark: 'wheel',
   },
   {
     kind: 'annexe', parent: 'histoire',
     id: 'annexe-f', n: 'F', title: 'Spécialité 2026', kicker: 'ANNEXE F',
-    file: 'annexe-f.html', ready: false,
+    file: 'annexe-f.html', ready: true,
     line: 'Le café de spécialité existe-t-il encore ? Un texte de position.',
     x: '20%', y: '45%', card: 'down', mark: 'flag',
   },
