@@ -1,90 +1,33 @@
 import { useState, useEffect, useRef } from 'react'
+import { BOOK_BASE, BOOK_CHAPTERS, BOOK_ANNEXES, bookHref } from './data/book'
 
 /* ─────────────────────────────────────────────────────────────
    HomePage — vitrine Kissa Soko
 
-   Trois temps : l'ouverture (qui parle), la preuve de vie
-   (« En ce moment », données réelles des flux), et l'atelier
-   (ce que je fabrique). L'index des univers passe en bandeau,
-   en bas, parce que la navigation est déjà dans l'en-tête.
+   Quatre temps : l'ouverture (qui parle), la transformation
+   (cerise vers grain vert), la preuve de vie (« En ce moment »,
+   données réelles des flux) et l'aventure café (les chapitres
+   du livre). La navigation complète vit dans le menu du bouton
+   rond, rendu par App.
 
    Le curseur maison est rendu par App, pas ici.
    ───────────────────────────────────────────────────────────── */
 
 const GG_ORANGE = '#da5d16'
 
-/* Index de mois aligné sur HarvestPanel : 1 à 12 pour 2026,
-   13 à 18 pour le premier semestre 2027. */
-function monthIndex(date = new Date()) {
+/* Index de mois aligné sur HarvestPanel : 1 à 12 pour l'année de
+   référence du flux récoltes, 13 à 18 pour le premier semestre
+   suivant. L'année n'est plus écrite en dur : si le flux expose sa
+   propre année de référence, c'est elle qui gagne. Sans cela, on
+   retombe sur BASE_YEAR, qu'il faut suivre à la main. */
+const BASE_YEAR = 2026
+
+function monthIndex(date = new Date(), baseYear = BASE_YEAR) {
   const y = date.getFullYear()
   const m = date.getMonth() + 1
-  if (y === 2026) return m
-  if (y === 2027 && m <= 6) return 12 + m
+  if (y === baseYear) return m
+  if (y === baseYear + 1 && m <= 6) return 12 + m
   return null
-}
-
-/* ── Vignettes gravées, dessinées au trait ──────────────────── */
-
-function CraftMark({ kind }) {
-  const p = {
-    fill: 'none', stroke: 'currentColor', strokeWidth: 1.4,
-    strokeLinecap: 'round', strokeLinejoin: 'round',
-  }
-  return (
-    <svg viewBox="0 0 40 40" className="ks-craft-mark" aria-hidden="true" {...p}>
-      {kind === 'book' && <>
-        <path d="M6 8c5-2 10-2 14 1 4-3 9-3 14-1v23c-5-2-10-2-14 1-4-3-9-3-14-1Z" />
-        <path d="M20 9v23M10 14h6M10 19h6M24 14h6M24 19h6" />
-      </>}
-      {kind === 'cup' && <>
-        <path d="M9 14h18v8a9 9 0 0 1-18 0Z" />
-        <path d="M27 16h3a4 4 0 0 1 0 8h-3" />
-        <path d="M7 33h22" />
-        <path d="M15 9c0-2 2-2 2-4M21 9c0-2 2-2 2-4" />
-      </>}
-      {kind === 'atlas' && <>
-        <path d="M20 33c-6-7-9-12-9-17a9 9 0 0 1 18 0c0 5-3 10-9 17Z" />
-        <path d="M20 21c0-4 2-6 5-7M20 21c0-3-2-5-4-6M20 27v-6" />
-      </>}
-      {kind === 'game' && <>
-        <rect x="6" y="14" width="28" height="15" rx="7" />
-        <path d="M13 19v5M10.5 21.5h5M26 20.5h.01M29 24h.01" />
-      </>}
-      {kind === 'music' && <>
-        <rect x="5" y="11" width="30" height="18" rx="3" />
-        <circle cx="14" cy="20" r="3.2" /><circle cx="26" cy="20" r="3.2" />
-        <path d="M17 20h6M9 25h3M28 25h3" />
-      </>}
-      {kind === 'dash' && <>
-        <rect x="6" y="8" width="28" height="24" rx="3" />
-        <path d="M6 15h28M12 22v5M18 19v8M24 24v3M30 21v6" />
-      </>}
-    </svg>
-  )
-}
-
-/* ── Branche de caféier, ornement de l'atelier ──────────────── */
-
-function BranchOrnament() {
-  const leaf = (x, y, r, s) => (
-    <g transform={`translate(${x} ${y}) rotate(${r}) scale(${s})`}>
-      <path d="M0 0C14 -5 30 -3 40 6 30 15 14 17 0 12 -4 7 -4 5 0 0Z" />
-      <path d="M2 6h34" />
-    </g>
-  )
-  return (
-    <svg viewBox="0 0 320 420" className="ks-branch" aria-hidden="true"
-      fill="none" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round">
-      <path d="M158 412C150 320 146 232 152 150c4-52 14-96 30-136" />
-      {leaf(154, 348, -18, .95)} {leaf(150, 300, 196, .9)}
-      {leaf(150, 262, -22, 1.05)} {leaf(147, 212, 200, 1)}
-      {leaf(152, 172, -26, .9)} {leaf(158, 128, 204, .85)}
-      <circle cx="140" cy="330" r="6" /><circle cx="128" cy="322" r="6" />
-      <circle cx="170" cy="244" r="6" /><circle cx="182" cy="236" r="6" />
-      <circle cx="136" cy="196" r="5.5" />
-      <path d="M140 324v12M170 238v12M136 191v10" />
-    </svg>
-  )
 }
 
 /* ── La transformation : cerise, parche, grain vert ─────────── */
@@ -160,7 +103,7 @@ function Reveal() {
 function LiveNow({ news, markets, harvest, setTab }) {
   const lead = news?.data?.[0]
   const arabica = markets?.data?.rows?.find(r => /arabica/i.test(r.label || ''))
-  const nowIdx = monthIndex()
+  const nowIdx = monthIndex(new Date(), harvest?.data?.baseYear)
   const inHarvest = harvest?.data?.origins?.filter(
     o => o.cycles?.some(c => c.harvest?.includes(nowIdx))
   ).length
@@ -206,12 +149,16 @@ function LiveNow({ news, markets, harvest, setTab }) {
             <div>
               <dt>Origines en récolte</dt>
               <dd>{inHarvest ?? '—'}<i>pays</i></dd>
-              <button onClick={() => setTab('harvest')} data-cursor="active">Voir le calendrier</button>
+              <dd className="ks-live-action">
+                <button onClick={() => setTab('harvest')} data-cursor="active">Voir le calendrier</button>
+              </dd>
             </div>
             <div>
               <dt>Veille scientifique</dt>
               <dd>PubMed<i>NCBI</i></dd>
-              <button onClick={() => setTab('science')} data-cursor="active">Derniers papiers</button>
+              <dd className="ks-live-action">
+                <button onClick={() => setTab('science')} data-cursor="active">Derniers papiers</button>
+              </dd>
             </div>
           </dl>
         </div>
@@ -220,104 +167,9 @@ function LiveNow({ news, markets, harvest, setTab }) {
   )
 }
 
-/* ── L'atelier : ce que je fabrique ─────────────────────────── */
-/* Relis cette liste : c'est ta voix, pas la mienne. */
-
-const CRAFTS = [
-  { mark:'book',  name:'Tasse imparfaite',   state:'En écriture',
-    line:"Un livre technique sur la torréfaction, écrit au fil des lots ratés." },
-  { mark:'cup',   name:'Outil de cupping',   state:'En service',
-    line:"Fiches de dégustation SCA, radar, export, pensé pour le QC de production.",
-    href:'https://cupping-secure.netlify.app' },
-  { mark:'atlas', name:'Atlas des variétés', state:'En chantier',
-    line:"Généalogie et nomenclature, du genre Coffea aux hybrides F1." },
-  { mark:'game',  name:'Mame Mame Roast',    state:'En développement',
-    line:"Un roguelike incrémental de torréfaction, cartoon années 30.",
-    href:'https://kissasoko.netlify.app/hangar-torref-843/' },
-  { mark:'music', name:'Kowareta Kagami',    state:'Playlists', music:true,
-    line:"壊れた鏡 — city pop et nuits urbaines, sous un autre nom." },
-  { mark:'dash',  name:'Kissa Soko',         state:'Vivant',
-    line:"Ce site. Veille, science, origines et matériel, au même endroit." },
-]
-
-function Workshop({ onMusic }) {
-  return (
-    <section className="ks-workshop">
-      <div className="ks-workshop-art" aria-hidden="true"><BranchOrnament /></div>
-      <div className="ks-shell">
-        <header className="ks-workshop-head">
-          <span className="ks-eyebrow">L&apos;ATELIER</span>
-          <h2>Dix ans de café,<br />et tout ce qui déborde<span>.</span></h2>
-          <p>
-            Torréfacteur de métier. Le reste vient par dessus : un livre en cours,
-            des outils pour l&apos;atelier, un jeu, de la musique. Kissa Soko est
-            l&apos;endroit où tout ça tient ensemble.
-          </p>
-        </header>
-
-        <ul className="ks-craft-list">
-          {CRAFTS.map(c => {
-            const inner = <>
-              <span className="ks-craft-icon"><CraftMark kind={c.mark} /></span>
-              <span className="ks-craft-body">
-                <strong>{c.name}</strong>
-                <span>{c.line}</span>
-              </span>
-              <em className="ks-craft-state">{c.state}</em>
-            </>
-            return (
-              <li key={c.name}>
-                {c.href
-                  ? <a href={c.href} data-cursor="active">{inner}</a>
-                  : <button onClick={() => c.music && onMusic()} data-cursor="active">{inner}</button>}
-              </li>
-            )
-          })}
-        </ul>
-      </div>
-    </section>
-  )
-}
-
-/* ── L'aventure café : les chapitres de Tasse imparfaite ───── */
-
-const COFFEE_JOURNEY = [
-  {
-    id:'taxonomie', chapter:'01', title:'Taxonomie', kicker:'LE VIVANT',
-    summary:"Morphologie, espèces, groupes génétiques et variétés : comprendre Coffea avant même de parler de goût.",
-    href:'/tasse-imparfaite/chapitre-1.html', x:'8%', y:'35%', card:'down', mark:'leaf',
-  },
-  {
-    id:'histoire', chapter:'02', title:'Histoire', kicker:'LES ROUTES',
-    summary:"Du Rift au Yémen, puis au reste du monde : domestication, routes commerciales, Typica, Bourbon et sélection.",
-    href:'/tasse-imparfaite/chapitre-2.html', x:'25%', y:'20%', card:'down', mark:'route',
-  },
-  {
-    id:'process', chapter:'03', title:'Process', kicker:'LA TRANSFORMATION',
-    summary:"Lavé, nature, honey et fermentations : ce qui arrive au fruit après la récolte façonne déjà la tasse.",
-    href:'/tasse-imparfaite/chapitre-3.html', x:'44%', y:'36%', card:'down', mark:'process',
-  },
-  {
-    id:'chimie', chapter:'04', title:'Chimie aromatique', kicker:'LES MOLÉCULES',
-    summary:"Précurseurs, réactions et composés aromatiques : relier ce qui se passe dans le grain à ce que l'on perçoit.",
-    href:'/tasse-imparfaite/chapitre-4.html', x:'63%', y:'19%', card:'down', mark:'molecule',
-  },
-  {
-    id:'defauts', chapter:'05', title:'Défauts', kicker:'LES ACCIDENTS',
-    summary:"Identifier ce qui a mal tourné, du fruit au stockage puis à la torréfaction, et remonter jusqu'à la cause.",
-    href:'/tasse-imparfaite/chapitre-5.html', x:'82%', y:'36%', card:'left', mark:'defect',
-  },
-  {
-    id:'extraction', chapter:'06', title:'Extraction', kicker:'LA TASSE',
-    summary:"Eau, mouture, température, temps et pression : la dernière transformation avant la dégustation.",
-    href:'/tasse-imparfaite/chapitre-6.html', x:'82%', y:'73%', card:'up-left', mark:'cup',
-  },
-  {
-    id:'decafeination', chapter:'07', title:'Décaféination', kicker:'LE DÉTOUR',
-    summary:"Retirer la caféine sans emporter les précurseurs aromatiques : un détour technique au milieu du voyage.",
-    href:'/tasse-imparfaite/chapitre-7.html', x:'49%', y:'76%', card:'up', mark:'drop', detour:true,
-  },
-]
+/* ── L'aventure café : les chapitres de Tasse imparfaite ─────
+   Les escales, leurs titres et leurs positions viennent de
+   data/book.js, qui suit le sommaire réel du manuscrit. */
 
 function JourneyMark({ kind }) {
   const common = {
@@ -361,6 +213,44 @@ function JourneyMark({ kind }) {
   )
 }
 
+function JourneyStop({ stage }) {
+  const inner = <>
+    <span className="ks-journey-point">
+      <i>{stage.n}</i>
+      <span className="ks-journey-icon"><JourneyMark kind={stage.mark} /></span>
+    </span>
+
+    <span className="ks-journey-label">
+      <small>{stage.kicker}</small>
+      <strong>{stage.title}</strong>
+    </span>
+
+    <span className="ks-journey-card">
+      <small>CHAPITRE {stage.n}</small>
+      <strong>{stage.title}</strong>
+      <span>{stage.summary}</span>
+      {stage.topics?.length > 0 && (
+        <span className="ks-journey-topics">
+          {stage.topics.map(t => <i key={t}>{t}</i>)}
+        </span>
+      )}
+      <b>{stage.ready ? <>LIRE PLUS <i>→</i></> : <>À VENIR</>}</b>
+    </span>
+  </>
+
+  return (
+    <article
+      className={`ks-journey-stop${stage.detour ? ' is-detour' : ''}`}
+      style={{ '--jx':stage.x, '--jy':stage.y }}
+      data-card={stage.card}
+    >
+      {stage.ready
+        ? <a href={bookHref(stage)} data-cursor="active" aria-label={`Chapitre ${stage.n} : ${stage.title}`}>{inner}</a>
+        : <div aria-label={`Chapitre ${stage.n} : ${stage.title}, à venir`}>{inner}</div>}
+    </article>
+  )
+}
+
 function CoffeeJourney() {
   return (
     <section className="ks-journey" id="ks-journey">
@@ -370,47 +260,50 @@ function CoffeeJourney() {
           <h2>L&apos;aventure<br />du café<span>.</span></h2>
           <p>
             De la plante à la tasse, avec quelques détours par l&apos;histoire,
-            la chimie et les accidents de parcours. Chaque escale ouvre un chapitre du livre.
+            la chimie et les accidents de parcours. Sept escales, une par chapitre
+            du livre, puis six annexes techniques pour aller au fond des choses.
           </p>
+          <a className="ks-journey-index" href={`${BOOK_BASE}/index.html`} data-cursor="active">
+            VOIR LE SOMMAIRE <b>→</b>
+          </a>
         </header>
 
         <div className="ks-journey-map" aria-label="Les chapitres de Tasse imparfaite">
           <svg className="ks-journey-route" viewBox="0 0 1000 560" preserveAspectRatio="none" aria-hidden="true">
-            <path className="ks-journey-route-main" d="M80 196 C150 82 220 82 270 112 S390 245 455 201 S560 80 635 106 S750 225 820 201 C888 178 903 260 870 344 S854 410 820 410" />
-            <path className="ks-journey-route-detour" d="M455 201 C466 300 454 360 490 426" />
+            <path className="ks-journey-route-main" d="M80 170 C150 56 220 56 270 86 S390 219 455 175 S560 54 635 80 S750 199 820 175 C888 152 903 234 870 318 S854 384 820 384" />
+            <path className="ks-journey-route-detour" d="M455 175 C466 274 454 334 490 400" />
           </svg>
 
-          {COFFEE_JOURNEY.map(stage => (
-            <article
-              key={stage.id}
-              className={`ks-journey-stop${stage.detour ? ' is-detour' : ''}`}
-              style={{ '--jx':stage.x, '--jy':stage.y }}
-              data-card={stage.card}
-            >
-              <a href={stage.href} data-cursor="active" aria-label={`Chapitre ${stage.chapter} — ${stage.title}`}>
-                <span className="ks-journey-point">
-                  <i>{stage.chapter}</i>
-                  <span className="ks-journey-icon"><JourneyMark kind={stage.mark} /></span>
-                </span>
-
-                <span className="ks-journey-label">
-                  <small>{stage.kicker}</small>
-                  <strong>{stage.title}</strong>
-                </span>
-
-                <span className="ks-journey-card">
-                  <small>CHAPITRE {stage.chapter}</small>
-                  <strong>{stage.title}</strong>
-                  <span>{stage.summary}</span>
-                  <b>LIRE PLUS <i>→</i></b>
-                </span>
-              </a>
-            </article>
-          ))}
+          {BOOK_CHAPTERS.map(stage => <JourneyStop key={stage.id} stage={stage} />)}
 
           <span className="ks-journey-start">DE L&apos;ARBRE</span>
           <span className="ks-journey-end">À LA TASSE</span>
         </div>
+
+        <section className="ks-annexes" aria-label="Les annexes du livre">
+          <header>
+            <span className="ks-eyebrow">LES ANNEXES</span>
+            <p>Six dossiers techniques posés hors du fil du voyage.</p>
+          </header>
+
+          <ul>
+            {BOOK_ANNEXES.map(a => {
+              const body = <>
+                <i>ANNEXE {a.n}</i>
+                <strong>{a.title}</strong>
+                <span>{a.line}</span>
+                {!a.ready && <em>À VENIR</em>}
+              </>
+              return (
+                <li key={a.id} className={a.ready ? '' : 'is-pending'}>
+                  {a.ready
+                    ? <a href={bookHref(a)} data-cursor="active">{body}<b>→</b></a>
+                    : <div>{body}</div>}
+                </li>
+              )
+            })}
+          </ul>
+        </section>
       </div>
     </section>
   )
@@ -419,8 +312,8 @@ function CoffeeJourney() {
 /* ── Page ───────────────────────────────────────────────────── */
 
 export default function HomePage({
-  setTab, setShowMusic,
-  tabs = [], navTabs = [], tiles = [],
+  setTab, onNavigate, onMenu, menuOpen = false,
+  navTabs = [],
   news, markets, harvest,
 }) {
   const [stuck, setStuck] = useState(false)
@@ -432,11 +325,6 @@ export default function HomePage({
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const onNavigate = (id) => {
-    const cible = tabs.find(t => t.id === id)
-    setTab(cible?.goTo || id)
-  }
-  const onMusic = () => { setShowMusic(true); setTab('news') }
   const scrollTo = (id) =>
     document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
 
@@ -454,8 +342,14 @@ export default function HomePage({
         ))}
       </nav>
 
-      <button className="ks-menu-button" onClick={() => scrollTo('ks-journey')}
-        data-cursor="active" aria-label="Aller à l'aventure café">
+      <button
+        className={`ks-menu-button${menuOpen ? ' is-open' : ''}`}
+        onClick={onMenu}
+        data-cursor="active"
+        aria-controls="ks-site-menu"
+        aria-expanded={menuOpen}
+        aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+      >
         <span></span><span></span>
       </button>
     </header>
