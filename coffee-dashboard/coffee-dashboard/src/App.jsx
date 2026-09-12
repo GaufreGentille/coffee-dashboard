@@ -4,7 +4,9 @@ import InstaVeillePanel from './components/InstaVeillePanel'
 import HomePage from './HomePage'
 import SiteMenu from './components/SiteMenu'
 import { ORIGIN_COUNTRIES } from './data/origins'
+import { BOOK_CHAPTERS } from './data/book'   // ← seulement si tu veux t'en servir dans App, sinon inutile
 import './kissa.css'
+import './kissa-menu.css'
 
 // GaufreGentille brand palette
 const BRAND = {
