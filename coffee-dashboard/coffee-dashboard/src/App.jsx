@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import HarvestPanel from './components/HarvestPanel'
 import InstaVeillePanel from './components/InstaVeillePanel'
 import HomePage from './HomePage'
+import SiteMenu from './components/SiteMenu'
 import { ORIGIN_COUNTRIES } from './data/origins'
 import './kissa.css'
 
@@ -63,23 +64,22 @@ const PLAYLISTS = [
 //   href  : lien externe, l'entree sort du site
 //   music : ouvre le panneau musique au lieu d'un onglet
 const TABS = [
-  { id:'home',      label:'Accueil',    nav:false, tile:false },
-  { id:'news',      label:'Actualités', nav:true,  tile:true },
-  { id:'science',   label:'Science',    nav:true,  tile:true },
-  { id:'harvest',   label:'Origines',   nav:true,  tile:true },
-  { id:'gear',      label:'Matériel',   nav:true,  tile:true },
-  { id:'reddit',    label:'Communauté', nav:true,  tile:true },
-  { id:'instagram', label:'Instagram',  nav:true,  tile:true },
+  { id:'home',      label:'Accueil',    nav:false },
+  { id:'news',      label:'Actualités', nav:true  },
+  { id:'science',   label:'Science',    nav:true  },
+  { id:'harvest',   label:'Origines',   nav:true  },
+  { id:'gear',      label:'Matériel',   nav:true  },
+  { id:'reddit',    label:'Communauté', nav:true  },
+  { id:'instagram', label:'Instagram',  nav:true  },
   // Marche n'est pas une page : le bandeau des cours est visible partout.
-  // Il reste dans l'index, ou il ouvre les actualites, mais sort de la
-  // navigation ou il promettait une destination qui n'existe pas.
-  { id:'market',    label:'Marché',     nav:false, tile:true, goTo:'news' },
-  { id:'music',     label:'Musique',    nav:false, tile:true, music:true },
-  { id:'game',      label:'Jeu',        nav:false, tile:true, href:'https://kissasoko.netlify.app/hangar-torref-843/' },
+  // Ces trois entrees sortent de la barre de navigation mais vivent dans
+  // le menu, ou elles ouvrent les actualites, le panneau musique ou le jeu.
+  { id:'market',    label:'Marché',     nav:false, goTo:'news' },
+  { id:'music',     label:'Musique',    nav:false, music:true },
+  { id:'game',      label:'Jeu',        nav:false, href:'https://kissasoko.netlify.app/hangar-torref-843/' },
 ]
 
-const NAV_TABS   = TABS.filter(t => t.nav)
-const HOME_TILES = TABS.filter(t => t.tile)
+const NAV_TABS = TABS.filter(t => t.nav)
 
 const MARKET_PLACEHOLDER = [
   { label:'Arabica ICE', val:'--', unit:'c/lb', chg:'', up:true  },
@@ -87,8 +87,6 @@ const MARKET_PLACEHOLDER = [
   { label:'EUR/USD',     val:'--', unit:'',     chg:'', up:true  },
   { label:'BRL/USD',     val:'--', unit:'',     chg:'', up:true  },
 ]
-
-const GG_ORANGE = '#da5d16'
 
 const PAGE_ART = {
   news:      { src:'/kissa-hero-botanical.png',    side:'right', variant:'is-news' },
@@ -140,9 +138,17 @@ function GGCursor() {
   const cursorRef = useRef(null)
   const dotRef = useRef(null)
   const [active, setActive] = useState(false)
+  const [fine, setFine] = useState(() => window.matchMedia('(pointer: fine)').matches)
 
   useEffect(() => {
-    if (window.matchMedia('(pointer: coarse)').matches) return
+    const mq = window.matchMedia('(pointer: fine)')
+    const onChange = e => setFine(e.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+
+  useEffect(() => {
+    if (!fine) return
     let tx = innerWidth/2, ty = innerHeight/2, x=tx, y=ty, raf
     const move = e => { tx=e.clientX; ty=e.clientY }
     const over = e => setActive(Boolean(e.target.closest('a,button,[data-cursor="active"]')))
@@ -156,7 +162,9 @@ function GGCursor() {
     addEventListener('pointerover',over,{passive:true})
     tick()
     return ()=>{ removeEventListener('pointermove',move); removeEventListener('pointerover',over); cancelAnimationFrame(raf) }
-  },[])
+  },[fine])
+
+  if (!fine) return null
 
   return <>
     <div ref={cursorRef} className={`ggc-cursor ${active?'is-active':''}`} />
@@ -858,7 +866,7 @@ function OriginsPage({ harvestData, harvestLoading, harvestError }) {
   )
 }
 
-function SiteHeader({ tab, setTab, refresh, lastRefresh, showMusic, setShowMusic }) {
+function SiteHeader({ tab, setTab, refresh, lastRefresh, showMusic, setShowMusic, onMenu, menuOpen }) {
   const nav = NAV_TABS
   return (
     <header className="ks-site-header">
@@ -876,6 +884,15 @@ function SiteHeader({ tab, setTab, refresh, lastRefresh, showMusic, setShowMusic
         {lastRefresh && <span className="ks-last-refresh">MAJ {lastRefresh}</span>}
         <button onClick={refresh} aria-label="Actualiser les données" title="Actualiser">↺</button>
         <button className={showMusic ? 'is-active' : ''} onClick={()=>setShowMusic(v=>!v)} aria-label="Afficher la musique" title="Musique">♫</button>
+        <button
+          className={`ks-menu-button${menuOpen ? ' is-open' : ''}`}
+          onClick={onMenu}
+          aria-controls="ks-site-menu"
+          aria-expanded={menuOpen}
+          aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+        >
+          <span></span><span></span>
+        </button>
       </div>
     </header>
   )
@@ -933,6 +950,19 @@ export default function App() {
   const [tab, setTab] = useState('home')
   const [showMusic, setShowMusic] = useState(false)
   const [lastRefresh, setLastRefresh] = useState(null)
+  const [menuOpen, setMenuOpen] = useState(false)
+
+  // Une seule porte d'entree vers la navigation : elle sait lire goTo,
+  // href et music, donc l'accueil, le menu et l'en-tete se comportent
+  // pareil sans dupliquer la regle.
+  const openTab = useCallback((id) => {
+    const cible = TABS.find(t => t.id === id)
+    if (!cible) return
+    if (cible.href) { window.open(cible.href, '_blank', 'noopener,noreferrer'); return }
+    if (cible.music) { setShowMusic(true); setTab('news'); return }
+    setTab(cible.goTo || id)
+    window.scrollTo({ top: 0 })
+  }, [])
 
   const T = THEME
   const isHome = tab === 'home'
@@ -959,10 +989,20 @@ export default function App() {
     <div className="ks-app">
       <GGCursor />
 
+      <SiteMenu
+        open={menuOpen}
+        onClose={() => setMenuOpen(false)}
+        onNavigate={openTab}
+        tabs={TABS}
+      />
+
       {isHome ? (
         <HomePage
-          setTab={setTab} setShowMusic={setShowMusic}
-          tabs={TABS} navTabs={NAV_TABS} tiles={HOME_TILES}
+          setTab={setTab}
+          onNavigate={openTab}
+          onMenu={() => setMenuOpen(v => !v)}
+          menuOpen={menuOpen}
+          navTabs={NAV_TABS}
           news={news} markets={markets} harvest={harvest}
         />
       ) : (
@@ -974,6 +1014,8 @@ export default function App() {
             lastRefresh={lastRefresh}
             showMusic={showMusic}
             setShowMusic={setShowMusic}
+            onMenu={() => setMenuOpen(v => !v)}
+            menuOpen={menuOpen}
           />
           <MarketTicker rows={marketRows} updatedAt={mktTime} />
           {showMusic && <MusicPanel />}
