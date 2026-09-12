@@ -239,12 +239,26 @@
 .ks-journey-index:hover b{transform:translateX(3px)}
 
 /* Une escale sans page publiée n'est pas un lien : même dessin,
-   pas de promesse. */
+   pas de promesse. Attention, tout ce que kissa.css accroche à
+   « .ks-journey-stop > a » doit être répété pour « > div », sinon
+   les annexes perdent leur survol et leur pile mobile. */
 .ks-journey-stop>div{display:block;position:relative;color:var(--ks-paper-2)}
-.ks-journey-stop>div .ks-journey-point{border-style:dashed}
+.ks-journey-stop.is-pending .ks-journey-point{border-style:dashed}
+.ks-journey-stop.is-pending .ks-journey-card>b{color:var(--ks-dim);letter-spacing:.2em}
+
+.ks-journey-stop>div:hover .ks-journey-point,
+.ks-journey-stop>div:focus-within .ks-journey-point{
+  background:var(--ks-orange);border-color:var(--ks-orange);transform:scale(1.06)
+}
+.ks-journey-stop>div:hover .ks-journey-icon{color:var(--ks-paper-2)}
+.ks-journey-stop>div:hover .ks-journey-card{opacity:1;visibility:visible;pointer-events:auto}
+.ks-journey-stop[data-card="down"]>div:hover .ks-journey-card{transform:translate(-50%,0) scale(1)}
+.ks-journey-stop[data-card="left"]>div:hover .ks-journey-card,
+.ks-journey-stop[data-card="up-left"]>div:hover .ks-journey-card{transform:translateY(0) scale(1)}
+.ks-journey-stop[data-card="up"]>div:hover .ks-journey-card{transform:translate(-50%,0) scale(1)}
 
 /* Les thèmes du chapitre, dans la carte au survol. C'est là que
-   les variétés, l'eau ou le lait deviennent visibles. */
+   les variétés, le lait ou les fermentations deviennent visibles. */
 .ks-journey-topics{
   display:flex;flex-wrap:wrap;gap:5px;
   margin-top:12px
@@ -257,62 +271,63 @@
   border-radius:99px;padding:5px 8px
 }
 
-/* Les annexes : une bande sobre sous la carte. */
-.ks-annexes{margin-top:clamp(40px,5vw,72px);padding-top:clamp(28px,3vw,40px);border-top:1px solid rgba(247,241,232,.16)}
-.ks-annexes>header{display:flex;align-items:baseline;justify-content:space-between;gap:24px;flex-wrap:wrap}
-.ks-annexes>header .ks-eyebrow{margin:0;color:var(--ks-orange)}
-.ks-annexes>header p{margin:0;color:rgba(247,241,232,.62);font:500 13px/1.6 'DM Sans',sans-serif}
-.ks-annexes ul{
-  list-style:none;margin:22px 0 0;padding:0;
-  display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-  gap:1px;background:rgba(247,241,232,.16)
+/* ── Les annexes, en satellites ───────────────────────────────
+   Chaque annexe pend au chapitre qu'elle prolonge : point plus
+   petit, lettre au lieu du numéro, trait pointillé de liaison. */
+
+.ks-journey-link{
+  stroke:var(--ks-orange);
+  stroke-width:1;
+  stroke-dasharray:2 6;
+  opacity:.42;
+  vector-effect:non-scaling-stroke
 }
-.ks-annexes li{background:var(--ks-ink)}
-.ks-annexes li>a,
-.ks-annexes li>div{
-  height:100%;
-  display:grid;grid-template-columns:1fr auto;
-  align-content:start;gap:2px 12px;
-  padding:18px 16px 20px;
-  text-decoration:none;color:var(--ks-paper-2);
-  transition:background .22s ease
+
+.ks-journey-stop.is-annexe{z-index:3}
+.ks-journey-stop.is-annexe .ks-journey-point{
+  width:48px;height:48px;
+  border-style:dashed;
+  border-color:rgba(247,241,232,.26)
 }
-.ks-annexes li>a:hover{background:rgba(247,241,232,.05)}
-.ks-annexes li i{
-  grid-column:1;
-  font-style:normal;
-  font:700 8px/1 'DM Sans',sans-serif;letter-spacing:.18em;
-  color:var(--ks-orange)
+.ks-journey-stop.is-annexe .ks-journey-point>i{
+  left:-5px;top:-5px;width:19px;height:19px;
+  font-size:8px;
+  background:var(--ks-paper-2);color:var(--ks-ink)
 }
-.ks-annexes li strong{
-  grid-column:1;margin-top:8px;
-  font-family:'Bodoni Moda',Georgia,serif;
-  font-size:22px;line-height:1.05;letter-spacing:-.035em
+.ks-journey-stop.is-annexe .ks-journey-icon{width:24px;height:24px}
+.ks-journey-stop.is-annexe .ks-journey-label{
+  top:60px;width:128px;gap:4px
 }
-.ks-annexes li>a>span,
-.ks-annexes li>div>span{
-  grid-column:1/-1;margin-top:9px;
-  color:rgba(247,241,232,.64);
-  font:500 12px/1.55 'DM Sans',sans-serif
-}
-.ks-annexes li b{grid-column:2;grid-row:1;align-self:start;color:var(--ks-orange);font-weight:400;font-size:15px}
-.ks-annexes li em{
-  grid-column:2;grid-row:1;align-self:start;justify-self:end;
-  font-style:normal;
-  font:700 7px/1 'DM Sans',sans-serif;letter-spacing:.14em;
-  color:rgba(247,241,232,.5);
-  border:1px solid rgba(247,241,232,.22);
-  border-radius:99px;padding:4px 7px
-}
-.ks-annexes li.is-pending strong{color:rgba(247,241,232,.72)}
+.ks-journey-stop.is-annexe .ks-journey-label small{font-size:8px;color:rgba(247,241,232,.5)}
+.ks-journey-stop.is-annexe .ks-journey-label strong{font-size:13px;line-height:1.2}
+.ks-journey-stop.is-annexe[data-card="down"] .ks-journey-card{top:92px}
+.ks-journey-stop.is-annexe[data-card="up"] .ks-journey-card{bottom:70px}
+.ks-journey-stop.is-annexe .ks-journey-card{width:min(270px,70vw)}
+.ks-journey-stop.is-annexe>div:hover .ks-journey-point,
+.ks-journey-stop.is-annexe>a:hover .ks-journey-point{border-style:solid}
 
 @media(max-width:760px){
+  /* La carte devient une pile. Les règles mobiles de kissa.css ne
+     visent que « > a » : même traitement pour « > div ». */
+  .ks-journey-stop>div{
+    display:grid;grid-template-columns:72px minmax(0,1fr);
+    column-gap:18px;align-items:start
+  }
+  .ks-journey-stop>div:hover .ks-journey-point{
+    background:var(--ks-ink);border-color:rgba(247,241,232,.34);transform:none
+  }
   .ks-journey-topics{display:none}
-  .ks-annexes ul{grid-template-columns:1fr}
-  .ks-annexes li>a,.ks-annexes li>div{padding:16px 2px 18px}
-  .ks-annexes li{background:transparent}
-  .ks-annexes ul{background:transparent;gap:0}
-  .ks-annexes li+li{border-top:1px solid rgba(247,241,232,.16)}
+
+  /* Une annexe se lit décalée, sous le chapitre qu'elle prolonge. */
+  .ks-journey-stop.is-annexe{padding-left:26px;padding-bottom:22px}
+  .ks-journey-stop.is-annexe>a,
+  .ks-journey-stop.is-annexe>div{grid-template-columns:52px minmax(0,1fr);column-gap:14px}
+  .ks-journey-stop.is-annexe .ks-journey-point{width:52px;height:52px}
+  .ks-journey-stop.is-annexe .ks-journey-point>i{left:-4px;top:-4px;width:18px;height:18px}
+  .ks-journey-stop.is-annexe .ks-journey-icon{width:26px;height:26px}
+  .ks-journey-stop.is-annexe .ks-journey-label{width:auto;padding-top:7px}
+  .ks-journey-stop.is-annexe .ks-journey-label strong{font-size:16px}
+  .ks-journey-stop.is-annexe .ks-journey-card{width:auto}
 }
 
 /* ── 6. « En ce moment » : boutons d'action ───────────────────
