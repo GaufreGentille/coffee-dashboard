@@ -697,6 +697,90 @@ function OriginsPage({ harvestData, harvestLoading, harvestError }) {
         deck="Un atlas vivant du café : comprendre les pays producteurs, leurs récoltes et ce qui façonne leurs cafés."
       />
 
+      {/* 1 — La carte, et la recherche dans sa colonne de droite */}
+      <section className="ks-origin-browser">
+        <div className="ks-origin-section-head">
+          <div>
+            <span>ATLAS</span>
+            <h3>Explorer les origines</h3>
+          </div>
+          <p>{visibleOrigins.length} sur {ORIGIN_COUNTRIES.length}</p>
+        </div>
+
+        <div className="ks-origin-map-layout">
+          <OriginMap
+            origins={visibleOrigins}
+            selectedId={featured?.id}
+            onSelect={id=>selectOrigin(id, false)}
+          />
+
+          <aside className="ks-origin-map-results">
+            <div className="ks-origin-search-panel">
+              <div className="ks-origin-controls">
+                <label className="ks-origin-search">
+                  <span>Rechercher</span>
+                  <input
+                    value={query}
+                    onChange={e=>setQuery(e.target.value)}
+                    placeholder="Pays, variété, process..."
+                  />
+                </label>
+
+                <div className="ks-origin-regions" aria-label="Filtrer par région">
+                  {regions.map(item => (
+                    <button
+                      key={item}
+                      className={region === item ? 'is-active' : ''}
+                      onClick={()=>setRegion(item)}
+                    >
+                      {item}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="ks-origin-map-results-head">
+              <span>RÉSULTATS</span>
+              <strong>{visibleOrigins.length}</strong>
+            </div>
+
+            <div className="ks-origin-map-results-list">
+              {visibleOrigins.map(origin => (
+                <button
+                  key={origin.id}
+                  className={origin.id === featured?.id ? 'is-active' : ''}
+                  onClick={()=>selectOrigin(origin.id, false)}
+                >
+                  <span>{origin.region}</span>
+                  <strong>{origin.name}</strong>
+                  <small>{origin.harvestPeriod || origin.altitude || 'Fiche pays documentée'}</small>
+                  <i>→</i>
+                </button>
+              ))}
+            </div>
+          </aside>
+        </div>
+
+        {featured && (
+          <div className="ks-origin-map-selection">
+            <div>
+              <span>ORIGINE SÉLECTIONNÉE</span>
+              <strong>{featured.name}</strong>
+              <small>{featured.region}</small>
+            </div>
+            <button onClick={()=>selectOrigin(featured.id, true)}>
+              Voir la fiche <span>↓</span>
+            </button>
+          </div>
+        )}
+
+        {!visibleOrigins.length && (
+          <div className="ks-origin-empty">Aucune origine ne correspond à cette recherche.</div>
+        )}
+      </section>
+
+      {/* 2 — L'origine à découvrir */}
       {featured && (
         <section className="ks-origin-feature" id="ks-origin-feature">
           <div className="ks-origin-feature-main">
@@ -733,6 +817,7 @@ function OriginsPage({ harvestData, harvestLoading, harvestError }) {
         </section>
       )}
 
+      {/* 3 — Le calendrier des récoltes */}
       <section className="ks-origin-live">
         <div className="ks-origin-section-head">
           <div>
@@ -781,86 +866,6 @@ function OriginsPage({ harvestData, harvestLoading, harvestError }) {
           <div className="ks-origin-calendar-legacy">
             <HarvestPanel data={harvestData} />
           </div>
-        )}
-      </section>
-
-      <section className="ks-origin-browser">
-        <div className="ks-origin-section-head">
-          <div>
-            <span>ATLAS</span>
-            <h3>Explorer les origines</h3>
-          </div>
-          <p>{visibleOrigins.length} sur {ORIGIN_COUNTRIES.length}</p>
-        </div>
-
-        <div className="ks-origin-controls">
-          <label className="ks-origin-search">
-            <span>Rechercher</span>
-            <input
-              value={query}
-              onChange={e=>setQuery(e.target.value)}
-              placeholder="Pays, variété, process..."
-            />
-          </label>
-
-          <div className="ks-origin-regions" aria-label="Filtrer par région">
-            {regions.map(item => (
-              <button
-                key={item}
-                className={region === item ? 'is-active' : ''}
-                onClick={()=>setRegion(item)}
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="ks-origin-map-layout">
-          <OriginMap
-            origins={visibleOrigins}
-            selectedId={featured?.id}
-            onSelect={id=>selectOrigin(id, false)}
-          />
-
-          <aside className="ks-origin-map-results">
-            <div className="ks-origin-map-results-head">
-              <span>RÉSULTATS</span>
-              <strong>{visibleOrigins.length}</strong>
-            </div>
-
-            <div className="ks-origin-map-results-list">
-              {visibleOrigins.map(origin => (
-                <button
-                  key={origin.id}
-                  className={origin.id === featured?.id ? 'is-active' : ''}
-                  onClick={()=>selectOrigin(origin.id, false)}
-                >
-                  <span>{origin.region}</span>
-                  <strong>{origin.name}</strong>
-                  <small>{origin.harvestPeriod || origin.altitude || 'Fiche pays documentée'}</small>
-                  <i>→</i>
-                </button>
-              ))}
-            </div>
-          </aside>
-        </div>
-
-        {featured && (
-          <div className="ks-origin-map-selection">
-            <div>
-              <span>ORIGINE SÉLECTIONNÉE</span>
-              <strong>{featured.name}</strong>
-              <small>{featured.region}</small>
-            </div>
-            <button onClick={()=>selectOrigin(featured.id, true)}>
-              Voir la fiche <span>↑</span>
-            </button>
-          </div>
-        )}
-
-        {!visibleOrigins.length && (
-          <div className="ks-origin-empty">Aucune origine ne correspond à cette recherche.</div>
         )}
       </section>
     </section>
