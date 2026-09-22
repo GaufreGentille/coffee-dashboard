@@ -1228,6 +1228,7 @@ a{color:inherit}
     content:'DÉTOUR';position:absolute;left:10px;bottom:17px;
     color:var(--ks-orange);font:700 7px/1 'DM Sans',sans-serif;letter-spacing:.14em
   }
+}
   /* =========================================================
    BOUTON RETOUR EN HAUT
    Encre au repos, orange au survol. Apparaît après 600 px de
