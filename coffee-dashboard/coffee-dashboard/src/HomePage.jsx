@@ -110,7 +110,7 @@ function Reveal() {
           />
           <figcaption>
             <span>PLANCHE 01</span>
-            <em>Coffea arabica</em>
+            <em style={{ color: '#da5d16', marginLeft: '.5em' }}>Coffea arabica</em>
             <small>cerise · parche · grain vert</small>
           </figcaption>
         </figure>
