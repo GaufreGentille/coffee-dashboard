@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef, useLayoutEffect } from "react";
 import VeilleAdmin from "./VeilleAdmin.jsx";
 
 // ─── Kissa Soko — Panneau Veille Instagram (v3 : épingles admin) ─────────────
@@ -282,6 +282,20 @@ export default function InstaVeillePanel() {
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("recent"); // "recent" | "hot"
   const [limit, setLimit] = useState(PAGE_SIZE);
+
+  // Position de la page au moment du clic sur « Voir plus ».
+  const keepY = useRef(null);
+
+  // Après l'ajout des posts, on remet la page exactement où elle était,
+  // avant que l'écran ne soit redessiné : aucun saut visible, et les
+  // nouveaux posts apparaissent là où se trouvait le bouton.
+  // behavior "instant" contourne le scroll-behavior:smooth du CSS global.
+  useLayoutEffect(() => {
+    if (keepY.current !== null) {
+      window.scrollTo({ top: keepY.current, behavior: "instant" });
+      keepY.current = null;
+    }
+  }, [limit]);
 
   const [user, setUser] = useState(loadIdentity);
   const [votes, setVotes] = useState({ counts: {}, mine: {} });
@@ -626,11 +640,19 @@ export default function InstaVeillePanel() {
         ))}
       </div>
 
-      {/* ─── Voir plus ─── */}
+      {/* ─── Voir plus ───
+          overflowAnchor "none" : le navigateur ne s'accroche plus au bouton
+          quand les nouveaux posts s'insèrent au dessus de lui. En plus, on
+          mémorise la position de la page au clic et on la restaure juste
+          après le rendu (voir keepY plus haut). */}
       {filtered.length > limit && (
-        <div style={{ textAlign: "center", marginTop: 14 }}>
+        <div style={{ textAlign: "center", marginTop: 14, overflowAnchor: "none" }}>
           <button
-            onClick={() => setLimit((l) => l + PAGE_SIZE)}
+            onClick={(e) => {
+              e.currentTarget.blur();
+              keepY.current = window.scrollY;
+              setLimit((l) => l + PAGE_SIZE);
+            }}
             style={{
               cursor: "pointer", fontSize: 11, borderRadius: 8, padding: "6px 16px",
               border: "1px solid rgba(218,93,22,0.40)", background: "rgba(218,93,22,0.08)", color: "var(--ks-orange)",
