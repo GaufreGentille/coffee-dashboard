@@ -1227,5 +1227,34 @@ a{color:inherit}
   .ks-journey-stop.is-detour:after{
     content:'DÉTOUR';position:absolute;left:10px;bottom:17px;
     color:var(--ks-orange);font:700 7px/1 'DM Sans',sans-serif;letter-spacing:.14em
-  }
+  }/* =========================================================
+   BOUTON RETOUR EN HAUT
+   Encre au repos, orange au survol. Apparaît après 600 px de
+   défilement.
+   ========================================================= */
+.ks-to-top{
+  position:fixed;
+  right:clamp(18px,3vw,36px);
+  bottom:calc(clamp(18px,3vw,36px) + env(safe-area-inset-bottom,0px));
+  z-index:90;
+  width:48px;height:48px;
+  border-radius:50%;
+  border:0;
+  background:var(--ks-ink);
+  color:#fff;
+  display:grid;place-items:center;
+  box-shadow:0 10px 26px rgba(7,23,43,.22);
+  opacity:0;visibility:hidden;
+  transform:translateY(12px);
+  transition:opacity .25s ease,visibility .25s ease,transform .25s ease,background .2s ease
+}
+.ks-to-top.is-visible{opacity:1;visibility:visible;transform:translateY(0)}
+.ks-to-top:hover{background:var(--ks-orange);transform:translateY(-2px)}
+.ks-to-top svg{
+  width:20px;height:20px;
+  fill:none;stroke:currentColor;stroke-width:2;
+  stroke-linecap:round;stroke-linejoin:round
+}
+@media(max-width:760px){
+  .ks-to-top{width:44px;height:44px}
 }
