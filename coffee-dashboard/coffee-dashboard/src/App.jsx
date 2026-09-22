@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react'
 import HarvestPanel from './components/HarvestPanel'
 import InstaVeillePanel from './components/InstaVeillePanel'
 import HomePage from './HomePage'
@@ -950,6 +950,35 @@ function MusicPanel() {
   )
 }
 
+/* ---------- Bouton retour en haut ----------
+   Encre au repos, orange au survol (styles dans kissa.css, .ks-to-top).
+   N'apparait qu'apres 600 px de defilement. */
+
+function ScrollTopButton() {
+  const [visible, setVisible] = useState(false)
+
+  useEffect(() => {
+    const onScroll = () => setVisible(window.scrollY > 600)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  return (
+    <button
+      className={`ks-to-top${visible ? ' is-visible' : ''}`}
+      onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+      aria-label="Remonter en haut de la page"
+      data-cursor="active"
+      tabIndex={visible ? 0 : -1}
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 19V5M5 12l7-7 7 7" />
+      </svg>
+    </button>
+  )
+}
+
 /* ---------- Application ---------- */
 
 export default function App() {
@@ -957,6 +986,13 @@ export default function App() {
   const [showMusic, setShowMusic] = useState(false)
   const [lastRefresh, setLastRefresh] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
+
+  // Remonte en haut a chaque changement d'onglet, quel que soit le bouton
+  // utilise (en-tete, menu, boutons de l'accueil). "instant" pour ne pas
+  // voir la page defiler : le CSS global impose scroll-behavior:smooth.
+  useLayoutEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }, [tab])
 
   // Une seule porte d'entree vers la navigation : elle sait lire goTo,
   // href et music, donc l'accueil, le menu et l'en-tete se comportent
@@ -994,6 +1030,7 @@ export default function App() {
   return (
     <div className="ks-app">
       <GGCursor />
+      <ScrollTopButton />
 
       <SiteMenu
         open={menuOpen}
