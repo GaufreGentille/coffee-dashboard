@@ -151,20 +151,19 @@ function GGCursor() {
 
   useEffect(() => {
     if (!fine) return
-    let tx = innerWidth/2, ty = innerHeight/2, x=tx, y=ty, raf
-    const move = e => { tx=e.clientX; ty=e.clientY }
-    const over = e => setActive(Boolean(e.target.closest('a,button,[data-cursor="active"]')))
-    const tick = () => {
-      x += (tx-x)*.16; y += (ty-y)*.16
-      if(cursorRef.current) cursorRef.current.style.transform=`translate3d(${x}px,${y}px,0) translate(-50%,-50%)`
-      if(dotRef.current) dotRef.current.style.transform=`translate3d(${tx}px,${ty}px,0) translate(-50%,-50%)`
-      raf=requestAnimationFrame(tick)
+    const move = e => {
+      const transform = `translate3d(${e.clientX}px,${e.clientY}px,0) translate(-50%,-50%)`
+      if (cursorRef.current) cursorRef.current.style.transform = transform
+      if (dotRef.current) dotRef.current.style.transform = transform
     }
-    addEventListener('pointermove',move,{passive:true})
-    addEventListener('pointerover',over,{passive:true})
-    tick()
-    return ()=>{ removeEventListener('pointermove',move); removeEventListener('pointerover',over); cancelAnimationFrame(raf) }
-  },[fine])
+    const over = e => setActive(Boolean(e.target.closest('a,button,[data-cursor="active"]')))
+    addEventListener('pointermove', move, { passive:true })
+    addEventListener('pointerover', over, { passive:true })
+    return () => {
+      removeEventListener('pointermove', move)
+      removeEventListener('pointerover', over)
+    }
+  }, [fine])
 
   if (!fine) return null
 
