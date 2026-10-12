@@ -410,8 +410,9 @@ export async function buildSprudge() {
       })
     }
   } catch (e) {
-    // En cas d'échec, on garde le texte source court issu du flux plutôt que de bloquer la page.
-    console.error('Traduction Sprudge KO:', e.message)
+    // Pas de republication brute si la synthèse échoue : titre + lien source uniquement.
+    console.error('Synthese Sprudge KO:', e.message)
+    tiles = raw.map((t) => ({ ...t, summary: '' }))
   }
 
   return { tiles }
