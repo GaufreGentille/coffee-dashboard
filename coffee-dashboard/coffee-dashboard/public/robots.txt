@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+Disallow: /connexion.html
+
+Sitemap: https://kissasoko.gg/sitemap.xml
