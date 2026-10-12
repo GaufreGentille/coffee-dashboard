@@ -69,12 +69,9 @@ Ne pas modifier le contenu des fiches. Afficher clairement la source SCA dans l'
 | `rId10.png` à `rId14.png` | Histoire, cartes / diffusion / génétique | 🔴 | Provenance inconnue ; crédit/licence à retrouver ou remplacer |
 | `rId15.png`, `rId17.png` à `rId29.png` | Process café | 🔴 | Provenance inconnue ; crédit/licence à retrouver ou remplacer |
 
-### Anomalie technique détectée
+### Média volontairement retiré
 
-`chapitre-3-les-cafes-laves-fw.html` référence `assets/rId16.png`, mais ce fichier manque dans le dépôt.
-
-Le média existe dans le DOCX source de *Tasse imparfaite* sous `word/media/image7.png`. Il doit être restauré dans :
-`public/tasse-imparfaite/assets/rId16.png`.
+`rId16.png` était une figure du process lavé supprimée volontairement par GG car elle ne convenait pas visuellement. La référence résiduelle dans le HTML a été retirée afin d'éviter une image cassée.
 
 ## 5. Images éditoriales chargées depuis des sites tiers
 
@@ -131,8 +128,7 @@ Action recommandée :
 
 ## 7. Priorités avant publication élargie
 
-1. 🔴 Restaurer `rId16.png`.
-2. 🔴 Identifier ou remplacer les images inconnues de *Tasse imparfaite*, en priorité les photos et cartes.
+1. 🔴 Identifier ou remplacer les images inconnues de *Tasse imparfaite*, en priorité les photos et cartes.
 3. 🟠 Documenter le statut Suno des musiques.
 4. 🟠 Décider quoi faire des vignettes RSS tierces.
 5. 🟠 Faire une passe dédiée sur les médias Instagram / conditions Meta.
