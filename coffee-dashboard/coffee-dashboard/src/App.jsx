@@ -3,6 +3,7 @@ import HarvestPanel from './components/HarvestPanel'
 import InstaVeillePanel from './components/InstaVeillePanel'
 import HomePage from './HomePage'
 import SiteMenu from './components/SiteMenu'
+import SiteFooter from './components/SiteFooter'
 import { ORIGIN_COUNTRIES } from './data/origins'
 import './kissa.css'
 import './kissa-menu.css'
@@ -77,7 +78,7 @@ const TABS = [
   // le menu, ou elles ouvrent les actualites, le panneau musique ou le jeu.
   { id:'market',    label:'Marché',     nav:false, goTo:'news' },
   { id:'music',     label:'Musique',    nav:false, music:true },
-  { id:'game',      label:'Jeu',        nav:false, href:'https://kissasoko.netlify.app/hangar-torref-843/' },
+  { id:'game',      label:'Jeu',        nav:false, href:'/hangar-torref-843/' },
 ]
 
 const NAV_TABS = TABS.filter(t => t.nav)
@@ -318,7 +319,7 @@ function SciCard({ item, i, T }) {
 function RedditCard({ post, i, T }) {
   const [h, setH] = useState(false)
 
-  // Article communaute (Sprudge) : texte complet affiche sur place, sans lien sortant
+  // Article communauté : résumé éditorial court et lien vers la source
   const isSprudge = post.source === 'The Sprudge Report'
 
   const card = (
@@ -354,10 +355,10 @@ function RedditCard({ post, i, T }) {
             {post.summary}
           </div>
         )}
-        {!isSprudge && post.url && (
+        {post.url && (
           <a href={post.url} target="_blank" rel="noopener noreferrer"
             style={{ fontSize:'0.72rem', fontWeight:700, color:BRAND.amber, textDecoration:'none', marginTop:4, alignSelf:'flex-end' }}>
-            Lire plus →
+            {isSprudge ? 'Lire sur Sprudge →' : 'Lire plus →'}
           </a>
         )}
       </div>
@@ -1134,6 +1135,7 @@ export default function App() {
           </main>
         </>
       )}
+      <SiteFooter />
     </div>
   )
 }
