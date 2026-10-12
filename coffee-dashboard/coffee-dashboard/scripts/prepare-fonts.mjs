@@ -3,7 +3,6 @@ import { dirname, join } from 'node:path'
 import { mkdir, readFile, writeFile, copyFile, rm } from 'node:fs/promises'
 
 const require = createRequire(import.meta.url)
-const publicDir = new URL('../public/', import.meta.url)
 const fontsDir = new URL('../public/fonts/', import.meta.url)
 
 const families = [
@@ -29,7 +28,7 @@ const output = [
 ]
 
 for (const family of families) {
-  const packageRoot = dirname(require.resolve(`${family.packageName}/package.json`))
+  const packageRoot = dirname(require.resolve(`${family.packageName}/${family.stylesheets[0]}`))
   const targetDir = new URL(`../public/fonts/${family.target}/`, import.meta.url)
   await mkdir(targetDir, { recursive: true })
 
