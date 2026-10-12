@@ -22,7 +22,7 @@ const TOOLS = [
   {
     label: 'Mame Mame Roast',
     note: 'Roguelike de torréfaction',
-    href: 'https://kissasoko.netlify.app/hangar-torref-843/',
+    href: '/hangar-torref-843/',
   },
 ]
 
