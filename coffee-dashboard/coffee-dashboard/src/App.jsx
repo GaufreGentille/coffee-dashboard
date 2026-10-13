@@ -73,7 +73,7 @@ const TABS = [
   { id:'science',   label:'Science',    nav:true  },
   { id:'harvest',   label:'Origines',   nav:true  },
   { id:'gear',      label:'Matériel',   nav:true  },
-  { id:'instagram', label:'Veille visuelle', nav:true },
+  { id:'instagram', label:'Veille', nav:true },
   { id:'community', label:'Communauté', nav:true  },
   // Marche n'est pas une page : le bandeau des cours est visible partout.
   // Ces trois entrees sortent de la barre de navigation mais vivent dans
@@ -1043,7 +1043,7 @@ export default function App() {
             {tab==='instagram' && (
               <section className="ks-editorial-page ks-instagram-page ks-legacy-panel ks-page-has-art">
                 <PageOrnament page="instagram" />
-                <PageIntro title="Veille visuelle" meta="Le café en images · Sélection et tendances" />
+                <PageIntro title="Veille" meta="Le café en images · Sélection et tendances" />
                 <div className="ks-instagram-panel-skin">
                   <InstaVeillePanel />
                 </div>
