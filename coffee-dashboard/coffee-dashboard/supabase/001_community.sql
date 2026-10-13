@@ -182,3 +182,14 @@ grant insert on public.ks_topics, public.ks_comments, public.ks_reports to authe
 grant delete on public.ks_topics, public.ks_comments to authenticated;
 grant select, insert, update, delete on public.ks_topic_votes, public.ks_watch_votes to authenticated;
 -- Le champ locked ne sera modifiable que via intervention de modération côté serveur.
+
+-- Durcissement exécuté lors de la première installation :
+-- Ne pas rendre ces fonctions internes appelables via l'API publique.
+revoke execute on function public.ks_create_profile() from public, anon, authenticated;
+revoke execute on function public.ks_is_moderator() from public, anon;
+grant execute on function public.ks_is_moderator() to authenticated;
+-- Statistiques publiques intentionnelles (agrégats uniquement).
+revoke execute on function public.ks_topic_stats() from public;
+revoke execute on function public.ks_watch_stats() from public;
+grant execute on function public.ks_topic_stats() to anon, authenticated;
+grant execute on function public.ks_watch_stats() to anon, authenticated;
