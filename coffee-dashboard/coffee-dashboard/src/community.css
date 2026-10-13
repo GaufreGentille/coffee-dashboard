@@ -77,3 +77,11 @@
   .ks-comment.is-reply{margin-left:7px}
   .ks-auth-modal{padding:25px 20px}
 }
+
+/* Sprudge désormais rangé avec les Actualités, sans hotlink de vignette. */
+.ks-sprudge-section{margin:45px 0 70px;padding-top:38px;border-top:1px solid var(--ks-border-strong)}
+.ks-sprudge-intro{margin-bottom:22px}
+.ks-sprudge-intro h2{font:italic 800 clamp(28px,4vw,48px)/1.14 'Bodoni Moda',Georgia,serif;color:var(--ks-ink);margin:10px 0}
+.ks-sprudge-intro h2 span{color:var(--ks-orange)}
+.ks-sprudge-intro>p:last-child,.ks-feed-note{font-size:14px;line-height:1.7;color:var(--ks-dim)}
+.ks-feed-note{padding:18px 0}
