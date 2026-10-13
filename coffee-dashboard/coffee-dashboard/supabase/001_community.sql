@@ -164,6 +164,10 @@ create table if not exists public.ks_reports (
   constraint ks_report_one_target check ((topic_id is null) <> (comment_id is null)),
   unique(reporter_id, topic_id, comment_id)
 );
+create unique index if not exists ks_report_topic_one_per_member
+  on public.ks_reports(reporter_id,topic_id) where topic_id is not null;
+create unique index if not exists ks_report_comment_one_per_member
+  on public.ks_reports(reporter_id,comment_id) where comment_id is not null;
 alter table public.ks_reports enable row level security;
 create policy "signaler en etant membre" on public.ks_reports for insert to authenticated
   with check (reporter_id = (select auth.uid()));
@@ -176,5 +180,5 @@ grant select on public.ks_profiles, public.ks_topics, public.ks_comments to anon
 grant update(display_name) on public.ks_profiles to authenticated;
 grant insert on public.ks_topics, public.ks_comments, public.ks_reports to authenticated;
 grant delete on public.ks_topics, public.ks_comments to authenticated;
-grant select, insert, update(direction), delete on public.ks_topic_votes, public.ks_watch_votes to authenticated;
+grant select, insert, update, delete on public.ks_topic_votes, public.ks_watch_votes to authenticated;
 -- Le champ locked ne sera modifiable que via intervention de modération côté serveur.
