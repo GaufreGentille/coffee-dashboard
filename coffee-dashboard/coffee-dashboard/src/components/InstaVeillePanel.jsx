@@ -1,21 +1,21 @@
-import { useState, useEffect, useMemo, useRef, useLayoutEffect } from "react";
+import { useState, useEffect, useMemo, useRef, useLayoutEffect, useCallback } from "react";
 import VeilleAdmin from "./VeilleAdmin.jsx";
+import { useCommunityAuth, MemberBar } from "./CommunityAuth.jsx";
+import { communityDb } from "../lib/communityClient.js";
 
 // ─── Kissa Soko — Panneau Veille Instagram (v3 : épingles admin) ─────────────
 // Feed : /.netlify/functions/get-insta — rempli chaque mardi par GitHub Actions
-// Votes : /.netlify/functions/vote — identité légère (pseudo + id localStorage)
+// Votes : Supabase, identité réelle (un vote par compte) et droits RLS
 // Épingles : /.netlify/functions/pins — posts mis en avant par l'admin, sans
 //            limite de durée, images rafraîchies chaque semaine par le script.
 
 const FEED_URL = "/.netlify/functions/get-insta";
-const VOTE_URL = "/.netlify/functions/vote";
 const PINS_URL = "/.netlify/functions/pins";
 const CACHE_KEY = "insta-veille-cache";
 const CACHE_TTL = 30 * 60 * 1000; // 30 min
 const NEW_THRESHOLD = 7 * 24 * 3600 * 1000; // badge "nouveau" si post < 7 jours
 const MAX_POST_AGE = 14 * 24 * 3600 * 1000; // le feed n'affiche que les posts < 2 semaines
 const PAGE_SIZE = 48;
-const IDENTITY_TTL = 365 * 24 * 60 * 60 * 1000; // 12 mois
 
 const CATEGORY_COLORS = {
   Torrefacteur: "#b4610f",
@@ -48,91 +48,7 @@ function fmtCount(n) {
   return String(n);
 }
 
-// ─── Identité légère ─────────────────────────────────────────────────────────
-function loadIdentity() {
-  try {
-    const raw = localStorage.getItem("ks-user");
-    if (raw) {
-      const u = JSON.parse(raw);
-      if (u?.id && u?.pseudo && u?.createdAt && Date.now() - u.createdAt < IDENTITY_TTL) return u;
-      localStorage.removeItem("ks-user");
-    }
-  } catch { /* localStorage indisponible */ }
-  return null;
-}
-
-function saveIdentity(pseudo) {
-  const user = {
-    id: (crypto.randomUUID ? crypto.randomUUID() : `u-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`),
-    pseudo: pseudo.trim().slice(0, 20),
-    createdAt: Date.now(),
-  };
-  try { localStorage.setItem("ks-user", JSON.stringify(user)); } catch { /* tant pis */ }
-  return user;
-}
-
 const netScore = (counts) => (counts?.u || 0) - (counts?.d || 0);
-
-// ─── Modal de choix du pseudo ────────────────────────────────────────────────
-function PseudoModal({ onConfirm, onCancel }) {
-  const [pseudo, setPseudo] = useState("");
-  const valid = pseudo.trim().length >= 2;
-  return (
-    <div
-      onClick={onCancel}
-      style={{
-        position: "fixed", inset: 0, zIndex: 1000,
-        background: "rgba(0,0,0,0.7)", display: "flex",
-        alignItems: "center", justifyContent: "center",
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          background: "var(--ks-paper-2)", border: "1px solid rgba(218,93,22,0.30)",
-          boxShadow: "0 24px 60px rgba(7,23,43,0.18)",
-          borderRadius: 14, padding: 24, width: 300, maxWidth: "88vw",
-        }}
-      >
-        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--ks-ink)", marginBottom: 6 }}>
-          Choisis un pseudo pour voter
-        </div>
-        <div style={{ fontSize: 10, color: "var(--ks-dim)", lineHeight: 1.5, marginBottom: 14 }}>
-          Pas de compte, pas de mot de passe — ton pseudo est lié à ce navigateur.
-        </div>
-        <input
-          autoFocus
-          value={pseudo}
-          onChange={(e) => setPseudo(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && valid && onConfirm(pseudo)}
-          placeholder="Ton pseudo (2-20 caractères)"
-          maxLength={20}
-          style={{
-            width: "100%", boxSizing: "border-box",
-            background: "#fff", border: "1px solid var(--ks-border-strong)",
-            borderRadius: 8, color: "var(--ks-ink)", caretColor: "var(--ks-orange)",
-            fontSize: 13, padding: "8px 12px", outline: "none",
-          }}
-        />
-        <div style={{ display: "flex", gap: 8, marginTop: 14, justifyContent: "flex-end" }}>
-          <button onClick={onCancel} style={{
-            cursor: "pointer", fontSize: 11, borderRadius: 8, padding: "6px 14px",
-            border: "1px solid var(--ks-border-strong)", background: "none", color: "var(--ks-dim)",
-          }}>Annuler</button>
-          <button
-            onClick={() => valid && onConfirm(pseudo)}
-            disabled={!valid}
-            style={{
-              cursor: valid ? "pointer" : "default", fontSize: 11, fontWeight: 700,
-              borderRadius: 8, padding: "6px 16px", border: "none",
-              background: valid ? "var(--ks-orange)" : "rgba(218,93,22,0.25)", color: "#fff",
-            }}
-          >C'est parti !</button>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 // ─── Boutons de vote 🔥/❄️ ───────────────────────────────────────────────────
 function VoteButtons({ postId, counts, mine, onVote }) {
@@ -300,9 +216,9 @@ export default function InstaVeillePanel() {
     }
   }, [limit]);
 
-  const [user, setUser] = useState(loadIdentity);
+  const { user, requireAuth } = useCommunityAuth();
   const [votes, setVotes] = useState({ counts: {}, mine: {} });
-  const [pendingVote, setPendingVote] = useState(null);
+  const [voteError, setVoteError] = useState('');
 
   const [pins, setPins] = useState({});
   const [adminKey, setAdminKey] = useState(() => sessionStorage.getItem("veille-admin-key") || "");
@@ -342,57 +258,32 @@ export default function InstaVeillePanel() {
       .catch(() => { /* épingles optionnelles */ });
   }, []);
 
-  // ── Chargement des votes (jamais en cache) ──
-  useEffect(() => {
-    const qs = user ? `?user=${encodeURIComponent(user.id)}` : "";
-    fetch(VOTE_URL + qs)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((v) => { if (v) setVotes({ counts: v.counts || {}, mine: v.mine || {} }); })
-      .catch(() => { /* votes optionnels */ });
-  }, [user]);
-
-  // ── Envoi d'un vote (optimiste) ──
-  const sendVote = async (postId, dir, identity) => {
-    const u = identity || user;
-    if (!u) { setPendingVote({ postId, dir }); return; }
-
-    setVotes((prev) => {
-      const counts = { ...prev.counts };
-      const mine = { ...prev.mine };
-      const c = { ...(counts[postId] || { u: 0, d: 0 }) };
-      const old = mine[postId] || 0;
-      if (old === 1) c.u = Math.max(0, c.u - 1);
-      if (old === -1) c.d = Math.max(0, c.d - 1);
-      if (dir === 1) c.u += 1;
-      if (dir === -1) c.d += 1;
-      counts[postId] = c;
-      if (dir === 0) delete mine[postId]; else mine[postId] = dir;
-      return { counts, mine };
-    });
-
-    try {
-      const r = await fetch(VOTE_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ postId, dir, userId: u.id, pseudo: u.pseudo }),
-      });
-      const res = await r.json();
-      if (r.ok) {
-        setVotes((prev) => ({
-          ...prev,
-          counts: { ...prev.counts, [postId]: { u: res.u, d: res.d } },
-        }));
-      }
-    } catch { /* recalé au prochain chargement */ }
-  };
-
-  const confirmPseudo = (pseudo) => {
-    const u = saveIdentity(pseudo);
-    setUser(u);
-    if (pendingVote) {
-      sendVote(pendingVote.postId, pendingVote.dir, u);
-      setPendingVote(null);
+  // Vote public en lecture. Seul un utilisateur Supabase peut écrire (RLS).
+  const reloadVotes = useCallback(async () => {
+    if (!communityDb) return;
+    const { data: rows, error: err } = await communityDb.rpc('ks_watch_stats');
+    if (err) { setVoteError(err.message); return; }
+    const counts = {}, mine = {};
+    for (const row of rows || []) {
+      counts[row.post_id] = { u: Number(row.ups), d: Number(row.downs) };
+      if (row.mine) mine[row.post_id] = row.mine;
     }
+    setVotes({ counts, mine });
+  }, []);
+
+  useEffect(() => { reloadVotes(); }, [reloadVotes, user?.id]);
+
+  const sendVote = async (postId, dir) => {
+    if (!requireAuth()) return;
+    if (!communityDb) { setVoteError('La connexion des membres est en préparation.'); return; }
+    setVoteError('');
+    const result = dir === 0
+      ? await communityDb.from('ks_watch_votes').delete().eq('post_id', String(postId)).eq('user_id', user.id)
+      : await communityDb.from('ks_watch_votes').upsert({
+          post_id: String(postId), user_id: user.id, direction: dir,
+        }, { onConflict: 'post_id,user_id' });
+    if (result.error) setVoteError(result.error.message);
+    else await reloadVotes();
   };
 
   // ── Épingler / désépingler (admin) ──
@@ -498,7 +389,7 @@ export default function InstaVeillePanel() {
 
   if (error) {
     return <div style={{ padding: 20, color: "#b4402f", fontSize: 12 }}>
-      Erreur de chargement de la veille Instagram : {error}
+      Erreur de chargement de la veille visuelle : {error}
     </div>;
   }
   if (!data) {
@@ -515,9 +406,8 @@ export default function InstaVeillePanel() {
 
   return (
     <div>
-      {pendingVote && (
-        <PseudoModal onConfirm={confirmPseudo} onCancel={() => setPendingVote(null)} />
-      )}
+      <MemberBar introduction="La veille se consulte librement. Connecte-toi pour voter sur les publications." />
+      {voteError && <p className="ks-form-error" role="alert">{voteError}</p>}
 
       {/* ─── Barre d'etat ───
           Le titre « Veille Instagram » a ete retire : la page porte deja son
@@ -536,7 +426,7 @@ export default function InstaVeillePanel() {
           </span>
         )}
         {user && (
-          <span style={{ fontSize: 9, color: "var(--ks-dim)" }}>· connecté : <span style={{ color: "var(--ks-orange)", fontWeight: 600 }}>{user.pseudo}</span></span>
+          <span style={{ fontSize: 9, color: "var(--ks-dim)" }}>· connecté : <span style={{ color: "var(--ks-orange)", fontWeight: 600 }}>{user.user_metadata?.display_name || user.email?.split("@")[0] || "Membre"}</span></span>
         )}
         {data.fetchedAt && (
           <span style={{ fontSize: 9, color: "var(--ks-faint)", marginLeft: "auto" }}>
