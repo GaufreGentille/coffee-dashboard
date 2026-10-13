@@ -37,7 +37,7 @@
 .ks-thread{max-width:860px;margin:36px auto}
 .ks-back-link{margin-bottom:25px}
 .ks-thread-heading{display:flex;gap:22px;align-items:flex-start}
-.ks-thread-heading h2{font:italic 800 clamp(30px,4vw,52px)/1.1 'Bodoni Moda',Georgia,serif;margin:12px 0 10px}
+.ks-thread-heading h2{font:italic 800 clamp(28px,3.2vw,40px)/1.16 'Bodoni Moda',Georgia,serif;margin:12px 0 10px;overflow-wrap:anywhere}
 .ks-thread-body{font-size:16px;line-height:1.85;white-space:pre-wrap;overflow-wrap:anywhere;padding:24px 10px 32px 70px}
 .ks-thread h3{font-size:20px;border-top:1px solid var(--ks-border-strong);padding:22px 0 15px}
 .ks-comment{padding:17px 0 17px 16px;border-left:2px solid var(--ks-border);margin-bottom:8px}
