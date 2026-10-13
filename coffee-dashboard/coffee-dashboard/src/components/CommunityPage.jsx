@@ -231,7 +231,7 @@ function TopicDetail({id,topic,stats,onBack,vote,report}) {
     <div className="ks-comment-meta"><strong>{nameOf(c)}</strong> · {dateFR(c.created_at)}</div>
     <p>{c.body}</p>
     <div className="ks-comment-actions">
-      <button type="button" onClick={()=>{if(requireAuth()){setReplyTo(c.id);document.getElementById('ks-reply-editor')?.focus()}}}>Répondre</button>
+      {depth<3&&<button type="button" onClick={()=>{if(requireAuth()){setReplyTo(c.id);document.getElementById('ks-reply-editor')?.focus()}}}>Répondre</button>}
       <button type="button" onClick={()=>report('comment',c.id)}>Signaler</button>
       {user?.id===c.author_id&&<button type="button" onClick={()=>remove('comment',c.id)}>Supprimer</button>}
     </div>
