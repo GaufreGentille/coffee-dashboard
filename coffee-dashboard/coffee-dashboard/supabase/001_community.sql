@@ -193,3 +193,6 @@ revoke execute on function public.ks_topic_stats() from public;
 revoke execute on function public.ks_watch_stats() from public;
 grant execute on function public.ks_topic_stats() to anon, authenticated;
 grant execute on function public.ks_watch_stats() to anon, authenticated;
+
+-- Déclencheur de contrôle des commentaires, non appelé directement.
+revoke execute on function public.ks_check_comment() from public, anon, authenticated;
