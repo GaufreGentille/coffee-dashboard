@@ -337,60 +337,6 @@ function SciCard({ item, i, T }) {
   )
 }
 
-function RedditCard({ post, i, T }) {
-  const [h, setH] = useState(false)
-
-  // Article communauté : résumé éditorial court et lien vers la source
-  const isSprudge = post.source === 'The Sprudge Report'
-
-  const card = (
-    <div onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
-      style={{
-        background:T.surf, border:`1px solid ${h ? BRAND.amber+'66' : T.border}`,
-        borderRadius:12, overflow:'hidden',
-        cursor: isSprudge ? 'default' : 'pointer',
-        transition:'all 0.18s', animation:`fadeUp 0.3s ease ${i*55}ms both`,
-        transform: (!isSprudge && h) ? 'translateY(-3px)' : 'translateY(0)',
-        boxShadow: (!isSprudge && h) ? `0 8px 24px rgba(0,0,0,0.15)` : 'none',
-        display:'flex', flexDirection:'column',
-      }}>
-      {post.img && (
-        <div style={{
-          height:160, flexShrink:0,
-          backgroundImage:`url(${post.img})`,
-          backgroundSize:'cover', backgroundPosition:'center',
-          position:'relative',
-        }}>
-          <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 60%)' }} />
-        </div>
-      )}
-      <div style={{ padding:'16px 18px 18px', flex:1, display:'flex', flexDirection:'column', gap:8 }}>
-        {post.date && (
-          <div style={{ fontSize:10, color:T.faint, letterSpacing:'0.05em' }}>{post.date}</div>
-        )}
-        <div style={{ fontSize:'0.95rem', fontWeight:700, color:T.text, lineHeight:1.4 }}>
-          {post.title}
-        </div>
-        {post.summary && (
-          <div style={{ fontSize:'0.82rem', color:T.dim, lineHeight:1.7, flex:1 }}>
-            {post.summary}
-          </div>
-        )}
-        {post.url && (
-          <a href={post.url} target="_blank" rel="noopener noreferrer"
-            style={{ fontSize:'0.72rem', fontWeight:700, color:BRAND.amber, textDecoration:'none', marginTop:4, alignSelf:'flex-end' }}>
-            {isSprudge ? 'Lire sur Sprudge →' : 'Lire plus →'}
-          </a>
-        )}
-      </div>
-    </div>
-  )
-
-  return isSprudge
-    ? card
-    : <a href={post.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration:'none' }}>{card}</a>
-}
-
 function GearHeroCard({ item, T }) {
   const [h, setH] = useState(false)
   return (
