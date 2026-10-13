@@ -1,0 +1,79 @@
+/* Kissa Soko · Le Comptoir (forum) et connexion membres */
+.ks-forum{max-width:1160px;margin:0 auto;padding:32px 0 100px;min-height:70vh}
+.ks-forum-heading{padding:34px 0 30px;border-bottom:1px solid var(--ks-border)}
+.ks-forum-eyebrow,.ks-overline{font:700 10px/1.5 'DM Sans',sans-serif;color:var(--ks-orange);letter-spacing:.2em;text-transform:uppercase}
+.ks-forum-heading h1,.ks-auth-modal h2,.ks-topic-composer h2{font:italic 800 clamp(48px,7vw,96px)/1.05 'Bodoni Moda',Georgia,serif;letter-spacing:-.045em}
+.ks-forum-heading h1 span{color:var(--ks-orange)}
+.ks-forum-heading>p:last-child{font-size:16px;color:var(--ks-ink-2);max-width:660px;line-height:1.6;margin-top:12px}
+.ks-memberbar{display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;border-bottom:1px solid var(--ks-border);padding:17px 0;margin-bottom:20px;color:var(--ks-dim);font-size:13px}
+.ks-memberbar>div{display:flex;align-items:center;gap:16px}
+.ks-memberbar strong{color:var(--ks-ink)}
+.ks-memberbar button,.ks-comment-actions button,.ks-back-link,.ks-auth-switch button,.ks-reply-editor>button:not(.ks-primary-action){border:0;background:transparent;color:var(--ks-orange);font-weight:700;font-size:13px;text-decoration:underline;text-underline-offset:3px;padding:4px}
+.ks-forum-toolbar{display:flex;gap:20px;align-items:flex-start;justify-content:space-between;margin:26px 0;flex-wrap:wrap}
+.ks-forum-filters{display:flex;gap:6px;flex-wrap:wrap;max-width:820px}
+.ks-forum-filters button{padding:10px 13px;border:1px solid var(--ks-border-strong);border-radius:100px;background:transparent;color:var(--ks-ink);font-size:12px;font-weight:700;transition:background .2s}
+.ks-forum-filters button.is-active,.ks-forum-filters button:hover{background:var(--ks-ink);color:var(--ks-paper)}
+.ks-primary-action{padding:12px 19px;border:0;border-radius:7px;color:#fff;background:var(--ks-orange);font-weight:750;font-size:13px;min-height:44px;white-space:nowrap}
+.ks-primary-action:hover{background:#bd4d0f}
+.ks-primary-action:disabled{opacity:.5}
+.ks-forum-sort{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 10px;color:var(--ks-dim);font-size:12px}
+.ks-forum-sort label{display:flex;gap:8px;align-items:center}
+.ks-forum-sort select{background:var(--ks-paper-2);color:var(--ks-ink);border:1px solid var(--ks-border);padding:6px 10px;border-radius:6px;font-size:12px}
+.ks-topic{display:flex;gap:20px;border-bottom:1px solid var(--ks-border);padding:24px 14px 24px 0;transition:background .15s}
+.ks-topic:hover{background:rgba(255,255,255,.27)}
+.ks-vote-column{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;flex-shrink:0;min-width:48px;gap:3px;color:var(--ks-ink)}
+.ks-vote-column button{border:1px solid var(--ks-border);border-radius:5px;background:transparent;font-size:15px;width:35px;height:29px;color:var(--ks-dim)}
+.ks-vote-column button.is-active{color:var(--ks-orange);border-color:var(--ks-orange);background:rgba(218,93,22,.08)}
+.ks-vote-column strong{font-size:15px;font-weight:800}
+.ks-topic-content{text-align:left;border:0;background:transparent;flex:1;min-width:0;color:var(--ks-ink)}
+.ks-topic-cat{display:inline-block;padding:5px 8px;background:rgba(218,93,22,.09);border:1px solid rgba(218,93,22,.22);color:var(--ks-orange);font-size:10px;font-weight:750;border-radius:3px;text-transform:uppercase;letter-spacing:.1em}
+.ks-topic-content h2{font:700 clamp(18px,2.1vw,25px)/1.3 'DM Sans',sans-serif;letter-spacing:-.035em;margin:9px 0}
+.ks-topic-content p{font-size:14px;color:var(--ks-ink-2);line-height:1.55;white-space:pre-line;overflow-wrap:anywhere}
+.ks-topic-meta{display:block;color:var(--ks-dim);font-size:11px;margin-top:12px}
+.ks-forum-empty{padding:70px 20px;text-align:center;border:1px solid var(--ks-border);border-radius:10px;color:var(--ks-dim);margin:24px 0}
+.ks-forum-empty h2{font:italic 800 32px 'Bodoni Moda',Georgia,serif;color:var(--ks-ink);margin-bottom:10px}
+.ks-forum-alert{padding:12px 14px;background:#fff4ed;border:1px solid rgba(218,93,22,.32);border-radius:8px;color:#9e380c;font-size:13px;margin:14px 0}
+.ks-forum-alert button{border:0;background:none;text-decoration:underline;color:inherit;margin-left:12px}
+.ks-thread{max-width:860px;margin:36px auto}
+.ks-back-link{margin-bottom:25px}
+.ks-thread-heading{display:flex;gap:22px;align-items:flex-start}
+.ks-thread-heading h2{font:italic 800 clamp(30px,4vw,52px)/1.1 'Bodoni Moda',Georgia,serif;margin:12px 0 10px}
+.ks-thread-body{font-size:16px;line-height:1.85;white-space:pre-wrap;overflow-wrap:anywhere;padding:24px 10px 32px 70px}
+.ks-thread h3{font-size:20px;border-top:1px solid var(--ks-border-strong);padding:22px 0 15px}
+.ks-comment{padding:17px 0 17px 16px;border-left:2px solid var(--ks-border);margin-bottom:8px}
+.ks-comment.is-reply{margin:15px 0 2px 14px;border-left-color:rgba(218,93,22,.28)}
+.ks-comment-meta{color:var(--ks-dim);font-size:12px;margin-bottom:8px}
+.ks-comment-meta strong{color:var(--ks-ink)}
+.ks-comment>p{font-size:14px;line-height:1.7;white-space:pre-wrap;overflow-wrap:anywhere}
+.ks-comment-actions{display:flex;gap:12px;flex-wrap:wrap;margin:12px 0 0}
+.ks-comment-actions button{font-size:11px;text-decoration:none}
+.ks-comment-actions button:hover{text-decoration:underline}
+.ks-reply-editor{margin-top:30px;display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.ks-reply-editor>label{font-size:14px;font-weight:750}
+.ks-reply-editor textarea,.ks-auth-modal input,.ks-auth-modal textarea,.ks-auth-modal select{width:100%;border:1px solid var(--ks-border-strong);border-radius:6px;padding:12px 14px;color:var(--ks-ink);background:#fffaf4;font:500 14px/1.5 'DM Sans',sans-serif}
+.ks-reply-editor textarea{resize:vertical}
+.ks-auth-scrim{position:fixed;inset:0;z-index:1005;background:rgba(7,23,43,.72);display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+.ks-auth-modal{position:relative;width:min(100%,520px);max-height:94vh;overflow-y:auto;background:var(--ks-paper);border:1px solid var(--ks-border-strong);border-radius:12px;padding:clamp(24px,4vw,42px);box-shadow:0 30px 80px rgba(0,0,0,.2)}
+.ks-auth-close{position:absolute;right:18px;top:13px;font-size:28px;color:var(--ks-ink);background:transparent;border:0;padding:5px}
+.ks-auth-modal h2{font-size:clamp(35px,5vw,55px);margin:12px 0}
+.ks-auth-subtitle{font-size:14px;line-height:1.6;color:var(--ks-ink-2);margin:12px 0 24px}
+.ks-auth-modal form{display:flex;flex-direction:column;gap:14px}
+.ks-auth-modal form label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:700;color:var(--ks-ink-2)}
+.ks-auth-modal form .ks-primary-action{align-self:flex-start;margin-top:6px}
+.ks-auth-switch{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:17px}
+.ks-auth-switch button{font-size:12px}
+.ks-form-error{color:#a22c20;font-size:13px;line-height:1.5}
+.ks-form-notice{color:#436a45;font-size:13px;line-height:1.5;margin-top:10px}
+.ks-topic-composer{width:min(100%,680px)}
+.ks-topic-composer h2{font-size:44px;margin:10px 0 25px}
+@media(max-width:650px){
+  .ks-forum{padding:10px 0 70px}
+  .ks-topic{gap:8px;padding:18px 0}
+  .ks-vote-column{min-width:36px}
+  .ks-forum-toolbar .ks-primary-action{width:100%}
+  .ks-memberbar button{font-size:12px}
+  .ks-thread-body{padding:22px 0}
+  .ks-thread-heading{gap:10px}
+  .ks-comment.is-reply{margin-left:7px}
+  .ks-auth-modal{padding:25px 20px}
+}
