@@ -389,7 +389,7 @@ export default function InstaVeillePanel() {
 
   if (error) {
     return <div style={{ padding: 20, color: "#b4402f", fontSize: 12 }}>
-      Erreur de chargement de la veille visuelle : {error}
+      Erreur de chargement de la veille : {error}
     </div>;
   }
   if (!data) {
