@@ -49,3 +49,10 @@ Ne **jamais** utiliser de clé Supabase `service_role` ni de secret serveur dans
 ## Périmètre de cette première livraison
 Forum fonctionnel après configuration Supabase : inscription/connexion/email, catégories, sujets, réponses (jusqu'à 4 niveaux visibles), votes, signalements et suppression par l'auteur. Lecture publique ; backend protégé par RLS.
 Ce n'est pas encore une version prête à ouvrir au grand public. La modération complète, l'antispam, les profils avancés, la pagination et les notifications viendront ensuite.
+
+## Suivi du déploiement
+
+- 13 octobre 2026 : Supabase (projet `inansuogvcoivotaopga`) créé en Europe, 7 tables RLS et migrations appliquées.
+- Variables `VITE_SUPABASE_URL` et `VITE_SUPABASE_ANON_KEY` configurées par le propriétaire dans Netlify, toutes les portées y compris `Deploy Previews`.
+- Dans Netlify, `main` reste production, `legal-and-privacy` est maintenant autorisée dans `Branch deploys`, et les `Deploy Previews` des pull requests vers les branches autorisées sont activées.
+- La PR #2 doit recevoir une prévisualisation distincte avant toute validation visuelle, sans fusion vers `main`.
