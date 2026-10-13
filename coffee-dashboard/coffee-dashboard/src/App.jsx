@@ -1,12 +1,14 @@
 import { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react'
 import HarvestPanel from './components/HarvestPanel'
 import InstaVeillePanel from './components/InstaVeillePanel'
+import CommunityPage from './components/CommunityPage'
 import HomePage from './HomePage'
 import SiteMenu from './components/SiteMenu'
 import SiteFooter from './components/SiteFooter'
 import { ORIGIN_COUNTRIES } from './data/origins'
 import './kissa.css'
 import './kissa-menu.css'
+import './community.css'
 
 // GaufreGentille brand palette
 const BRAND = {
@@ -71,8 +73,8 @@ const TABS = [
   { id:'science',   label:'Science',    nav:true  },
   { id:'harvest',   label:'Origines',   nav:true  },
   { id:'gear',      label:'Matériel',   nav:true  },
-  { id:'reddit',    label:'Communauté', nav:true  },
-  { id:'instagram', label:'Instagram',  nav:true  },
+  { id:'instagram', label:'Veille visuelle', nav:true },
+  { id:'community', label:'Communauté', nav:true  },
   // Marche n'est pas une page : le bandeau des cours est visible partout.
   // Ces trois entrees sortent de la barre de navigation mais vivent dans
   // le menu, ou elles ouvrent les actualites, le panneau musique ou le jeu.
@@ -95,7 +97,7 @@ const PAGE_ART = {
   science:   { src:'/kissa-bottom-botanical.png',  side:'left',  variant:'is-science' },
   harvest:   { src:'/kissa-hero-botanical.png',    side:'right', variant:'is-harvest' },
   gear:      { src:'/kissa-bottom-botanical.png',  side:'left',  variant:'is-gear' },
-  reddit:    { src:'/kissa-hero-botanical.png',    side:'right', variant:'is-reddit' },
+  community: { src:'/kissa-hero-botanical.png',    side:'right', variant:'is-reddit' },
   instagram: { src:'/kissa-bottom-botanical.png',  side:'left',  variant:'is-instagram' },
 }
 
@@ -290,6 +292,26 @@ function NewsPage({ items, dateStr }) {
           {rest.map(item => <NewsCard key={item.url || item.title} item={item} />)}
         </div>
       )}
+    </section>
+  )
+}
+
+function SprudgeSection({ feed }) {
+  if (feed.loading) return <p className="ks-feed-note">Chargement du Sprudge Report…</p>
+  if (feed.error) return <p className="ks-feed-note">Le Sprudge Report est momentanément indisponible.</p>
+  if (!feed.data?.length) return null
+  return (
+    <section className="ks-sprudge-section" aria-label="Le Sprudge Report">
+      <div className="ks-sprudge-intro">
+        <p className="ks-page-meta">DANS LA PRESSE CAFÉ</p>
+        <h2>Le Sprudge Report<span>.</span></h2>
+        <p>Notre sélection de résumés, avec accès direct aux publications originales.</p>
+      </div>
+      <div className="ks-news-grid">
+        {feed.data.map((post,i) => (
+          <NewsCard key={post.url || i} item={{...post, img: null, image: null, source: 'The Sprudge Report'}} />
+        ))}
+      </div>
     </section>
   )
 }
@@ -1013,16 +1035,16 @@ export default function App() {
   const news      = useFeed('/.netlify/functions/get-news',    pickNews,    isHome || tab === 'news')
   const science   = useFeed('/.netlify/functions/get-science', pickScience, tab === 'science')
   const gear      = useFeed('/.netlify/functions/get-gear',    pickGear,    tab === 'gear')
-  const community = useFeed('/.netlify/functions/get-sprudge', pickSprudge, tab === 'reddit')
+  const sprudge   = useFeed('/.netlify/functions/get-sprudge', pickSprudge, tab === 'news')
   const harvest   = useFeed('/.netlify/functions/get-harvest', pickHarvest, isHome || tab === 'harvest')
 
-  const feeds = { news, science, gear, reddit: community, harvest }
+  const feeds = { news, science, gear, harvest }
 
   useEffect(() => {
     if (markets.data) setLastRefresh(new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}))
   }, [markets.data])
 
-  const refresh = () => { markets.reload(); feeds[tab]?.reload() }
+  const refresh = () => { markets.reload(); feeds[tab]?.reload(); if (tab === 'news') sprudge.reload() }
   const marketRows = markets.data?.rows?.length ? markets.data.rows : MARKET_PLACEHOLDER
   const mktTime = markets.data?.updatedAt || '--'
   const dateStr = new Intl.DateTimeFormat('fr-FR', { weekday:'long', day:'numeric', month:'long', year:'numeric' }).format(new Date())
@@ -1064,36 +1086,25 @@ export default function App() {
           {showMusic && <MusicPanel />}
 
           <main className="ks-page-shell">
-            {tab==='news' && (
-              news.loading ? <Spinner label="Chargement des actualités..." /> :
-              news.error ? <ErrMsg msg={news.error} /> :
-              news.data?.length ? <NewsPage items={news.data} dateStr={dateStr} /> :
-              <ErrMsg msg="Aucune actualité disponible pour le moment." />
-            )}
+            {tab==='news' && (<>
+              {news.loading ? <Spinner label="Chargement des actualités..." /> :
+                news.error ? <ErrMsg msg={news.error} /> :
+                news.data?.length ? <NewsPage items={news.data} dateStr={dateStr} /> :
+                <ErrMsg msg="Aucune actualité disponible pour le moment." />}
+              <SprudgeSection feed={sprudge} />
+            </>)}
 
             {tab==='instagram' && (
               <section className="ks-editorial-page ks-instagram-page ks-legacy-panel ks-page-has-art">
                 <PageOrnament page="instagram" />
-                <PageIntro title="Instagram" meta="Veille visuelle" />
+                <PageIntro title="Veille visuelle" meta="Le café en images · Sélection et tendances" />
                 <div className="ks-instagram-panel-skin">
                   <InstaVeillePanel />
                 </div>
               </section>
             )}
 
-            {tab==='reddit' && (
-              community.loading ? <Spinner label="Chargement de la communauté..." /> :
-              community.error ? <ErrMsg msg={community.error} /> :
-              community.data?.length ? (
-                <section className="ks-editorial-page ks-community-page ks-legacy-panel ks-page-has-art">
-                  <PageOrnament page="reddit" />
-                  <PageIntro title="Communauté" meta={`The Sprudge Report · ${community.data.length} articles · ${dateStr}`} />
-                  <div className="ks-legacy-grid">
-                    {community.data.map((post,i) => <RedditCard key={post.url || post.title || i} post={post} i={i} T={T} />)}
-                  </div>
-                </section>
-              ) : <ErrMsg msg="Aucun article disponible pour le moment." />
-            )}
+            {tab==='community' && <CommunityPage />}
 
             {tab==='science' && (
               science.loading ? <Spinner label="Recherche d'articles scientifiques..." /> :
