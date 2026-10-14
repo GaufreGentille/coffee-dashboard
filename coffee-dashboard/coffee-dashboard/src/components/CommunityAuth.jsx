@@ -56,8 +56,8 @@ export function CommunityAuthProvider({ children }) {
 export function MemberBar({ introduction = '' }) {
   const auth = useCommunityAuth()
   return (
-    <div className="ks-memberbar">
-      <span>{introduction || 'La lecture est libre. Participe avec ton compte Kissa Soko.'}</span>
+    <div className={`ks-memberbar${introduction === null ? ' ks-memberbar-actions-only' : ''}`}>
+      {introduction !== null && <span>{introduction || 'La lecture est libre. Participe avec ton compte Kissa Soko.'}</span>}
       {auth?.user ? (
         <div>
           <strong>{memberName(auth.user)}</strong>
