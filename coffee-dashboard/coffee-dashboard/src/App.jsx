@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react
 import HarvestPanel from './components/HarvestPanel'
 import InstaVeillePanel from './components/InstaVeillePanel'
 import CommunityPage from './components/CommunityPage'
+import { useCommunityAuth } from './components/CommunityAuth'
 import HomePage from './HomePage'
 import SiteMenu from './components/SiteMenu'
 import SiteFooter from './components/SiteFooter'
@@ -217,6 +218,33 @@ function PageIntro({ title, meta, deck }) {
   )
 }
 
+
+function PrivateVeillePage() {
+  const { user, loading, openAuth } = useCommunityAuth()
+  return (
+    <section className="ks-editorial-page ks-instagram-page ks-legacy-panel ks-page-has-art">
+      <PageOrnament page="instagram" />
+      <PageIntro title="Veille" meta="Le café en images · Sélection et tendances" />
+      {loading ? (
+        <Spinner label="Vérification de la connexion…" />
+      ) : user ? (
+        <div className="ks-instagram-panel-skin">
+          <InstaVeillePanel />
+        </div>
+      ) : (
+        <div className="ks-veille-locked">
+          <p className="ks-forum-eyebrow">ESPACE RÉSERVÉ AUX MEMBRES</p>
+          <h2>Un regard sur le café, entre passionnés.</h2>
+          <p>Connecte-toi à ton compte gratuit Kissa Soko pour découvrir la veille et voter sur les publications.</p>
+          <button type="button" className="ks-primary-action" onClick={openAuth}>
+            Se connecter ou s'inscrire →
+          </button>
+          <small>Le Comptoir reste accessible à tous en lecture.</small>
+        </div>
+      )}
+    </section>
+  )
+}
 
 function PageOrnament({ page }) {
   const art = PAGE_ART[page]
@@ -1040,15 +1068,7 @@ export default function App() {
               <SprudgeSection feed={sprudge} />
             </>)}
 
-            {tab==='instagram' && (
-              <section className="ks-editorial-page ks-instagram-page ks-legacy-panel ks-page-has-art">
-                <PageOrnament page="instagram" />
-                <PageIntro title="Veille" meta="Le café en images · Sélection et tendances" />
-                <div className="ks-instagram-panel-skin">
-                  <InstaVeillePanel />
-                </div>
-              </section>
-            )}
+            {tab==='instagram' && <PrivateVeillePage />}
 
             {tab==='community' && <CommunityPage />}
 
