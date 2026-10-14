@@ -367,19 +367,22 @@ function SciCard({ item, i, T }) {
 
 // Les flux Matériel livrent `title`, `summary`, `category`, `source` et `img`.
 // Une photo absente (ou refusée par un site tiers) ne doit pas laisser un grand bloc vide.
-function GearPhoto({ image, title, featured = false }) {
-  const [broken, setBroken] = useState(false)
+function GearPhoto({ image, fallbackImage, title, featured = false }) {
+  const [failedUrl, setFailedUrl] = useState(null)
   const safeImage = typeof image === 'string' && /^https?:\/\//i.test(image)
-  if (!safeImage || broken) return null
+  const safeFallback = typeof fallbackImage === 'string' && /^https?:\/\//i.test(fallbackImage)
+  const displayed = failedUrl === image
+    ? (safeFallback && fallbackImage !== image ? fallbackImage : null)
+    : (safeImage ? image : (safeFallback ? fallbackImage : null))
 
+  if (!displayed || failedUrl === displayed) return null
   return (
     <div className={`ks-gear-photo${featured ? ' is-featured' : ''}`}>
       <img
-        src={image}
+        src={displayed}
         alt={title || 'Matériel café présenté dans l’article'}
         loading={featured ? 'eager' : 'lazy'}
-        referrerPolicy="no-referrer"
-        onError={() => setBroken(true)}
+        onError={() => setFailedUrl(displayed)}
       />
     </div>
   )
@@ -395,7 +398,7 @@ function GearHeroCard({ item, T }) {
          background: T.surf, border: `1px solid ${hovered ? BRAND.amber+'88' : T.border2}`,
          boxShadow: hovered ? '0 4px 24px rgba(218,93,22,.08)' : 'none'
        }}>
-      <GearPhoto image={item.img} title={title} featured />
+      <GearPhoto image={item.img} fallbackImage={item.imgFallback} title={title} featured />
       <div className="ks-gear-feature-copy">
         <div className="ks-gear-card-meta">
           <span className="ks-gear-category">{item.category || 'Matériel'}</span>
@@ -415,7 +418,7 @@ function GearCard({ item, i, T }) {
   return (
     <a className="ks-gear-tile" href={item.url} target="_blank" rel="noopener noreferrer"
        style={{ background: T.surf, border: `1px solid ${T.border}`, animation: `fadeUp .35s ease ${i*60}ms both` }}>
-      <GearPhoto image={item.img} title={title} />
+      <GearPhoto image={item.img} fallbackImage={item.imgFallback} title={title} />
       <div className="ks-gear-tile-copy">
         <div className="ks-gear-card-meta">
           <span className="ks-gear-category">{item.category || 'Matériel'}</span>
@@ -1013,7 +1016,7 @@ export default function App() {
   const markets   = useFeed('/.netlify/functions/get-markets', pickMarkets, true)
   const news      = useFeed('/.netlify/functions/get-news',    pickNews,    isHome || tab === 'news')
   const science   = useFeed('/.netlify/functions/get-science', pickScience, tab === 'science')
-  const gear      = useFeed('/.netlify/functions/get-gear',    pickGear,    tab === 'gear')
+  const gear      = useFeed('/.netlify/functions/get-gear?v=photos2',    pickGear,    tab === 'gear')
   const sprudge   = useFeed('/.netlify/functions/get-sprudge', pickSprudge, tab === 'news')
   const harvest   = useFeed('/.netlify/functions/get-harvest', pickHarvest, isHome || tab === 'harvest')
 
