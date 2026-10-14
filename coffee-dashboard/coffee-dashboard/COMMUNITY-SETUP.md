@@ -5,9 +5,9 @@ Ne pas fusionner sans contrôle fonctionnel / sécurité / RGPD.
 
 ## Architecture validée
 - **Actualités** : flux existants + section *The Sprudge Report*, courts résumés originaux et lien source.
-- **Veille visuelle** : l'ancien panneau Instagram et ses épingles, lisible librement ; votes réservés aux comptes.
+- **Veille** : accès réservé aux membres connectés, y compris le flux Instagram, les épingles, la liste des comptes suivis et les votes ; APIs protégées par jeton Supabase validé côté serveur.
 - **Communauté**, dernier univers de la barre de navigation : « Le Comptoir », forum café indépendant.
-- **Lecture anonyme** autorisée partout. **Écriture authentifiée** (sujets, réponses, votes et signalements).
+- **Lecture publique** uniquement pour les autres rubriques et **Communauté**. **Veille privée**. **Écriture authentifiée** (sujets, réponses, votes et signalements).
 - L'ancien mot de passe unique `KISSA_PASSWORD` reste réservé aux fonctions privées préexistantes (studio/admin). Ce n'est **pas** un compte de membre.
 
 ## Mise en route (à effectuer une fois)
@@ -31,11 +31,13 @@ npm run build
 Ne **jamais** utiliser de clé Supabase `service_role` ni de secret serveur dans une variable `VITE_*` ou dans GitHub.
 
 ## Tests de réception indispensables
-- Naviguer sans compte : Actualités/Sprudge, Veille et lecture des sujets/réponses restent accessibles.
+- Naviguer sans compte : Actualités/Sprudge et lecture des sujets/réponses restent accessibles ; Veille affiche uniquement son écran de connexion.
 - Essayer de publier, commenter ou voter hors connexion : la fenêtre de connexion apparaît et aucune écriture n'a lieu.
+- Tester les endpoints `get-insta`, `pins` (GET) et `handles` (GET) sans Authorization : HTTP 401, aucun contenu. Avec un JWT Supabase valide : HTTP 200 et données. Vérifier également la lecture par le script GitHub Actions muni de `VEILLE_SECRET`.
 - Créer deux comptes distincts, vérifier un vote par compte et les compteurs, impossibilité pour l'un de modifier/supprimer le contenu de l'autre.
 - Tester une réponse imbriquée, un signalement, suppression de son sujet et cascade des réponses.
-- Tester filtres/tri, desktop/mobile et les liens externes.
+- Tester filtres/tri, desktop/mobile, états visuels « Utile / Pas utile » et les liens externes.
+- Après déconnexion, vérifier que la Veille ne réapparaît pas à partir du stockage du navigateur et que les requêtes privées restent refusées.
 - Tester les politiques RLS **directement** avec le rôle anon, sans faire confiance au seul masquage des boutons React.
 
 ## Avant ouverture publique
@@ -56,3 +58,12 @@ Ce n'est pas encore une version prête à ouvrir au grand public. La modération
 - Variables `VITE_SUPABASE_URL` et `VITE_SUPABASE_ANON_KEY` configurées par le propriétaire dans Netlify, toutes les portées y compris `Deploy Previews`.
 - Dans Netlify, `main` reste production, `legal-and-privacy` est maintenant autorisée dans `Branch deploys`, et les `Deploy Previews` des pull requests vers les branches autorisées sont activées.
 - La PR #2 doit recevoir une prévisualisation distincte avant toute validation visuelle, sans fusion vers `main`.
+
+## Changement Veille privée (octobre 2026)
+
+- Le choix initial « lecture publique de Veille et Communauté » a été remplacé sur demande : **Veille exclusivement pour les membres connectés**, **Communauté librement lisible**.
+- Les Functions `get-insta`, `pins` (GET) et `handles` (GET) valident le bearer Supabase côté serveur avec `auth.getUser()`. Les réponses n'utilisent plus de cache public.
+- Le collecteur GitHub Actions envoie `x-veille-secret` sur ses appels GET afin de préserver la collecte automatique. Vérifier que le secret `VEILLE_SECRET` est suffisamment long (16 caractères ou plus) et présent dans Netlify et dans les secrets GitHub Actions.
+- Le fichier `supabase/002_veille_private.sql` a déjà été appliqué au projet Supabase. Le SQL retire l'accès anonyme aux compteurs `ks_watch_stats`.
+- Le contenu Veille n'est plus conservé dans `sessionStorage`. Les images distantes provenant de plateformes tierces restent à examiner dans l'audit médias.
+- Ces changements **ne s'appliquent au site public que lorsque les branches seront fusionnées**. À tester d'abord sur `deploy-preview-2--kissasoko.netlify.app`.
