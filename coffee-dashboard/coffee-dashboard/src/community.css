@@ -7,6 +7,7 @@
 .ks-forum-heading>p:last-child{font-size:16px;color:var(--ks-ink-2);max-width:660px;line-height:1.6;margin-top:12px}
 .ks-memberbar{display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap;border-bottom:1px solid var(--ks-border);padding:17px 0;margin-bottom:20px;color:var(--ks-dim);font-size:13px}
 .ks-memberbar>div{display:flex;align-items:center;gap:16px}
+.ks-memberbar-actions-only{justify-content:flex-end}
 .ks-memberbar strong{color:var(--ks-ink)}
 .ks-memberbar button,.ks-comment-actions button,.ks-back-link,.ks-auth-switch button,.ks-reply-editor>button:not(.ks-primary-action){border:0;background:transparent;color:var(--ks-orange);font-weight:700;font-size:13px;text-decoration:underline;text-underline-offset:3px;padding:4px}
 .ks-forum-toolbar{display:flex;gap:20px;align-items:flex-start;justify-content:space-between;margin:26px 0;flex-wrap:wrap}
@@ -25,7 +26,7 @@
 .ks-vote-column .ks-vote-choice{display:flex;align-items:center;justify-content:center;gap:5px;width:86px;min-height:35px;border:1px solid var(--ks-border-strong);border-radius:7px;background:rgba(255,255,255,.45);color:var(--ks-ink);font-size:11px;font-weight:750;line-height:1.1;white-space:nowrap;transition:background .15s,color .15s,border-color .15s}
 .ks-vote-column .ks-vote-up:hover,.ks-vote-column .ks-vote-up.is-active{color:#fff;border-color:var(--ks-orange);background:var(--ks-orange)}
 .ks-vote-column .ks-vote-down:hover,.ks-vote-column .ks-vote-down.is-active{color:#fff;border-color:var(--ks-ink);background:var(--ks-ink)}
-.ks-vote-arrow{font-size:12px}
+.ks-vote-arrow{font-size:15px;line-height:1}
 .ks-vote-score{display:flex;flex-direction:column;gap:0;align-items:center;color:var(--ks-ink)}
 .ks-vote-score strong{font-size:17px;font-weight:800;line-height:1.15}
 .ks-vote-score span{font-size:9px;letter-spacing:.07em;color:var(--ks-dim);text-transform:uppercase}
@@ -76,7 +77,7 @@
   .ks-topic{gap:8px;padding:18px 0}
   .ks-vote-column{width:76px;min-width:76px}
   .ks-vote-column .ks-vote-choice{width:76px;gap:3px;font-size:10px;padding:4px 2px}
-  .ks-vote-arrow{font-size:10px}
+  .ks-vote-arrow{font-size:13px}
   .ks-forum-toolbar .ks-primary-action{width:100%}
   .ks-memberbar button{font-size:12px}
   .ks-thread-body{padding:22px 0}
