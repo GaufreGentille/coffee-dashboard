@@ -131,7 +131,7 @@ function AuthModal({ onClose, recovering }) {
            mode === 'reset' ? 'Retrouve ton accès.' :
            mode === 'newpassword' ? 'Nouveau mot de passe.' : 'Bienvenue au comptoir.'}
         </h2>
-        <p className="ks-auth-subtitle">Tout le monde peut lire. Un compte gratuit permet de publier, répondre et voter.</p>
+        <p className="ks-auth-subtitle">La Communauté est publique en lecture. Un compte gratuit ouvre l'accès à la Veille, aux publications et aux votes.</p>
         <form onSubmit={submit}>
           {mode === 'signup' && (
             <label>Pseudo public
