@@ -440,9 +440,6 @@ export default function HomePage({
             <button onClick={() => onNavigate('news')} className="ks-closing-link" data-cursor="active">
               <i></i><span>EN SAVOIR PLUS</span><b>&rarr;</b>
             </button>
-            <div className="ks-footer-brand" aria-label="GG.">
-              <span className="ks-gg-logo">GG<span>.</span></span>
-            </div>
           </div>
         </div>
       </section>
