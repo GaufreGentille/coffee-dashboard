@@ -1,19 +1,21 @@
 // pins.mjs — posts "épinglés" par l'admin : mis en avant en haut du feed,
 // exemptés de la fenêtre des 2 semaines, jusqu'à dépublication manuelle.
-// GET  → { [postId]: {…post, account, pinnedAt} } (public)
+// GET  → épingles uniquement pour les membres connectés / collecteur secret
 // POST → action pin/unpin (header x-admin-key) ou refresh (header x-veille-secret, script hebdo)
 import { getStore } from "@netlify/blobs";
+import { isMember, isCollector, privateHeaders } from "../lib/member-auth.mjs";
 
 const json = (data, status = 200) =>
   new Response(JSON.stringify(data), {
     status,
-    headers: { "Content-Type": "application/json" },
+    headers: privateHeaders,
   });
 
 export default async (req) => {
   const store = getStore({ name: "insta-veille", consistency: "strong" });
 
   if (req.method === "GET") {
+    if (!isCollector(req) && !await isMember(req)) return json({ error: "Connexion requise" }, 401);
     const pins = (await store.get("pins", { type: "json" })) || {};
     return json(pins);
   }
