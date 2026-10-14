@@ -395,7 +395,7 @@ export default function InstaVeillePanel() {
 
   return (
     <div>
-      <MemberBar introduction="Veille réservée aux membres. Tu peux voter sur les publications." />
+      <MemberBar introduction={null} />
       {voteError && <p className="ks-form-error" role="alert">{voteError}</p>}
 
       {/* ─── Barre d'etat ───
