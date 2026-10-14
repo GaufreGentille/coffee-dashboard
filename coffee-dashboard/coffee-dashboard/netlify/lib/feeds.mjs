@@ -88,7 +88,7 @@ export async function serveFeed(req, { key, build, transform, maxAge = 3600 }) {
 
   let payload
   try {
-    payload = transform ? transform(record.data) : record.data
+    payload = transform ? await transform(record.data) : record.data
   } catch (err) {
     console.error('transform KO:', key, err.message)
     payload = record.data
