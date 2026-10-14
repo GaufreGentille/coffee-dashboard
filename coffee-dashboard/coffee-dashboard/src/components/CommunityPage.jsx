@@ -162,7 +162,6 @@ function VoteColumn({ score, mine, onVote }) {
         className={`ks-vote-choice ks-vote-up${mine === 1 ? ' is-active' : ''}`}
         aria-label="Hot : vote positif pour ce sujet" aria-pressed={mine === 1}
         onClick={() => onVote(1)}>
-        <span className="ks-vote-arrow" aria-hidden="true">🔥</span>
         <span>Hot</span>
       </button>
       <div className="ks-vote-score" aria-label={`Score du sujet : ${score}`}>
@@ -172,7 +171,6 @@ function VoteColumn({ score, mine, onVote }) {
         className={`ks-vote-choice ks-vote-down${mine === -1 ? ' is-active' : ''}`}
         aria-label="Cold : vote négatif pour ce sujet" aria-pressed={mine === -1}
         onClick={() => onVote(-1)}>
-        <span className="ks-vote-arrow" aria-hidden="true">❄️</span>
         <span>Cold</span>
       </button>
     </div>
