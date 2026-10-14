@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef, useLayoutEffect, useCallback } fr
 import VeilleAdmin from "./VeilleAdmin.jsx";
 import { useCommunityAuth, MemberBar } from "./CommunityAuth.jsx";
 import { communityDb } from "../lib/communityClient.js";
+import { memberFetch } from "../lib/memberFetch.js";
 
 // ─── Kissa Soko — Panneau Veille Instagram (v3 : épingles admin) ─────────────
 // Feed : /.netlify/functions/get-insta — rempli chaque mardi par GitHub Actions
@@ -11,8 +12,6 @@ import { communityDb } from "../lib/communityClient.js";
 
 const FEED_URL = "/.netlify/functions/get-insta";
 const PINS_URL = "/.netlify/functions/pins";
-const CACHE_KEY = "insta-veille-cache";
-const CACHE_TTL = 30 * 60 * 1000; // 30 min
 const NEW_THRESHOLD = 7 * 24 * 3600 * 1000; // badge "nouveau" si post < 7 jours
 const MAX_POST_AGE = 14 * 24 * 3600 * 1000; // le feed n'affiche que les posts < 2 semaines
 const PAGE_SIZE = 48;
@@ -230,33 +229,23 @@ export default function InstaVeillePanel() {
     return () => window.removeEventListener("veille-admin-auth", onAuth);
   }, []);
 
-  // ── Chargement du feed ──
+  // Contenu privé : jamais de copie persistante en sessionStorage.
+  // Un changement de membre recharge les données avec sa session.
   useEffect(() => {
-    const cached = sessionStorage.getItem(CACHE_KEY);
-    if (cached) {
-      try {
-        const { at, payload } = JSON.parse(cached);
-        if (Date.now() - at < CACHE_TTL) { setData(payload); return; }
-      } catch { /* cache corrompu */ }
-    }
-    fetch(FEED_URL)
-      .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-      .then((payload) => {
-        setData(payload);
-        try {
-          sessionStorage.setItem(CACHE_KEY, JSON.stringify({ at: Date.now(), payload }));
-        } catch { /* quota */ }
-      })
-      .catch((e) => setError(String(e)));
-  }, []);
-
-  // ── Chargement des épingles (jamais en cache) ──
-  useEffect(() => {
-    fetch(PINS_URL)
-      .then((r) => (r.ok ? r.json() : null))
-      .then((p) => { if (p && typeof p === "object") setPins(p); })
-      .catch(() => { /* épingles optionnelles */ });
-  }, []);
+    let active = true;
+    setData(null);
+    setError(null);
+    setPins({});
+    memberFetch(FEED_URL)
+      .then(r => { if (!r.ok) throw new Error(`Chargement impossible (${r.status})`); return r.json(); })
+      .then(payload => { if (active) setData(payload); })
+      .catch(e => { if (active) setError(e.message || String(e)); });
+    memberFetch(PINS_URL)
+      .then(r => { if (!r.ok) throw new Error(`Épingles indisponibles (${r.status})`); return r.json(); })
+      .then(payload => { if (active && payload && typeof payload === 'object') setPins(payload); })
+      .catch(e => { if (active) setVoteError(e.message || 'Épingles indisponibles'); });
+    return () => { active = false; };
+  }, [user?.id]);
 
   // Vote public en lecture. Seul un utilisateur Supabase peut écrire (RLS).
   const reloadVotes = useCallback(async () => {
@@ -299,7 +288,7 @@ export default function InstaVeillePanel() {
     };
     setPins((prev) => ({ ...prev, [it.id]: { ...item, pinnedAt: new Date().toISOString() } }));
     try {
-      const r = await fetch(PINS_URL, {
+      const r = await memberFetch(PINS_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-admin-key": adminKey },
         body: JSON.stringify({ action: "pin", item }),
@@ -316,7 +305,7 @@ export default function InstaVeillePanel() {
     const backup = pins[postId];
     setPins((prev) => { const p = { ...prev }; delete p[postId]; return p; });
     try {
-      const r = await fetch(PINS_URL, {
+      const r = await memberFetch(PINS_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json", "x-admin-key": adminKey },
         body: JSON.stringify({ action: "unpin", postId }),
@@ -406,7 +395,7 @@ export default function InstaVeillePanel() {
 
   return (
     <div>
-      <MemberBar introduction="La veille se consulte librement. Connecte-toi pour voter sur les publications." />
+      <MemberBar introduction="Veille réservée aux membres. Tu peux voter sur les publications." />
       {voteError && <p className="ks-form-error" role="alert">{voteError}</p>}
 
       {/* ─── Barre d'etat ───
