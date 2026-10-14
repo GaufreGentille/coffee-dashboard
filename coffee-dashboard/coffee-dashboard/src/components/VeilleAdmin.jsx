@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import SEED from "../data/insta-handles.json";
+import { memberFetch } from "../lib/memberFetch.js";
 
 // ─── Kissa Soko — Admin de la liste de veille Instagram ──────────────────────
 // Discret en bas du panneau veille. Mot de passe = env Netlify VEILLE_ADMIN_KEY.
@@ -34,7 +35,10 @@ export default function VeilleAdmin() {
   };
 
   const loadList = () =>
-    fetch(HANDLES_URL).then((r) => r.json()).then((l) => setList(Array.isArray(l) ? l : []));
+    memberFetch(HANDLES_URL)
+      .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+      .then((l) => setList(Array.isArray(l) ? l : []))
+      .catch(() => setMsg({ text: "Liste momentanément indisponible. Reconnecte-toi si nécessaire.", ok: false }));
 
   useEffect(() => { if (open) loadList(); }, [open]);
 
