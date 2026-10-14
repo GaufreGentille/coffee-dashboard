@@ -368,21 +368,21 @@ function SciCard({ item, i, T }) {
 // Les flux Matériel livrent `title`, `summary`, `category`, `source` et `img`.
 // Une photo absente (ou refusée par un site tiers) ne doit pas laisser un grand bloc vide.
 function GearPhoto({ image, fallbackImage, title, featured = false }) {
-  const [failedUrl, setFailedUrl] = useState(null)
-  const safeImage = typeof image === 'string' && /^https?:\/\//i.test(image)
-  const safeFallback = typeof fallbackImage === 'string' && /^https?:\/\//i.test(fallbackImage)
-  const displayed = failedUrl === image
-    ? (safeFallback && fallbackImage !== image ? fallbackImage : null)
-    : (safeImage ? image : (safeFallback ? fallbackImage : null))
+  const [failedUrls, setFailedUrls] = useState([])
+  const candidates = [image, fallbackImage].filter(
+    (url, index, all) => typeof url === 'string' && /^https?:\/\//i.test(url) &&
+      all.indexOf(url) === index
+  )
+  const displayed = candidates.find(url => !failedUrls.includes(url))
 
-  if (!displayed || failedUrl === displayed) return null
+  if (!displayed) return null
   return (
     <div className={`ks-gear-photo${featured ? ' is-featured' : ''}`}>
       <img
         src={displayed}
         alt={title || 'Matériel café présenté dans l’article'}
         loading={featured ? 'eager' : 'lazy'}
-        onError={() => setFailedUrl(displayed)}
+        onError={() => setFailedUrls(prev => prev.includes(displayed) ? prev : [...prev, displayed])}
       />
     </div>
   )
