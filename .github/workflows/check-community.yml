@@ -22,3 +22,38 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Compiler les pages et le forum
         run: npm run build
+
+      - name: Diagnostic temporaire images Matériel
+        run: |
+          node --input-type=module <<'JS'
+          const urls=[
+            'https://deploy-preview-2--kissasoko.netlify.app/.netlify/functions/get-gear?v=diagnostic6',
+            'https://coffeegeek.com/reviews/feed/'
+          ];
+          const get=async (url)=>{
+            const res=await fetch(url,{signal:AbortSignal.timeout(23000),headers:{'User-Agent':'Mozilla/5.0','Accept':'application/rss+xml,text/html,application/json, */*'}});
+            const txt=await res.text();
+            console.log('URL:',url,'HTTP:',res.status,'len:',txt.length,'type:',res.headers.get('content-type'),'X-Feed:',res.headers.get('x-feed'));
+            return {txt,res};
+          };
+          try{
+            const {txt,res}=await get(urls[0]);if(res.ok){
+              const j=JSON.parse(txt),items=j.gear||[];
+              console.log('GEAR rows:',items.length,'items with image:',items.filter(x=>x.img).length);
+              for(const it of items.slice(0,6)){
+                console.log(JSON.stringify({title:it.title,url:it.url,img:it.img,imgFallback:it.imgFallback}).slice(0,1000));
+              }
+              for(const it of items.filter(x=>x.img).slice(0,2)){
+                try{const im=await fetch(it.img,{method:'GET',signal:AbortSignal.timeout(9000),headers:{'User-Agent':'Mozilla/5.0'}});console.log('IMAGE_STATUS',im.status,im.headers.get('content-type'),it.img.slice(0,150));await im.body?.cancel();}catch(e){console.log('IMAGE_ERROR',String(e))};
+              }
+            }
+          }catch(e){console.log('FEED_ERROR',String(e))}
+          try{
+            const {txt,res}=await get(urls[1]);if(res.ok){
+              const first=(txt.match(/<item[\s\S]*?<\/item>/) || [''])[0];
+              console.log('RSS first item image evidence:');
+              console.log(first.match(/<(?:media:content|media:thumbnail|enclosure|img)\b[^>]*>/gi)?.slice(0,7).join('\n').slice(0,1600)||'No image tags');
+              console.log('RSS first item url:',first.match(/<link>([\s\S]*?)<\/link>/)?.[1]);
+            }
+          }catch(e){console.log('RSS_ERROR',String(e))}
+          JS
