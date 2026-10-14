@@ -876,7 +876,7 @@ function SiteHeader({ tab, setTab, refresh, lastRefresh, showMusic, setShowMusic
   return (
     <header className="ks-site-header">
       <button className="ks-site-brand" onClick={()=>setTab('home')} aria-label="Retour à l'accueil">
-        <span>GG<span>.</span></span>
+        <img className="ks-brand-logo" src="/logo.png" alt="" />
       </button>
 
       <nav className="ks-site-nav" aria-label="Navigation principale">
