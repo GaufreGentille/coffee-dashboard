@@ -22,21 +22,3 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Compiler les pages et le forum
         run: npm run build
-
-      - name: Comparer les flux Matériel production et aperçu
-        run: |
-          node --input-type=module <<'JS'
-          const sites=['https://kissasoko.netlify.app','https://deploy-preview-2--kissasoko.netlify.app'];
-          for (const site of sites) {
-            try {
-              const response = await fetch(site+'/.netlify/functions/get-gear?source-compare=20261014', { signal: AbortSignal.timeout(12000), headers: {'Cache-Control':'no-cache'} });
-              const raw=await response.text(); 
-              console.log('SITE',site,'http',response.status,'feed',response.headers.get('x-feed'),'size',raw.length);
-              if(response.ok){
-                const payload=JSON.parse(raw), rows=payload.gear||[];
-                console.log('COUNT',rows.length,'WITH-IMG',rows.filter(x=>x.img).length,'GENERATED',payload.generatedAt);
-                for(const row of rows.slice(0,4)){ console.log(JSON.stringify({title:row.title,url:row.url,img:row.img}).slice(0,650)); }
-              }
-            } catch(e) { console.log('ERROR',site,e.message); }
-          }
-          JS
