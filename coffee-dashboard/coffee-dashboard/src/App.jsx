@@ -368,20 +368,18 @@ function SciCard({ item, i, T }) {
 // Les flux Matériel livrent `title`, `summary`, `category`, `source` et `img`.
 // Une photo absente (ou refusée par un site tiers) ne doit pas laisser un grand bloc vide.
 function GearPhoto({ image, title, featured = false }) {
-  const [broken, setBroken] = useState(false)
   const safeImage = typeof image === 'string' && /^https?:\/\//i.test(image)
-  if (!safeImage || broken) return null
+  if (!safeImage) return null
 
+  // Reprise du rendu initial Matériel : image de fond CSS, sans balise img
+  // ni referrerPolicy="no-referrer". Les cartes et leurs textes restent identiques.
   return (
-    <div className={`ks-gear-photo${featured ? ' is-featured' : ''}`}>
-      <img
-        src={image}
-        alt={title || 'Matériel café présenté dans l’article'}
-        loading={featured ? 'eager' : 'lazy'}
-        referrerPolicy="no-referrer"
-        onError={() => setBroken(true)}
-      />
-    </div>
+    <div
+      className={`ks-gear-photo${featured ? ' is-featured' : ''}`}
+      role="img"
+      aria-label={title || 'Matériel café présenté dans l’article'}
+      style={{ backgroundImage: `url("${image}")`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+    />
   )
 }
 
