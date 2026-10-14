@@ -56,6 +56,7 @@ a{color:inherit}
 .ks-logo{border:0;background:transparent;padding:0;display:block;pointer-events:auto;color:var(--ks-ink)}
 .ks-gg-logo{display:inline-block;font-family:'Bodoni Moda',Georgia,serif;font-style:italic;font-weight:800;font-size:44px;line-height:.82;letter-spacing:-.08em}
 .ks-gg-logo>span{color:var(--ks-orange);font-style:normal;margin-left:3px}
+.ks-brand-logo{display:block;width:62px;height:62px;object-fit:contain}
 .ks-top-links{display:flex;align-items:center;justify-content:center;gap:clamp(16px,2vw,34px);min-width:0}
 /* Memes reglages que .ks-site-nav button : une seule typographie de
    navigation sur tout le site. */
@@ -90,7 +91,7 @@ a{color:inherit}
 .ks-closing-link b{font-size:16px;color:var(--ks-orange);font-weight:400;letter-spacing:0;transition:transform .2s}
 .ks-closing-link:hover b{transform:translateX(4px)}
 .ks-footer-brand{margin-top:54px;display:flex;align-items:center}
-.ks-footer-brand img{display:block;width:clamp(110px,9vw,150px);height:auto;object-fit:contain}
+.ks-footer-brand .ks-gg-logo{font-size:clamp(58px,6vw,84px)}
 .ks-closing-art{position:absolute;inset:0 0 0 auto;width:min(56vw,860px);pointer-events:none;display:flex;justify-content:flex-end;align-items:flex-end;z-index:0}
 .ks-closing-botanical{position:absolute;right:0;bottom:0;width:100%;height:100%;object-fit:contain;object-position:bottom right;pointer-events:none;filter:none;opacity:1}
 
@@ -110,8 +111,8 @@ a{color:inherit}
   backdrop-filter:blur(22px) saturate(1.08);
 }
 .ks-site-brand{border:0;background:transparent;color:var(--ks-ink);padding:0}
-.ks-site-brand>span{font-family:'Bodoni Moda',Georgia,serif;font-style:italic;font-weight:800;font-size:44px;line-height:.8;letter-spacing:-.08em}
-.ks-site-brand>span>span{color:var(--ks-orange);font-style:normal;margin-left:3px}
+.ks-site-brand .ks-brand-logo{width:62px;height:62px}
+
 .ks-site-nav{display:flex;justify-content:center;align-items:center;gap:clamp(14px,1.8vw,30px);min-width:0}
 .ks-site-nav button{position:relative;border:0;background:transparent;color:var(--ks-ink);padding:9px 0;font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;white-space:nowrap;opacity:.62;transition:opacity .18s,color .18s,transform .18s}
 .ks-site-nav button:hover,.ks-site-nav button.is-active{opacity:1;color:var(--ks-orange)}
@@ -254,7 +255,7 @@ a{color:inherit}
   .ggc-cursor,.ggc-cursor-dot{display:none}
 
   .ks-site-header{min-height:0;padding:12px 14px 0;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
-  .ks-site-brand>span{font-size:40px}
+  .ks-site-brand .ks-brand-logo{width:56px;height:56px}
   .ks-site-actions{justify-self:end}
   .ks-site-actions button{width:34px;height:34px}
   .ks-site-nav{grid-column:1/-1;justify-content:flex-start;overflow-x:auto;gap:18px;padding:4px 0 12px;scrollbar-width:none}
@@ -290,10 +291,10 @@ a{color:inherit}
 @media(max-width:640px){
   .ks-home-nav{height:68px;padding:0 18px;grid-template-columns:auto 1fr auto}
   .ks-home-nav.is-stuck{background:rgba(247,241,232,.58);-webkit-backdrop-filter:blur(20px) saturate(1.08);backdrop-filter:blur(20px) saturate(1.08)}
-  .ks-top-links{display:none}.ks-menu-button{width:42px;height:42px}.ks-gg-logo{font-size:40px}
+  .ks-top-links{display:none}.ks-menu-button{width:42px;height:42px}.ks-brand-logo,.ks-site-brand .ks-brand-logo{width:56px;height:56px}
   .ks-shell{padding-left:14px;padding-right:14px}
   .ks-hero{min-height:0;padding:218px 0 40px;align-items:flex-start}.ks-hero-copy{width:100%;padding-bottom:0}.ks-eyebrow{font-size:8px;margin-bottom:16px}.ks-hero h1{font-size:clamp(44px,14.3vw,67px);line-height:.82;letter-spacing:-.06em}.ks-hero-art{width:72vw;height:205px;top:18px;bottom:auto}.ks-hero-botanical{right:-8vw;top:0;opacity:1}.ks-explore{margin-top:26px}.ks-hero:after{left:14px;right:14px}
-  .ks-closing{min-height:560px;padding:62px 0 70px;align-items:flex-start}.ks-closing-copy{width:82%}.ks-closing h2{font-size:clamp(44px,12.5vw,62px)}.ks-closing-copy>p:not(.ks-closing-kicker){font-size:13px;max-width:95%}.ks-closing-art{width:62vw;height:300px;right:0;top:auto;bottom:0}.ks-closing-botanical{right:-10vw;bottom:0;opacity:1}.ks-footer-brand{margin-top:38px}.ks-footer-brand img{width:112px}
+  .ks-closing{min-height:560px;padding:62px 0 70px;align-items:flex-start}.ks-closing-copy{width:82%}.ks-closing h2{font-size:clamp(44px,12.5vw,62px)}.ks-closing-copy>p:not(.ks-closing-kicker){font-size:13px;max-width:95%}.ks-closing-art{width:62vw;height:300px;right:0;top:auto;bottom:0}.ks-closing-botanical{right:-10vw;bottom:0;opacity:1}.ks-footer-brand{margin-top:38px}.ks-footer-brand .ks-gg-logo{font-size:58px}
 }
 
 @media(prefers-reduced-motion:reduce){
