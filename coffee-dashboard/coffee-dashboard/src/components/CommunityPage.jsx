@@ -157,23 +157,23 @@ export default function CommunityPage() {
 
 function VoteColumn({ score, mine, onVote }) {
   return (
-    <div className="ks-vote-column" role="group" aria-label="Évaluer l'utilité de ce sujet">
-      <button type="button" title="Je trouve ce sujet utile"
+    <div className="ks-vote-column" role="group" aria-label="Voter Hot ou Cold pour ce sujet">
+      <button type="button" title="Hot : j’apprécie ce sujet"
         className={`ks-vote-choice ks-vote-up${mine === 1 ? ' is-active' : ''}`}
-        aria-label="Sujet utile, vote positif" aria-pressed={mine === 1}
+        aria-label="Hot : vote positif pour ce sujet" aria-pressed={mine === 1}
         onClick={() => onVote(1)}>
-        <span className="ks-vote-arrow" aria-hidden="true">▲</span>
-        <span>Utile</span>
+        <span className="ks-vote-arrow" aria-hidden="true">🔥</span>
+        <span>Hot</span>
       </button>
       <div className="ks-vote-score" aria-label={`Score du sujet : ${score}`}>
         <strong>{score}</strong><span>score</span>
       </div>
-      <button type="button" title="Je trouve ce sujet peu utile"
+      <button type="button" title="Cold : je n’apprécie pas ce sujet"
         className={`ks-vote-choice ks-vote-down${mine === -1 ? ' is-active' : ''}`}
-        aria-label="Sujet peu utile, vote négatif" aria-pressed={mine === -1}
+        aria-label="Cold : vote négatif pour ce sujet" aria-pressed={mine === -1}
         onClick={() => onVote(-1)}>
-        <span className="ks-vote-arrow" aria-hidden="true">▼</span>
-        <span>Pas utile</span>
+        <span className="ks-vote-arrow" aria-hidden="true">❄️</span>
+        <span>Cold</span>
       </button>
     </div>
   )
