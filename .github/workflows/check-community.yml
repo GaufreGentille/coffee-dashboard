@@ -57,3 +57,18 @@ jobs:
             }
           }catch(e){console.log('RSS_ERROR',String(e))}
           JS
+
+      - name: Diagnostic image source (réponse HTTP uniquement)
+        run: |
+          node --input-type=module <<'JS'
+          const image='https://coffeegeek.com/wp-content/uploads/2025/11/Kingrinder-P2-Handle-Out-1-800x533.jpg';
+          const origins=[
+            {name:'normal',headers:{'User-Agent':'Mozilla/5.0','Accept':'image/avif,image/webp,image/*,*/*;q=0.8'}},
+            {name:'article-referrer',headers:{'User-Agent':'Mozilla/5.0','Accept':'image/avif,image/webp,image/*,*/*;q=0.8','Referer':'https://coffeegeek.com/'}},
+            {name:'same-origin-no-useragent',headers:{Referer:'https://coffeegeek.com/reviews/'}}
+          ];
+          for(const v of origins){try{
+            const res=await fetch(image,{headers:v.headers,signal:AbortSignal.timeout(7000)});
+            console.log(v.name,res.status,res.headers.get('cf-mitigated'),res.headers.get('content-type'),res.headers.get('server'));await res.body?.cancel()
+          }catch(e){console.log(v.name,String(e))}}
+          JS
