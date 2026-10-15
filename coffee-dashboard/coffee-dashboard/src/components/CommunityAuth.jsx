@@ -102,12 +102,12 @@ function AuthModal({ onClose, recovering }) {
         result = await communityDb.auth.signUp({
           email: email.trim(),
           password,
-          options: { data: { display_name: pseudo.trim(), accepted_rules_at: new Date().toISOString() }, emailRedirectTo: window.location.origin }
+          options: { data: { display_name: pseudo.trim(), accepted_rules_at: new Date().toISOString() }, emailRedirectTo: `${window.location.origin}/` }
         })
         if (!result.error) setMessage('Inscription reçue. Vérifie tes emails pour confirmer ton compte si nécessaire.')
       } else if (mode === 'reset') {
         result = await communityDb.auth.resetPasswordForEmail(email.trim(), {
-          redirectTo: window.location.origin
+          redirectTo: `${window.location.origin}/`
         })
         if (!result.error) setMessage('Si cette adresse possède un compte, un email de réinitialisation a été envoyé.')
       } else if (mode === 'newpassword') {
