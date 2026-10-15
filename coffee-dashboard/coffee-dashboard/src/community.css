@@ -115,3 +115,9 @@
 .ks-mod-actions button{border:1px solid var(--ks-border-strong);background:transparent;padding:8px 12px;border-radius:5px;color:var(--ks-ink);font-size:11px;font-weight:700}
 .ks-mod-actions button:hover:not(:disabled){background:var(--ks-ink);color:#fff}
 .ks-mod-actions button:disabled{opacity:.5;cursor:wait}
+
+/* Inscription : les cases à cocher ne reprennent pas le style pleine largeur des champs texte. */
+.ks-auth-modal form label.ks-auth-rules{display:flex;flex-direction:row;align-items:flex-start;gap:9px;font-size:11px;font-weight:500;line-height:1.55}
+.ks-auth-modal .ks-auth-rules input[type="checkbox"]{width:17px;height:17px;min-width:17px;padding:0;margin:1px 0 0;accent-color:var(--ks-orange);cursor:pointer}
+.ks-auth-modal .ks-auth-rules span{flex:1}
+.ks-auth-modal .ks-auth-rules a{text-decoration:underline;text-underline-offset:2px;color:var(--ks-orange)}
