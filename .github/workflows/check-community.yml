@@ -22,18 +22,3 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Compiler les pages et le forum
         run: npm run build
-
-      - name: Contrôle des flux publics et privés
-        run: |
-          node --input-type=module <<'JS'
-          const host='https://deploy-preview-2--kissasoko.netlify.app';
-          for (const item of ['get-news','get-science','get-gear','get-markets','get-harvest','get-sprudge','get-insta','handles','pins','vote']) {
-            try {
-              const r=await fetch(host+'/.netlify/functions/'+item,{signal:AbortSignal.timeout(20000)});
-              const type=r.headers.get('content-type') || '';
-              const txt=await r.text();
-              const sample=txt.slice(0,120).replace(/\s+/g,' ');
-              console.log(JSON.stringify({name:item,status:r.status,type,bytes:txt.length,sample}));
-            } catch(e) {console.log(JSON.stringify({name:item,error:e.message}));}
-          }
-          JS
