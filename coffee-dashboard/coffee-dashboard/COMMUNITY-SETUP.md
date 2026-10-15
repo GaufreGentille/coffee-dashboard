@@ -18,7 +18,7 @@ Ne pas fusionner sans contrôle fonctionnel / sécurité / RGPD.
 5. Activer/confirmer le modèle d'email de confirmation dans Supabase Auth et vérifier le fonctionnement inscription, email, connexion, oubli du mot de passe et déconnexion. Utiliser un SMTP adapté avant ouverture publique.
 6. Pour autoriser une modération administrative côté base, après création du compte modérateur :
    `insert into public.ks_moderators(user_id) values ('UUID_DU_COMPTE');`
-   Les signalements sont accessibles aux modérateurs via la base. **L'interface de modération reste à développer avant ouverture au public**.
+   Les signalements sont accessibles aux modérateurs via la base. **Le panneau de modération est maintenant intégré au Comptoir pour les comptes autorisés**. Il permet de classer les signalements et de supprimer un sujet ou une réponse. Sans compte nommé dans `ks_moderators`, personne ne peut modérer.
 
 ### Développement local
 Copier `.env.example` en `.env.local`, renseigner les deux variables publiques puis :
@@ -36,13 +36,13 @@ Ne **jamais** utiliser de clé Supabase `service_role` ni de secret serveur dans
 - Tester les endpoints `get-insta`, `pins` (GET) et `handles` (GET) sans Authorization : HTTP 401, aucun contenu. Avec un JWT Supabase valide : HTTP 200 et données. Vérifier également la lecture par le script GitHub Actions muni de `VEILLE_SECRET`.
 - Créer deux comptes distincts, vérifier un vote par compte et les compteurs, impossibilité pour l'un de modifier/supprimer le contenu de l'autre.
 - Tester une réponse imbriquée, un signalement, suppression de son sujet et cascade des réponses.
-- Tester filtres/tri, desktop/mobile, états visuels « Utile / Pas utile » et les liens externes.
+- Tester filtres/tri, desktop/mobile, états visuels « Hot / Cold » et les liens externes.
 - Après déconnexion, vérifier que la Veille ne réapparaît pas à partir du stockage du navigateur et que les requêtes privées restent refusées.
 - Tester les politiques RLS **directement** avec le rôle anon, sans faire confiance au seul masquage des boutons React.
 
 ## Avant ouverture publique
 - Vérifier et mettre à jour Mentions légales, confidentialité, CGU communautaires (publications, modération, signalements, rétention, suppression de compte et données).
-- Prévoir une interface de modération et un circuit de retrait des contenus, antispam/limites de requêtes, signalements, et suppression de compte/données.
+- Panneau de modération et limites de fréquence désormais ajoutés avec la migration `supabase/003_moderation_antispam.sql`. **Désigner et tester au moins un modérateur avant ouverture** ; vérifier le circuit de traitement réel. La suppression de compte reste une **demande manuelle par e-mail**, indiquée dans les règles et la confidentialité.
 - Paramétrer la protection des inscriptions (CAPTCHA, vérification email, limite de débit), sécurité SMTP et maintenance.
 - L'ancien vote `/.netlify/functions/vote` est désormais **fermé (HTTP 410)**. Les votes anonymes précédents restent archivés en Netlify Blobs mais **ne sont pas migrés** car les pseudonymes locaux n'étaient pas vérifiables.
 - Les images chargées depuis Instagram/les flux tiers sont **toujours** à examiner dans `MEDIA-AUDIT.md`.
@@ -50,7 +50,7 @@ Ne **jamais** utiliser de clé Supabase `service_role` ni de secret serveur dans
 
 ## Périmètre de cette première livraison
 Forum fonctionnel après configuration Supabase : inscription/connexion/email, catégories, sujets, réponses (jusqu'à 4 niveaux visibles), votes, signalements et suppression par l'auteur. Lecture publique ; backend protégé par RLS.
-Ce n'est pas encore une version prête à ouvrir au grand public. La modération complète, l'antispam, les profils avancés, la pagination et les notifications viendront ensuite.
+Les protections minimales comprennent maintenant une modération des signalements et une limitation serveur de la fréquence des contributions. Les profils avancés, la pagination et les notifications viendront ensuite.
 
 ## Suivi du déploiement
 
@@ -67,3 +67,15 @@ Ce n'est pas encore une version prête à ouvrir au grand public. La modération
 - Le fichier `supabase/002_veille_private.sql` a déjà été appliqué au projet Supabase. Le SQL retire l'accès anonyme aux compteurs `ks_watch_stats`.
 - Le contenu Veille n'est plus conservé dans `sessionStorage`. Les images distantes provenant de plateformes tierces restent à examiner dans l'audit médias.
 - Ces changements **ne s'appliquent au site public que lorsque les branches seront fusionnées**. À tester d'abord sur `deploy-preview-2--kissasoko.netlify.app`.
+
+## Prépublication : travail ajouté le 15 octobre 2026
+
+- Huit visuels génériques `public/materiel-*.png` ont été récupérés depuis `main` et sont affichés localement dans Matériel selon la catégorie détectée dans les titres/résumés. Les photos distantes ne sont plus utilisées dans cette rubrique.
+- Migration `003_moderation_antispam.sql` appliquée à Supabase : statut des signalements, traitement réservé aux modérateurs et limites serveur (sujets : 60 s / 12 par jour ; réponses : 12 s / 120 par jour).
+- Le panneau de modération se montre uniquement à un membre reconnu par la fonction `ks_is_moderator()`. Les permissions de base restent le véritable contrôle d'accès.
+- Règles communautaires : `/conditions-communaute.html`, lien dans le pied de page et acceptation explicite à l'inscription.
+- Confidentialité actualisée pour Supabase Auth, les votes authentifiés, signalements, stockage et demande manuelle d'effacement.
+- **Reste à vérifier sur le tableau de bord Supabase (action du propriétaire)** : Authentication → URL Configuration → Site URL `https://kissasoko.gg`, Redirect URLs (incluant le domaine final et la preview), SMTP/confirmation email, CAPTCHA/limites d'inscription, protection des mots de passe compromis si le plan l'autorise.
+- **Reste à vérifier** : le compte `contact@kissasoko.gg` reçoit effectivement les demandes de confidentialité/modération ; au moins un compte modérateur est habilité et testé ; création d'un second compte de test, récupération mot de passe, suppression/report, navigation mobile.
+- Les images générées sont des illustrations de catégories, pas des photos des produits précis. La source éditoriale et les liens d'origine des articles restent accessibles.
+- **Ne pas fusionner automatiquement les PR** avant ces validations fonctionnelles et l'accord de publication du propriétaire. Ordre : PR #1 `legal-and-privacy` → `main`, puis PR #2 `feature/community-auth-watch` → `main` (la base de PR #2 doit être réorientée sur `main` après la première fusion).
