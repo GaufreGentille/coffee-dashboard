@@ -22,3 +22,29 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Compiler les pages et le forum
         run: npm run build
+
+      - name: Vérification finale des huit médias et de la communauté
+        run: |
+          node --input-type=module <<'JS'
+          const root='https://deploy-preview-2--kissasoko.netlify.app';
+          const files=[
+            'materiel-moulin-manuel.png','materiel-moulin-electrique.png',
+            'materiel-espresso-prosumer.png','materiel-espresso.png',
+            'materiel-machine-auto.png','materiel-dripper.png',
+            'materiel-accessoires.png','materiel-bouilloire.png',
+            'conditions-communaute.html','confidentialite.html',
+            'logo.png','sitemap.xml'
+          ];
+          let failed=0;
+          for(const name of files) {
+            try{
+              const r=await fetch(root+'/'+name,{signal:AbortSignal.timeout(14000)});
+              const contentType=r.headers.get('content-type')||'';
+              const bytes=(await r.arrayBuffer()).byteLength;
+              const ok=r.status===200 && (name.endsWith('.png')?contentType.startsWith('image/png'):bytes>100);
+              if(!ok)failed++;
+              console.log(JSON.stringify({name,status:r.status,type:contentType,bytes,ok}));
+            }catch(e){failed++;console.log(JSON.stringify({name,error:e.message}));}
+          }
+          if(failed>0)process.exit(1);
+          JS
