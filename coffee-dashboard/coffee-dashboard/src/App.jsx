@@ -365,20 +365,35 @@ function SciCard({ item, i, T }) {
   )
 }
 
-// Les flux Matériel livrent `title`, `summary`, `category`, `source` et `img`.
-// Une photo absente (ou refusée par un site tiers) ne doit pas laisser un grand bloc vide.
-function GearPhoto({ image, title, featured = false }) {
-  const safeImage = typeof image === 'string' && /^https?:\/\//i.test(image)
-  if (!safeImage) return null
+// Images illustratives locales de catégories, indépendantes des images RSS tierces.
+// La détection fonctionne automatiquement pour les prochains articles.
+function gearVisual(item) {
+  const title = String(item.title || item.name || '').toLowerCase()
+  const description = String(item.summary || item.description || '').toLowerCase()
+  const category = String(item.category || '').toLowerCase()
+  const text = [title, description, category].join(' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
 
-  // Reprise du rendu initial Matériel : image de fond CSS, sans balise img
-  // ni referrerPolicy="no-referrer". Les cartes et leurs textes restent identiques.
+  if (/bouilloire|gooseneck|kettle|verseuse|pitcher/.test(text)) return '/materiel-bouilloire.png'
+  if (/dripper|v60|kalita|origami|chemex|aeropress|pour.over|cafe filtre|filter brewer/.test(text)) return '/materiel-dripper.png'
+  if (/moulin|grinder|broyeur|1zpresso|kingrinder|comandante|kinu|aergrind|lagom/.test(text)) {
+    if (/manuel|hand|manual|crank|manivelle|1zpresso|kingrinder|comandante|kinu|aergrind/.test(text)) return '/materiel-moulin-manuel.png'
+    return '/materiel-moulin-electrique.png'
+  }
+  if (/espresso|machine|bean.to.cup|automatique|superautomatic|jura|ninja luxe|breville|rocket|e61|lever|levier/.test(text)) {
+    if (/automatique|superautomatic|bean.to.cup|jura|ninja luxe/.test(text)) return '/materiel-machine-auto.png'
+    if (/prosumer|e61|rocket|rancilio silvia|profitec|lelit|bianca|dual boiler|levier|lever/.test(text)) return '/materiel-espresso-prosumer.png'
+    return '/materiel-espresso.png'
+  }
+  return '/materiel-accessoires.png'
+}
+
+function GearPhoto({ item, featured = false }) {
   return (
     <div
       className={`ks-gear-photo${featured ? ' is-featured' : ''}`}
       role="img"
-      aria-label={title || 'Matériel café présenté dans l’article'}
-      style={{ backgroundImage: `url("${image}")`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+      aria-label="Illustration de catégorie de matériel café"
+      style={{ backgroundImage: `url("${gearVisual(item)}")`, backgroundSize: 'cover', backgroundPosition: 'center' }}
     />
   )
 }
@@ -393,7 +408,7 @@ function GearHeroCard({ item, T }) {
          background: T.surf, border: `1px solid ${hovered ? BRAND.amber+'88' : T.border2}`,
          boxShadow: hovered ? '0 4px 24px rgba(218,93,22,.08)' : 'none'
        }}>
-      <GearPhoto image={item.img} title={title} featured />
+      <GearPhoto item={item} featured />
       <div className="ks-gear-feature-copy">
         <div className="ks-gear-card-meta">
           <span className="ks-gear-category">{item.category || 'Matériel'}</span>
@@ -413,7 +428,7 @@ function GearCard({ item, i, T }) {
   return (
     <a className="ks-gear-tile" href={item.url} target="_blank" rel="noopener noreferrer"
        style={{ background: T.surf, border: `1px solid ${T.border}`, animation: `fadeUp .35s ease ${i*60}ms both` }}>
-      <GearPhoto image={item.img} title={title} />
+      <GearPhoto item={item} />
       <div className="ks-gear-tile-copy">
         <div className="ks-gear-card-meta">
           <span className="ks-gear-category">{item.category || 'Matériel'}</span>
