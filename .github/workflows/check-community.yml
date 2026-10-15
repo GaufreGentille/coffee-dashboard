@@ -22,3 +22,32 @@ jobs:
         run: npm install --no-audit --no-fund
       - name: Compiler les pages et le forum
         run: npm run build
+
+      - name: Audit HTTP prépublication (lecture seule)
+        run: |
+          node --input-type=module <<'JS'
+          const checks = [
+            ['domaine principal', 'https://kissasoko.gg/'],
+            ['redirection www', 'https://www.kissasoko.gg/'],
+            ['sous-domaine Netlify', 'https://kissasoko.netlify.app/'],
+            ['prévisualisation', 'https://deploy-preview-2--kissasoko.netlify.app/'],
+            ['logo', 'https://deploy-preview-2--kissasoko.netlify.app/logo.png'],
+            ['mentions légales', 'https://deploy-preview-2--kissasoko.netlify.app/mentions-legales.html'],
+            ['confidentialité', 'https://deploy-preview-2--kissasoko.netlify.app/confidentialite.html'],
+            ['contact', 'https://deploy-preview-2--kissasoko.netlify.app/contact.html'],
+            ['jeu', 'https://deploy-preview-2--kissasoko.netlify.app/hangar-torref-843/'],
+            ['article Tasse imparfaite', 'https://deploy-preview-2--kissasoko.netlify.app/tasse-imparfaite/index.html'],
+            ['API Matériel', 'https://deploy-preview-2--kissasoko.netlify.app/.netlify/functions/get-gear'],
+            ['API Actualités', 'https://deploy-preview-2--kissasoko.netlify.app/.netlify/functions/get-news'],
+            ['API Veille privée, anonyme', 'https://deploy-preview-2--kissasoko.netlify.app/.netlify/functions/get-insta'],
+            ['API épingles privée, anonyme', 'https://deploy-preview-2--kissasoko.netlify.app/.netlify/functions/pins']
+          ];
+          for (const [name,url] of checks) {
+            try {
+              const res=await fetch(url,{redirect:'follow',signal:AbortSignal.timeout(18000),headers:{Accept:'text/html,application/json,*/*'}});
+              const buf=await res.arrayBuffer();
+              const mime=res.headers.get('content-type')||'';
+              console.log(JSON.stringify({name,http:res.status,url:res.url,type:mime,length:buf.byteLength,redirected:res.redirected,tls:res.url.startsWith('https:')}));
+            } catch (e) { console.log(JSON.stringify({name,error:String(e.message)})); }
+          }
+          JS
