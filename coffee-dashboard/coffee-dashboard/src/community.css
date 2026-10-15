@@ -101,3 +101,17 @@
 .ks-veille-locked>p:not(.ks-forum-eyebrow){font-size:15px;line-height:1.7;color:var(--ks-ink-2);max-width:500px}
 .ks-veille-locked small{color:var(--ks-dim);font-size:12px;line-height:1.5}
 @media(max-width:650px){.ks-veille-locked{margin-top:0;padding:28px 20px}.ks-thread-heading{gap:12px}}
+
+/* Comptoir : modération visible uniquement après validation du rôle côté base */
+.ks-mod-panel{margin:22px 0;border:1px solid var(--ks-border);border-radius:8px;background:var(--ks-paper-2);overflow:hidden}
+.ks-mod-toggle{border:0;background:transparent;padding:14px 20px;text-align:left;color:var(--ks-ink);font-size:12px;font-weight:800;letter-spacing:.04em;width:100%;cursor:pointer}
+.ks-mod-body{padding:4px 20px 20px}
+.ks-mod-body>p{font-size:12px;color:var(--ks-dim);line-height:1.6}
+.ks-mod-report{border-top:1px solid var(--ks-border);padding:16px 0;display:grid;gap:8px}
+.ks-mod-report small{font-size:10px;color:var(--ks-dim)}
+.ks-mod-report strong{font-size:14px;overflow-wrap:anywhere}
+.ks-mod-report p{font-size:12px;line-height:1.6;overflow-wrap:anywhere}
+.ks-mod-actions{display:flex;flex-wrap:wrap;gap:10px}
+.ks-mod-actions button{border:1px solid var(--ks-border-strong);background:transparent;padding:8px 12px;border-radius:5px;color:var(--ks-ink);font-size:11px;font-weight:700}
+.ks-mod-actions button:hover:not(:disabled){background:var(--ks-ink);color:#fff}
+.ks-mod-actions button:disabled{opacity:.5;cursor:wait}
