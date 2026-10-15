@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react
 import HarvestPanel from './components/HarvestPanel'
 import InstaVeillePanel from './components/InstaVeillePanel'
 import CommunityPage from './components/CommunityPage'
+import { gearVisual } from './lib/gearVisual.mjs'
 import { useCommunityAuth } from './components/CommunityAuth'
 import HomePage from './HomePage'
 import SiteMenu from './components/SiteMenu'
@@ -367,26 +368,6 @@ function SciCard({ item, i, T }) {
 
 // Images illustratives locales de catégories, indépendantes des images RSS tierces.
 // La détection fonctionne automatiquement pour les prochains articles.
-function gearVisual(item) {
-  const title = String(item.title || item.name || '').toLowerCase()
-  const description = String(item.summary || item.description || '').toLowerCase()
-  const category = String(item.category || '').toLowerCase()
-  const text = [title, description, category].join(' ').normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-
-  if (/bouilloire|gooseneck|kettle|verseuse|pitcher/.test(text)) return '/materiel-bouilloire.png'
-  if (/dripper|v60|kalita|origami|chemex|aeropress|pour.over|cafe filtre|filter brewer/.test(text)) return '/materiel-dripper.png'
-  if (/moulin|grinder|broyeur|1zpresso|kingrinder|comandante|kinu|aergrind|lagom/.test(text)) {
-    if (/manuel|hand|manual|crank|manivelle|1zpresso|kingrinder|comandante|kinu|aergrind/.test(text)) return '/materiel-moulin-manuel.png'
-    return '/materiel-moulin-electrique.png'
-  }
-  if (/espresso|machine|bean.to.cup|automatique|superautomatic|jura|ninja luxe|breville|rocket|e61|lever|levier/.test(text)) {
-    if (/automatique|superautomatic|bean.to.cup|jura|ninja luxe/.test(text)) return '/materiel-machine-auto.png'
-    if (/prosumer|e61|rocket|rancilio silvia|profitec|lelit|bianca|dual boiler|levier|lever/.test(text)) return '/materiel-espresso-prosumer.png'
-    return '/materiel-espresso.png'
-  }
-  return '/materiel-accessoires.png'
-}
-
 function GearPhoto({ item, featured = false }) {
   return (
     <div
