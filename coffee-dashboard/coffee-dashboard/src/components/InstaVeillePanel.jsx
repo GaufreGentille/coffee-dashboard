@@ -15,6 +15,7 @@ const CACHE_TTL = 30 * 60 * 1000; // 30 min
 const NEW_THRESHOLD = 7 * 24 * 3600 * 1000; // badge "nouveau" si post < 7 jours
 const MAX_POST_AGE = 14 * 24 * 3600 * 1000; // le feed n'affiche que les posts < 2 semaines
 const PAGE_SIZE = 48;
+const IDENTITY_TTL = 365 * 24 * 60 * 60 * 1000; // 12 mois
 
 const CATEGORY_COLORS = {
   Torrefacteur: "#b4610f",
@@ -53,7 +54,8 @@ function loadIdentity() {
     const raw = localStorage.getItem("ks-user");
     if (raw) {
       const u = JSON.parse(raw);
-      if (u?.id && u?.pseudo) return u;
+      if (u?.id && u?.pseudo && u?.createdAt && Date.now() - u.createdAt < IDENTITY_TTL) return u;
+      localStorage.removeItem("ks-user");
     }
   } catch { /* localStorage indisponible */ }
   return null;
@@ -63,6 +65,7 @@ function saveIdentity(pseudo) {
   const user = {
     id: (crypto.randomUUID ? crypto.randomUUID() : `u-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`),
     pseudo: pseudo.trim().slice(0, 20),
+    createdAt: Date.now(),
   };
   try { localStorage.setItem("ks-user", JSON.stringify(user)); } catch { /* tant pis */ }
   return user;

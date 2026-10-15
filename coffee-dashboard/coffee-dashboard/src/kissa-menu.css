@@ -390,3 +390,68 @@
    · Le commentaire du bloc REVEAL parle de grain.webp alors que le
      code charge grain.mp4.
    ========================================================= */
+
+
+/* ── CVA SCA : téléchargements dans Les outils ─────────────── */
+.ks-menu-cva .ks-menu-cva-block{
+  display:block;
+  padding:17px 4px 18px;
+}
+.ks-menu-cva .ks-menu-cva-block>span{
+  display:block;
+  font:700 17px/1.25 'DM Sans',sans-serif;
+  letter-spacing:-.02em;
+  color:var(--ks-paper-2);
+}
+.ks-menu-cva .ks-menu-cva-block>span small{
+  display:block;
+  margin-top:4px;
+  font:500 11px/1.4 'DM Sans',sans-serif;
+  letter-spacing:0;
+  color:rgba(247,241,232,.58);
+}
+.ks-menu-cva-files{
+  margin-top:14px;
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+.ks-menu-cva-files>div{
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:7px;
+  min-width:0;
+  padding:9px 10px;
+  border:1px solid rgba(247,241,232,.16);
+  background:rgba(247,241,232,.035);
+}
+.ks-menu-cva-files em{
+  min-width:0;
+  border:0;
+  padding:0;
+  font:700 7px/1 'DM Sans',sans-serif;
+  letter-spacing:.13em;
+  color:rgba(247,241,232,.48);
+}
+.ks-menu-cva-files a{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  min-width:42px;
+  padding:7px 8px;
+  border:1px solid rgba(218,93,22,.55);
+  text-decoration:none;
+  color:var(--ks-paper-2);
+  font:700 8px/1 'DM Sans',sans-serif;
+  letter-spacing:.09em;
+  transition:background .18s ease,border-color .18s ease,color .18s ease;
+}
+.ks-menu-cva-files a:hover{
+  background:var(--ks-orange);
+  border-color:var(--ks-orange);
+  color:#fff;
+}
+@media(max-width:560px){
+  .ks-menu-cva-files{grid-template-columns:1fr}
+}

@@ -15,6 +15,7 @@ import { cors, origineConnue } from "../lib/auth.mjs";
 const MAX_POSTS_TRACKED = 3000;  // au-delà, on purge les votes les plus anciens
 const MAX_VOTANTS_PAR_POST = 800; // au-delà, plus de nouveau votant sur ce post
 const VOTES_PAR_IP_PAR_MINUTE = 20;
+const RETENTION_MS = 180 * 24 * 60 * 60 * 1000; // 6 mois
 
 // Compteur par IP. Il vit dans l'instance et disparaît avec elle : ça freine
 // le script naïf, pas l'attaquant patient. C'est un ralentisseur, pas un mur.
@@ -103,7 +104,12 @@ export default async (req) => {
 
   votes[postId] = rec;
 
-  // ── Purge des entrées les plus anciennes si trop volumineux ──
+  // ── Purge par durée, puis par volume ──
+  const cutoff = Date.now() - RETENTION_MS;
+  for (const [id, item] of Object.entries(votes)) {
+    if ((item.t || 0) < cutoff) delete votes[id];
+  }
+
   const ids = Object.keys(votes);
   if (ids.length > MAX_POSTS_TRACKED) {
     ids

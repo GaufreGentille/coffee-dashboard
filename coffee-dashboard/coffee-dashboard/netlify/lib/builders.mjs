@@ -368,7 +368,7 @@ function parseSprudgeTiles(xml) {
       .map((p) => strip(p[1]))
       .filter((t) => t.length > 10)
       .join(' ')
-      .slice(0, 800)
+      .slice(0, 500)
     if (!text) continue
 
     const img = (body.match(/src="(https:\/\/substackcdn[^"]+\.(?:jpg|jpeg|png|webp|heic)[^"]*)"/) || [])[1] || null
@@ -394,9 +394,11 @@ export async function buildSprudge() {
 
   const sections = raw.map((t, i) => [i, t.title, t.summary].join('|||')).join('\n')
   const prompt =
-    'Translate these specialty coffee newsletter sections to French. Natural fluid translation. ' +
-    'Translate the full text faithfully, do not summarize. Return ONLY valid JSON array, no markdown.\n' +
-    'Each object: {"i":0,"title":"french title","summary":"full french text"}\n\nSections:\n' + sections
+    'You are an independent specialty coffee editor. For each newsletter section below, write an original French summary ' +
+    'in 2 short sentences maximum (about 45-65 words), preserving only the essential facts. Do not translate sentence by sentence, ' +
+    'do not reproduce distinctive phrasing, and do not invent information. Translate the title naturally into French. ' +
+    'Return ONLY a valid JSON array, no markdown.\n' +
+    'Each object: {"i":0,"title":"titre francais","summary":"resume original court"}\n\nSections:\n' + sections
 
   let tiles = raw
   try {
@@ -408,8 +410,9 @@ export async function buildSprudge() {
       })
     }
   } catch (e) {
-    // On sert l'anglais plutôt que rien : la traduction est un confort, pas la donnée.
-    console.error('Traduction Sprudge KO:', e.message)
+    // Pas de republication brute si la synthèse échoue : titre + lien source uniquement.
+    console.error('Synthese Sprudge KO:', e.message)
+    tiles = raw.map((t) => ({ ...t, summary: '' }))
   }
 
   return { tiles }

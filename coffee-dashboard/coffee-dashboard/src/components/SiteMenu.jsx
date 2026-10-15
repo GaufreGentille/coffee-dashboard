@@ -22,7 +22,7 @@ const TOOLS = [
   {
     label: 'Mame Mame Roast',
     note: 'Roguelike de torréfaction',
-    href: 'https://kissasoko.netlify.app/hangar-torref-843/',
+    href: '/hangar-torref-843/',
   },
 ]
 
@@ -44,7 +44,7 @@ export default function SiteMenu({ open, onClose, onNavigate, tabs = [] }) {
 
   if (!open) return null
 
-  const universes = tabs.filter(t => t.id !== 'home')
+  const universes = tabs.filter(t => t.id !== 'home' && t.id !== 'game')
   const go = id => { onNavigate(id); onClose() }
 
   return (
@@ -112,6 +112,27 @@ export default function SiteMenu({ open, onClose, onNavigate, tabs = [] }) {
                   </a>
                 </li>
               ))}
+
+              <li className="ks-menu-cva">
+                <div className="ks-menu-cva-block">
+                  <span>
+                    Fiches CVA · SCA
+                    <small>Pack complet ou fiche descriptive seule · FR / EN</small>
+                  </span>
+                  <div className="ks-menu-cva-files" aria-label="Télécharger les fiches CVA">
+                    <div>
+                      <em>PACK COMPLET</em>
+                      <a href="/outils/cva/sca-cva-complet-fr.pdf" download>FR ↓</a>
+                      <a href="/outils/cva/sca-cva-complet-en.pdf" download>EN ↓</a>
+                    </div>
+                    <div>
+                      <em>DESCRIPTIVE</em>
+                      <a href="/outils/cva/sca-cva-descriptif-fr.pdf" download>FR ↓</a>
+                      <a href="/outils/cva/sca-cva-descriptif-en.pdf" download>EN ↓</a>
+                    </div>
+                  </div>
+                </div>
+              </li>
             </ul>
           </nav>
         </div>

@@ -3,6 +3,7 @@ import HarvestPanel from './components/HarvestPanel'
 import InstaVeillePanel from './components/InstaVeillePanel'
 import HomePage from './HomePage'
 import SiteMenu from './components/SiteMenu'
+import SiteFooter from './components/SiteFooter'
 import { ORIGIN_COUNTRIES } from './data/origins'
 import './kissa.css'
 import './kissa-menu.css'
@@ -77,7 +78,7 @@ const TABS = [
   // le menu, ou elles ouvrent les actualites, le panneau musique ou le jeu.
   { id:'market',    label:'Marché',     nav:false, goTo:'news' },
   { id:'music',     label:'Musique',    nav:false, music:true },
-  { id:'game',      label:'Jeu',        nav:false, href:'https://kissasoko.netlify.app/hangar-torref-843/' },
+  { id:'game',      label:'Jeu',        nav:false, href:'/hangar-torref-843/' },
 ]
 
 const NAV_TABS = TABS.filter(t => t.nav)
@@ -150,20 +151,19 @@ function GGCursor() {
 
   useEffect(() => {
     if (!fine) return
-    let tx = innerWidth/2, ty = innerHeight/2, x=tx, y=ty, raf
-    const move = e => { tx=e.clientX; ty=e.clientY }
-    const over = e => setActive(Boolean(e.target.closest('a,button,[data-cursor="active"]')))
-    const tick = () => {
-      x += (tx-x)*.16; y += (ty-y)*.16
-      if(cursorRef.current) cursorRef.current.style.transform=`translate3d(${x}px,${y}px,0) translate(-50%,-50%)`
-      if(dotRef.current) dotRef.current.style.transform=`translate3d(${tx}px,${ty}px,0) translate(-50%,-50%)`
-      raf=requestAnimationFrame(tick)
+    const move = e => {
+      const transform = `translate3d(${e.clientX}px,${e.clientY}px,0) translate(-50%,-50%)`
+      if (cursorRef.current) cursorRef.current.style.transform = transform
+      if (dotRef.current) dotRef.current.style.transform = transform
     }
-    addEventListener('pointermove',move,{passive:true})
-    addEventListener('pointerover',over,{passive:true})
-    tick()
-    return ()=>{ removeEventListener('pointermove',move); removeEventListener('pointerover',over); cancelAnimationFrame(raf) }
-  },[fine])
+    const over = e => setActive(Boolean(e.target.closest('a,button,[data-cursor="active"]')))
+    addEventListener('pointermove', move, { passive:true })
+    addEventListener('pointerover', over, { passive:true })
+    return () => {
+      removeEventListener('pointermove', move)
+      removeEventListener('pointerover', over)
+    }
+  }, [fine])
 
   if (!fine) return null
 
@@ -318,7 +318,7 @@ function SciCard({ item, i, T }) {
 function RedditCard({ post, i, T }) {
   const [h, setH] = useState(false)
 
-  // Article communaute (Sprudge) : texte complet affiche sur place, sans lien sortant
+  // Article communauté : résumé éditorial court et lien vers la source
   const isSprudge = post.source === 'The Sprudge Report'
 
   const card = (
@@ -354,10 +354,10 @@ function RedditCard({ post, i, T }) {
             {post.summary}
           </div>
         )}
-        {!isSprudge && post.url && (
+        {post.url && (
           <a href={post.url} target="_blank" rel="noopener noreferrer"
             style={{ fontSize:'0.72rem', fontWeight:700, color:BRAND.amber, textDecoration:'none', marginTop:4, alignSelf:'flex-end' }}>
-            Lire plus →
+            {isSprudge ? 'Lire sur Sprudge →' : 'Lire plus →'}
           </a>
         )}
       </div>
@@ -1134,6 +1134,7 @@ export default function App() {
           </main>
         </>
       )}
+      <SiteFooter />
     </div>
   )
 }

@@ -84,6 +84,8 @@ export function refus(message = 'non autorise') {
 /* ─────────────────────────── CORS ─────────────────────────── */
 
 const ORIGINES = [
+  /^https:\/\/kissasoko\.gg$/,
+  /^https:\/\/www\.kissasoko\.gg$/,
   /^https:\/\/kissasoko\.netlify\.app$/,
   /^https:\/\/[a-z0-9-]+--kissasoko\.netlify\.app$/, // aperçus de déploiement
   /^http:\/\/localhost:\d+$/,
