@@ -77,6 +77,7 @@ function AuthModal({ onClose, recovering }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [pseudo, setPseudo] = useState('')
+  const [acceptRules, setAcceptRules] = useState(false)
   const [busy, setBusy] = useState(false)
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
@@ -97,10 +98,11 @@ function AuthModal({ onClose, recovering }) {
       let result
       if (mode === 'signup') {
         if (pseudo.trim().length < 2 || pseudo.trim().length > 32) throw new Error('Pseudo : 2 à 32 caractères.')
+        if (!acceptRules) throw new Error('Lis et accepte les règles du Comptoir pour créer ton compte.')
         result = await communityDb.auth.signUp({
           email: email.trim(),
           password,
-          options: { data: { display_name: pseudo.trim() }, emailRedirectTo: window.location.origin }
+          options: { data: { display_name: pseudo.trim(), accepted_rules_at: new Date().toISOString() }, emailRedirectTo: window.location.origin }
         })
         if (!result.error) setMessage('Inscription reçue. Vérifie tes emails pour confirmer ton compte si nécessaire.')
       } else if (mode === 'reset') {
@@ -152,6 +154,10 @@ function AuthModal({ onClose, recovering }) {
                 placeholder="8 caractères minimum" />
             </label>
           )}
+          {mode === 'signup' && <label className="ks-auth-rules">
+            <input type="checkbox" checked={acceptRules} onChange={e => setAcceptRules(e.target.checked)} required />
+            <span>J'ai lu et j'accepte les <a href="/conditions-communaute.html" target="_blank" rel="noopener noreferrer">règles du Comptoir</a> et j'ai pris connaissance de la <a href="/confidentialite.html" target="_blank" rel="noopener noreferrer">politique de confidentialité</a>.</span>
+          </label>}
           {error && <p className="ks-form-error" role="alert">{error}</p>}
           {message && <p className="ks-form-notice" role="status">{message}</p>}
           <button className="ks-primary-action" type="submit" disabled={busy || !communityConfigured}>
