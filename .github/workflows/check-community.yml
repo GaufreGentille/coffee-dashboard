@@ -1,0 +1,26 @@
+name: Vérification du build Kissa Soko
+on:
+  push:
+    branches: [feature/community-auth-watch]
+  pull_request:
+    branches: [legal-and-privacy]
+permissions:
+  contents: read
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: coffee-dashboard/coffee-dashboard
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: ''
+      - name: Installer les dépendances
+        run: npm install --no-audit --no-fund
+      - name: Vérifier les catégories des images Matériel
+        run: node --test tests/gearVisual.test.mjs
+      - name: Compiler les pages et le forum
+        run: npm run build

@@ -376,7 +376,7 @@ export default function HomePage({
     <header className={`ks-home-nav${stuck ? ' is-stuck' : ''}`}>
       <button className="ks-logo" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
         data-cursor="active" aria-label="Kissa Soko, retour en haut de page">
-        <span className="ks-gg-logo">GG<span>.</span></span>
+        <img className="ks-brand-logo" src="/logo.png" alt="" />
       </button>
 
       <nav className="ks-top-links" aria-label="Navigation principale">
@@ -408,9 +408,6 @@ export default function HomePage({
           <div className="ks-hero-copy">
             <p className="ks-eyebrow">LE CAFÉ<br />SOUS TOUTES SES FORMES</p>
             <h1><span>GOOD</span><span>COFFEE</span><span>GO FURTHER</span></h1>
-            <p className="ks-hero-sign">
-              Dix ans dans le café, et un site pour tout ce que ça fabrique autour.
-            </p>
             <button className="ks-explore" onClick={() => scrollTo('ks-reveal')} data-cursor="active">
               <i>&rarr;</i><span>EXPLORER</span>
             </button>
@@ -443,9 +440,6 @@ export default function HomePage({
             <button onClick={() => onNavigate('news')} className="ks-closing-link" data-cursor="active">
               <i></i><span>EN SAVOIR PLUS</span><b>&rarr;</b>
             </button>
-            <div className="ks-footer-brand" aria-label="Kissa Soko">
-              <img src="/kissa-soko-logo.png" alt="Kissa Soko" />
-            </div>
           </div>
         </div>
       </section>

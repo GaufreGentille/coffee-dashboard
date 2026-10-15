@@ -1,30 +1,18 @@
-// get-insta.mjs — sert le feed Instagram stocké dans Netlify Blobs au dashboard.
-import { getStore } from "@netlify/blobs";
+// Flux de la Veille réservé aux membres connectés et au collecteur interne.
+import { getStore } from '@netlify/blobs'
+import { isMember, isCollector, privateJson } from '../lib/member-auth.mjs'
 
-export default async () => {
-  try {
-    const store = getStore({ name: "insta-veille", consistency: "strong" });
-    const feed = await store.get("feed", { type: "json" });
-
-    if (!feed) {
-      return new Response(
-        JSON.stringify({ fetchedAt: null, stats: null, accounts: [] }),
-        { status: 200, headers: { "Content-Type": "application/json" } }
-      );
-    }
-
-    return new Response(JSON.stringify(feed), {
-      status: 200,
-      headers: {
-        "Content-Type": "application/json",
-        // cache CDN 30 min — le feed ne change qu'une fois par jour
-        "Cache-Control": "public, max-age=1800",
-      },
-    });
-  } catch (err) {
-    return new Response(JSON.stringify({ error: String(err) }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
+export default async (request) => {
+  if (request.method !== 'GET') return privateJson({ error: 'GET uniquement' }, 405)
+  if (!isCollector(request) && !await isMember(request)) {
+    return privateJson({ error: 'Connexion requise pour consulter la Veille' }, 401)
   }
-};
+  try {
+    const store = getStore({ name: 'insta-veille', consistency: 'strong' })
+    const feed = await store.get('feed', { type: 'json' })
+    return privateJson(feed || { fetchedAt: null, stats: null, accounts: [] })
+  } catch (e) {
+    console.error('Veille indisponible:', e)
+    return privateJson({ error: 'Veille momentanément indisponible' }, 500)
+  }
+}

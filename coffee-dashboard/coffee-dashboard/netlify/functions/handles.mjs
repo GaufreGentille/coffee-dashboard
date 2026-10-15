@@ -1,13 +1,14 @@
 // handles.mjs — gestion de la liste des comptes Instagram à surveiller.
-// GET  → liste complète (publique : utilisée par le script de veille et le panneau admin)
+// GET  → liste réservée aux membres et au collecteur interne
 // POST → modifications, protégées par le header x-admin-key (env VEILLE_ADMIN_KEY)
 //        actions : ping | add | remove | replace
 import { getStore } from "@netlify/blobs";
+import { isMember, isCollector, privateHeaders } from "../lib/member-auth.mjs";
 
 const json = (data, status = 200) =>
   new Response(JSON.stringify(data), {
     status,
-    headers: { "Content-Type": "application/json" },
+    headers: privateHeaders,
   });
 
 // handle Instagram valide : minuscules, chiffres, points, underscores, 1-30 caractères
@@ -20,6 +21,7 @@ export default async (req) => {
   const store = getStore({ name: "insta-veille", consistency: "strong" });
 
   if (req.method === "GET") {
+    if (!isCollector(req) && !await isMember(req)) return json({ error: "Connexion requise" }, 401);
     const list = await store.get("handles", { type: "json" });
     return json(Array.isArray(list) ? list : []);
   }

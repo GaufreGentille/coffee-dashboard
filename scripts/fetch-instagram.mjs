@@ -47,7 +47,7 @@ const HANDLES_PATH = new URL(
 // Le fichier JSON du repo ne sert que de secours si le Blob est vide/injoignable.
 async function loadHandles() {
   try {
-    const r = await fetch(HANDLES_URL);
+    const r = await fetch(HANDLES_URL, { headers: { "x-veille-secret": VEILLE_SECRET } });
     if (r.ok) {
       const list = await r.json();
       if (Array.isArray(list) && list.length > 0) {
@@ -192,7 +192,7 @@ async function fetchAccountDeep(handle) {
 async function refreshPins() {
   let pins;
   try {
-    pins = await fetch(PINS_URL).then((r) => (r.ok ? r.json() : null));
+    pins = await fetch(PINS_URL, { headers: { "x-veille-secret": VEILLE_SECRET } }).then((r) => (r.ok ? r.json() : null));
   } catch { return; }
   if (!pins || typeof pins !== "object") return;
   const ids = Object.keys(pins);
@@ -239,7 +239,7 @@ async function main() {
   const prevAccounts = new Map();
 
   try {
-    const prev = await fetch(READ_URL).then((r) => (r.ok ? r.json() : null));
+    const prev = await fetch(READ_URL, { headers: { "x-veille-secret": VEILLE_SECRET } }).then((r) => (r.ok ? r.json() : null));
     if (prev?.accounts) {
       for (const a of prev.accounts) {
         if (a?.handle) prevAccounts.set(a.handle, a);

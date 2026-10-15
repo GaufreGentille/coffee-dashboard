@@ -1,12 +1,16 @@
 import { useState, useEffect, useCallback, useRef, useLayoutEffect } from 'react'
 import HarvestPanel from './components/HarvestPanel'
 import InstaVeillePanel from './components/InstaVeillePanel'
+import CommunityPage from './components/CommunityPage'
+import { gearVisual } from './lib/gearVisual.mjs'
+import { useCommunityAuth } from './components/CommunityAuth'
 import HomePage from './HomePage'
 import SiteMenu from './components/SiteMenu'
 import SiteFooter from './components/SiteFooter'
 import { ORIGIN_COUNTRIES } from './data/origins'
 import './kissa.css'
 import './kissa-menu.css'
+import './community.css'
 
 // GaufreGentille brand palette
 const BRAND = {
@@ -71,8 +75,8 @@ const TABS = [
   { id:'science',   label:'Science',    nav:true  },
   { id:'harvest',   label:'Origines',   nav:true  },
   { id:'gear',      label:'Matériel',   nav:true  },
-  { id:'reddit',    label:'Communauté', nav:true  },
-  { id:'instagram', label:'Instagram',  nav:true  },
+  { id:'instagram', label:'Veille', nav:true },
+  { id:'community', label:'Communauté', nav:true  },
   // Marche n'est pas une page : le bandeau des cours est visible partout.
   // Ces trois entrees sortent de la barre de navigation mais vivent dans
   // le menu, ou elles ouvrent les actualites, le panneau musique ou le jeu.
@@ -95,7 +99,7 @@ const PAGE_ART = {
   science:   { src:'/kissa-bottom-botanical.png',  side:'left',  variant:'is-science' },
   harvest:   { src:'/kissa-hero-botanical.png',    side:'right', variant:'is-harvest' },
   gear:      { src:'/kissa-bottom-botanical.png',  side:'left',  variant:'is-gear' },
-  reddit:    { src:'/kissa-hero-botanical.png',    side:'right', variant:'is-reddit' },
+  community: { src:'/kissa-hero-botanical.png',    side:'right', variant:'is-reddit' },
   instagram: { src:'/kissa-bottom-botanical.png',  side:'left',  variant:'is-instagram' },
 }
 
@@ -216,6 +220,33 @@ function PageIntro({ title, meta, deck }) {
 }
 
 
+function PrivateVeillePage() {
+  const { user, loading, openAuth } = useCommunityAuth()
+  return (
+    <section className="ks-editorial-page ks-instagram-page ks-legacy-panel ks-page-has-art">
+      <PageOrnament page="instagram" />
+      <PageIntro title="Veille" meta="Le café en images · Sélection et tendances" />
+      {loading ? (
+        <Spinner label="Vérification de la connexion…" />
+      ) : user ? (
+        <div className="ks-instagram-panel-skin">
+          <InstaVeillePanel />
+        </div>
+      ) : (
+        <div className="ks-veille-locked">
+          <p className="ks-forum-eyebrow">ESPACE RÉSERVÉ AUX MEMBRES</p>
+          <h2>Un regard sur le café, entre passionnés.</h2>
+          <p>Connecte-toi à ton compte gratuit Kissa Soko pour découvrir la veille et voter sur les publications.</p>
+          <button type="button" className="ks-primary-action" onClick={openAuth}>
+            Se connecter ou s'inscrire →
+          </button>
+          <small>Le Comptoir reste accessible à tous en lecture.</small>
+        </div>
+      )}
+    </section>
+  )
+}
+
 function PageOrnament({ page }) {
   const art = PAGE_ART[page]
   if (!art) return null
@@ -294,6 +325,26 @@ function NewsPage({ items, dateStr }) {
   )
 }
 
+function SprudgeSection({ feed }) {
+  if (feed.loading) return <p className="ks-feed-note">Chargement du Sprudge Report…</p>
+  if (feed.error) return <p className="ks-feed-note">Le Sprudge Report est momentanément indisponible.</p>
+  if (!feed.data?.length) return null
+  return (
+    <section className="ks-sprudge-section" aria-label="Le Sprudge Report">
+      <div className="ks-sprudge-intro">
+        <p className="ks-page-meta">DANS LA PRESSE CAFÉ</p>
+        <h2>Le Sprudge Report<span>.</span></h2>
+        <p>Notre sélection de résumés, avec accès direct aux publications originales.</p>
+      </div>
+      <div className="ks-news-grid">
+        {feed.data.map((post,i) => (
+          <NewsCard key={post.url || i} item={{...post, img: null, image: null, source: 'The Sprudge Report'}} />
+        ))}
+      </div>
+    </section>
+  )
+}
+
 function SciCard({ item, i, T }) {
   const [h, setH] = useState(false)
   return (
@@ -315,116 +366,60 @@ function SciCard({ item, i, T }) {
   )
 }
 
-function RedditCard({ post, i, T }) {
-  const [h, setH] = useState(false)
-
-  // Article communauté : résumé éditorial court et lien vers la source
-  const isSprudge = post.source === 'The Sprudge Report'
-
-  const card = (
-    <div onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
-      style={{
-        background:T.surf, border:`1px solid ${h ? BRAND.amber+'66' : T.border}`,
-        borderRadius:12, overflow:'hidden',
-        cursor: isSprudge ? 'default' : 'pointer',
-        transition:'all 0.18s', animation:`fadeUp 0.3s ease ${i*55}ms both`,
-        transform: (!isSprudge && h) ? 'translateY(-3px)' : 'translateY(0)',
-        boxShadow: (!isSprudge && h) ? `0 8px 24px rgba(0,0,0,0.15)` : 'none',
-        display:'flex', flexDirection:'column',
-      }}>
-      {post.img && (
-        <div style={{
-          height:160, flexShrink:0,
-          backgroundImage:`url(${post.img})`,
-          backgroundSize:'cover', backgroundPosition:'center',
-          position:'relative',
-        }}>
-          <div style={{ position:'absolute', inset:0, background:'linear-gradient(to top, rgba(0,0,0,0.45) 0%, transparent 60%)' }} />
-        </div>
-      )}
-      <div style={{ padding:'16px 18px 18px', flex:1, display:'flex', flexDirection:'column', gap:8 }}>
-        {post.date && (
-          <div style={{ fontSize:10, color:T.faint, letterSpacing:'0.05em' }}>{post.date}</div>
-        )}
-        <div style={{ fontSize:'0.95rem', fontWeight:700, color:T.text, lineHeight:1.4 }}>
-          {post.title}
-        </div>
-        {post.summary && (
-          <div style={{ fontSize:'0.82rem', color:T.dim, lineHeight:1.7, flex:1 }}>
-            {post.summary}
-          </div>
-        )}
-        {post.url && (
-          <a href={post.url} target="_blank" rel="noopener noreferrer"
-            style={{ fontSize:'0.72rem', fontWeight:700, color:BRAND.amber, textDecoration:'none', marginTop:4, alignSelf:'flex-end' }}>
-            {isSprudge ? 'Lire sur Sprudge →' : 'Lire plus →'}
-          </a>
-        )}
-      </div>
-    </div>
+// Images illustratives locales de catégories, indépendantes des images RSS tierces.
+// La détection fonctionne automatiquement pour les prochains articles.
+function GearPhoto({ item, featured = false }) {
+  return (
+    <div
+      className={`ks-gear-photo${featured ? ' is-featured' : ''}`}
+      role="img"
+      aria-label="Illustration de catégorie de matériel café"
+      style={{ backgroundImage: `url("${gearVisual(item)}")`, backgroundSize: 'cover', backgroundPosition: 'center' }}
+    />
   )
-
-  return isSprudge
-    ? card
-    : <a href={post.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration:'none' }}>{card}</a>
 }
 
 function GearHeroCard({ item, T }) {
-  const [h, setH] = useState(false)
+  const [hovered, setHovered] = useState(false)
+  const title = item.title || item.name || 'Actualité matériel'
   return (
-    <a href={item.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration:'none' }}>
-      <div onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
-        style={{ background:T.surf, border:`1px solid ${h?BRAND.amber+'88':T.border2}`, borderRadius:14, overflow:'hidden', marginBottom:12, cursor:'pointer', transition:'all 0.2s', boxShadow:h?`0 4px 24px ${BRAND.amber}18`:'none' }}>
-        <div style={{ height:220, backgroundImage:`url(${item.img})`, backgroundSize:'cover', backgroundPosition:'center', position:'relative' }}>
-          <div style={{ position:'absolute', inset:0, background:`linear-gradient(to top, ${T.surf}f0 0%, ${T.surf}44 50%, transparent 100%)` }} />
-          <div style={{ position:'absolute', top:14, left:16, display:'flex', gap:8, alignItems:'center' }}>
-            {item.hot && <span style={{ fontSize:'1.1rem' }}>🔥</span>}
-            <span style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', background:T.surf+'cc', backdropFilter:'blur(8px)', color:BRAND.amber, border:`1px solid ${BRAND.amber}44`, borderRadius:5, padding:'3px 9px' }}>{item.category}</span>
-          </div>
-          <div style={{ position:'absolute', bottom:16, left:18, right:18 }}>
-            <div style={{ fontSize:11, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', color:BRAND.amber, marginBottom:6 }}>{item.brand}</div>
-            <div style={{ fontFamily:'Georgia,serif', fontSize:'1.25rem', fontWeight:700, color:'#fff', lineHeight:1.3, textShadow:'0 1px 8px rgba(0,0,0,0.6)' }}>{item.name}</div>
-          </div>
+    <a className="ks-gear-feature" href={item.url} target="_blank" rel="noopener noreferrer"
+       onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)}
+       style={{
+         background: T.surf, border: `1px solid ${hovered ? BRAND.amber+'88' : T.border2}`,
+         boxShadow: hovered ? '0 4px 24px rgba(218,93,22,.08)' : 'none'
+       }}>
+      <GearPhoto item={item} featured />
+      <div className="ks-gear-feature-copy">
+        <div className="ks-gear-card-meta">
+          <span className="ks-gear-category">{item.category || 'Matériel'}</span>
+          {item.hot && <span className="ks-gear-new">NOUVEAUTÉ</span>}
+          {item.source && <span className="ks-gear-source">{item.source}{item.date ? ` · ${item.date}` : ''}</span>}
         </div>
-        <div style={{ padding:'16px 18px 20px' }}>
-          <div style={{ fontSize:'0.9rem', color:T.dim, lineHeight:1.7, marginBottom:12, display:'-webkit-box', WebkitLineClamp:5, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.description || item.summary}</div>
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            {item.price && <span style={{ fontSize:'1rem', fontWeight:700, color:BRAND.yellow }}>{item.price}</span>}
-            {item.source && <span style={{ fontSize:'0.7rem', color:T.faint }}>{item.source} · {item.date}</span>}
-            <span style={{ fontSize:'0.72rem', color:BRAND.purple, fontWeight:600 }}>Voir →</span>
-          </div>
-        </div>
+        <h2>{title}</h2>
+        <p>{item.description || item.summary}</p>
+        <span className="ks-gear-read">Découvrir l'article <b aria-hidden="true">→</b></span>
       </div>
     </a>
   )
 }
 
 function GearCard({ item, i, T }) {
-  const [h, setH] = useState(false)
+  const title = item.title || item.name || 'Actualité matériel'
   return (
-    <a href={item.url} target="_blank" rel="noopener noreferrer" style={{ textDecoration:'none' }}>
-      <div onMouseEnter={()=>setH(true)} onMouseLeave={()=>setH(false)}
-        style={{ background:T.surf, border:`1px solid ${h?T.border2:T.border}`, borderRadius:12, overflow:'hidden', cursor:'pointer', transform:h?'translateY(-3px)':'translateY(0)', transition:'all 0.2s', boxShadow:h?`0 8px 24px rgba(0,0,0,0.12)`:'none', animation:`fadeUp 0.35s ease ${i*60}ms both` }}>
-        <div style={{ height:160, backgroundImage:`url(${item.img})`, backgroundSize:'cover', backgroundPosition:'center', position:'relative' }}>
-          <div style={{ position:'absolute', inset:0, background:`linear-gradient(to top, ${T.surf}ee 0%, transparent 50%)` }} />
-          {item.hot && (
-            <div style={{ position:'absolute', top:10, left:12, display:'flex', gap:6, alignItems:'center' }}>
-              <span style={{ fontSize:'1rem' }}>🔥</span>
-            </div>
-          )}
-          <div style={{ position:'absolute', bottom:10, left:12 }}>
-            <span style={{ fontSize:9, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.1em', color:BRAND.amber, background:T.surf+'dd', borderRadius:4, padding:'2px 7px' }}>{item.category}</span>
-          </div>
+    <a className="ks-gear-tile" href={item.url} target="_blank" rel="noopener noreferrer"
+       style={{ background: T.surf, border: `1px solid ${T.border}`, animation: `fadeUp .35s ease ${i*60}ms both` }}>
+      <GearPhoto item={item} />
+      <div className="ks-gear-tile-copy">
+        <div className="ks-gear-card-meta">
+          <span className="ks-gear-category">{item.category || 'Matériel'}</span>
+          {item.hot && <span className="ks-gear-new">NOUVEAUTÉ</span>}
         </div>
-        <div style={{ padding:'13px 15px 16px' }}>
-          <div style={{ fontSize:10, fontWeight:700, textTransform:'uppercase', letterSpacing:'0.09em', color:BRAND.amber, marginBottom:5 }}>{item.brand}</div>
-          <div style={{ fontSize:'0.95rem', fontWeight:700, color:T.text, lineHeight:1.35, marginBottom:7, display:'-webkit-box', WebkitLineClamp:2, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.name}</div>
-          <div style={{ fontSize:'0.78rem', color:T.dim, lineHeight:1.55, display:'-webkit-box', WebkitLineClamp:4, WebkitBoxOrient:'vertical', overflow:'hidden' }}>{item.description || item.summary}</div>
-          <div style={{ marginTop:10, display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-            {item.price && <span style={{ fontSize:'0.88rem', fontWeight:700, color:BRAND.yellow }}>{item.price}</span>}
-            {item.source && !item.price && <span style={{ fontSize:'0.68rem', color:T.faint }}>{item.source}</span>}
-            <span style={{ fontSize:'0.7rem', color:BRAND.purple, fontWeight:600 }}>Voir →</span>
-          </div>
+        <h3>{title}</h3>
+        <p>{item.description || item.summary}</p>
+        <div className="ks-gear-tile-bottom">
+          <span>{item.source || ''}</span>
+          <span className="ks-gear-read">Voir <b aria-hidden="true">→</b></span>
         </div>
       </div>
     </a>
@@ -877,7 +872,7 @@ function SiteHeader({ tab, setTab, refresh, lastRefresh, showMusic, setShowMusic
   return (
     <header className="ks-site-header">
       <button className="ks-site-brand" onClick={()=>setTab('home')} aria-label="Retour à l'accueil">
-        <span>GG<span>.</span></span>
+        <img className="ks-brand-logo" src="/logo.png" alt="" />
       </button>
 
       <nav className="ks-site-nav" aria-label="Navigation principale">
@@ -1013,16 +1008,16 @@ export default function App() {
   const news      = useFeed('/.netlify/functions/get-news',    pickNews,    isHome || tab === 'news')
   const science   = useFeed('/.netlify/functions/get-science', pickScience, tab === 'science')
   const gear      = useFeed('/.netlify/functions/get-gear',    pickGear,    tab === 'gear')
-  const community = useFeed('/.netlify/functions/get-sprudge', pickSprudge, tab === 'reddit')
+  const sprudge   = useFeed('/.netlify/functions/get-sprudge', pickSprudge, tab === 'news')
   const harvest   = useFeed('/.netlify/functions/get-harvest', pickHarvest, isHome || tab === 'harvest')
 
-  const feeds = { news, science, gear, reddit: community, harvest }
+  const feeds = { news, science, gear, harvest }
 
   useEffect(() => {
     if (markets.data) setLastRefresh(new Date().toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'}))
   }, [markets.data])
 
-  const refresh = () => { markets.reload(); feeds[tab]?.reload() }
+  const refresh = () => { markets.reload(); feeds[tab]?.reload(); if (tab === 'news') sprudge.reload() }
   const marketRows = markets.data?.rows?.length ? markets.data.rows : MARKET_PLACEHOLDER
   const mktTime = markets.data?.updatedAt || '--'
   const dateStr = new Intl.DateTimeFormat('fr-FR', { weekday:'long', day:'numeric', month:'long', year:'numeric' }).format(new Date())
@@ -1064,36 +1059,17 @@ export default function App() {
           {showMusic && <MusicPanel />}
 
           <main className="ks-page-shell">
-            {tab==='news' && (
-              news.loading ? <Spinner label="Chargement des actualités..." /> :
-              news.error ? <ErrMsg msg={news.error} /> :
-              news.data?.length ? <NewsPage items={news.data} dateStr={dateStr} /> :
-              <ErrMsg msg="Aucune actualité disponible pour le moment." />
-            )}
+            {tab==='news' && (<>
+              {news.loading ? <Spinner label="Chargement des actualités..." /> :
+                news.error ? <ErrMsg msg={news.error} /> :
+                news.data?.length ? <NewsPage items={news.data} dateStr={dateStr} /> :
+                <ErrMsg msg="Aucune actualité disponible pour le moment." />}
+              <SprudgeSection feed={sprudge} />
+            </>)}
 
-            {tab==='instagram' && (
-              <section className="ks-editorial-page ks-instagram-page ks-legacy-panel ks-page-has-art">
-                <PageOrnament page="instagram" />
-                <PageIntro title="Instagram" meta="Veille visuelle" />
-                <div className="ks-instagram-panel-skin">
-                  <InstaVeillePanel />
-                </div>
-              </section>
-            )}
+            {tab==='instagram' && <PrivateVeillePage />}
 
-            {tab==='reddit' && (
-              community.loading ? <Spinner label="Chargement de la communauté..." /> :
-              community.error ? <ErrMsg msg={community.error} /> :
-              community.data?.length ? (
-                <section className="ks-editorial-page ks-community-page ks-legacy-panel ks-page-has-art">
-                  <PageOrnament page="reddit" />
-                  <PageIntro title="Communauté" meta={`The Sprudge Report · ${community.data.length} articles · ${dateStr}`} />
-                  <div className="ks-legacy-grid">
-                    {community.data.map((post,i) => <RedditCard key={post.url || post.title || i} post={post} i={i} T={T} />)}
-                  </div>
-                </section>
-              ) : <ErrMsg msg="Aucun article disponible pour le moment." />
-            )}
+            {tab==='community' && <CommunityPage />}
 
             {tab==='science' && (
               science.loading ? <Spinner label="Recherche d'articles scientifiques..." /> :
@@ -1118,7 +1094,7 @@ export default function App() {
                   <PageIntro title="Matériel" meta={`${gear.data.length} nouveautés · moulins, machines, tasses, drippers`} />
                   <GearHeroCard item={gear.data[0]} T={T} />
                   <div className="ks-gear-grid">
-                    {gear.data.slice(1).map((item,i) => <GearCard key={item.url || item.name || i} item={item} i={i} T={T} />)}
+                    {gear.data.slice(1).map((item,i) => <GearCard key={item.url || item.title || i} item={item} i={i} T={T} />)}
                   </div>
                 </section>
               ) : <ErrMsg msg="Aucune nouveauté disponible." />
