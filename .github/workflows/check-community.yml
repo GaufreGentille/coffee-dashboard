@@ -20,5 +20,7 @@ jobs:
           cache: ''
       - name: Installer les dépendances
         run: npm install --no-audit --no-fund
+      - name: Vérifier les catégories des images Matériel
+        run: node --test tests/gearVisual.test.mjs
       - name: Compiler les pages et le forum
         run: npm run build
