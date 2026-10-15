@@ -31,11 +31,18 @@
   <p><strong>Base légale :</strong> intérêt légitime à fournir, sécuriser et maintenir le site.</p>
 </section>
 <section>
-  <h2>Votes « Hot / Cold »</h2>
-  <p>Lorsque vous choisissez de voter sur un contenu de la veille Instagram, le navigateur crée un identifiant aléatoire et conserve le pseudo que vous avez choisi dans le stockage local de votre appareil. Cet identifiant sert uniquement à mémoriser votre vote et à éviter qu’un même navigateur vote plusieurs fois sur le même contenu.</p>
-  <p>Le pseudo est transmis lors du vote pour validation mais n’est pas enregistré dans la base de votes côté serveur. Le serveur conserve l’identifiant aléatoire, le sens du vote et l’identifiant de la publication. Une adresse IP peut être utilisée de façon temporaire en mémoire pour limiter les abus, sans être ajoutée à la base des votes.</p>
-  <p>L’identité locale expire au plus tard au bout de 12 mois. Les enregistrements de vote côté serveur sont conservés au maximum 6 mois.</p>
-  <p><strong>Base légale :</strong> intérêt légitime à proposer une fonctionnalité communautaire et à prévenir les abus. Le stockage local n’est créé qu’après une action volontaire de vote.</p>
+  <h2>Comptes Kissa Soko et Le Comptoir</h2>
+  <p>La consultation du Comptoir reste publique. Pour accéder à Veille et pour publier, commenter, signaler ou voter, vous devez disposer d'un compte confirmé via Supabase Auth.</p>
+  <p>Lors de l'inscription, les données traitées comprennent votre adresse e-mail, votre pseudonyme public, un identifiant de compte et des données d'authentification. Le mot de passe est géré par Supabase Auth ; Kissa Soko ne reçoit pas votre mot de passe en clair. Supabase assure notamment la gestion des sessions et des e-mails d'authentification.</p>
+  <p>Vos sujets, réponses et votes sont liés à un identifiant de membre dans la base de données. Votre pseudonyme et vos publications sont publics dans Le Comptoir, mais votre adresse e-mail et vos choix de vote individuels ne sont pas affichés au public. Les votes servent au calcul de scores agrégés.</p>
+  <p><strong>Base légale :</strong> fourniture du service demandé pour le compte et les fonctionnalités communautaires ; intérêt légitime pour prévenir les abus et assurer la modération.</p>
+  <p>Les données de compte, contenus et votes sont conservés tant que le compte et les contenus associés subsistent, sous réserve des demandes d'effacement, des contraintes techniques et des obligations légales applicables. Pour demander la suppression de votre compte et de vos données, écrivez à <a href="mailto:contact@kissasoko.gg?subject=Suppression%20de%20mon%20compte">contact@kissasoko.gg</a> depuis l'adresse liée au compte. La suppression n'est pas encore automatisée en libre-service.</p>
+</section>
+<section>
+  <h2>Votes « Hot / Cold » et signalements</h2>
+  <p>Les votes sont réservés aux membres connectés, dans le Comptoir et la Veille. Le serveur conserve l'identifiant de compte, l'identifiant du contenu concerné et le sens du vote, afin de compter au maximum un vote par compte et par contenu. Les scores publics sont agrégés sans afficher les identités des votants.</p>
+  <p>Les signalements contiennent le motif fourni, l'identifiant du membre qui signale, celui du contenu concerné, la date et leur statut de traitement. Ils sont réservés aux personnes autorisées à modérer. Des limitations automatiques de fréquence de publication réduisent les abus.</p>
+  <p><strong>Base légale :</strong> exécution des fonctionnalités demandées et intérêt légitime à la protection de la communauté.</p>
 </section>
 <section>
   <h2>Veille Instagram</h2>
@@ -57,19 +64,18 @@
 </section>
 <section>
   <h2>Stockages sur votre appareil</h2>
-  <p>Kissa Soko utilise uniquement des stockages fonctionnels nécessaires aux fonctionnalités demandées :</p>
+  <p>Kissa Soko utilise des stockages fonctionnels liés aux fonctionnalités demandées :</p>
   <ul>
-    <li><strong>ks-user</strong> : identifiant aléatoire et pseudo pour les votes, durée maximale 12 mois ;</li>
-    <li><strong>insta-veille-cache</strong> : cache de session de la veille Instagram, environ 30 minutes ;</li>
-    <li><strong>kissa_session</strong> : cookie sécurisé réservé aux fonctions privées d’administration et de studio, 30 jours ;</li>
-    <li><strong>kissasoko.studio.code</strong> : mémorisation locale du code de salon Studio sur les appareils qui utilisent cette fonctionnalité privée ;</li>
-    <li><strong>veille-admin-key</strong> : stockage de session réservé à l’administration de la veille.</li>
+    <li><strong>Session Supabase Auth</strong> : conservation locale des jetons de connexion afin de maintenir la session, jusqu'à déconnexion, expiration ou retrait des données du navigateur ;</li>
+    <li><strong>kissa_session</strong> : cookie réservé aux outils privés préexistants d'administration et de studio ;</li>
+    <li><strong>kissasoko.studio.code</strong> : mémorisation locale du code de salon Studio lorsque cette fonctionnalité est utilisée ;</li>
+    <li><strong>veille-admin-key</strong> : stockage de session réservé à l'administration de la veille.</li>
   </ul>
-  <p>Ces mécanismes ne sont pas utilisés à des fins publicitaires. Aucun bandeau de consentement marketing n’est donc affiché à ce jour.</p>
+  <p>Les publications de Veille ne sont plus conservées dans un cache de session du navigateur. Ces mécanismes ne servent pas au ciblage publicitaire.</p>
 </section>
 <section>
   <h2>Services et contenus tiers</h2>
-  <p>Le site s’appuie sur plusieurs prestataires ou sources : Netlify pour l’hébergement et le stockage, GitHub pour l’automatisation technique, Meta pour la veille Instagram et Cloudflare pour certains relais réseau du Studio. Les polices utilisées par l’interface sont hébergées directement avec le site : leur chargement ne déclenche pas de requête vers Google Fonts ou Fontsource depuis le navigateur.</p>
+  <p>Le site s’appuie sur plusieurs prestataires ou sources : Netlify pour l’hébergement et le stockage, Supabase pour les comptes et données communautaires, GitHub pour l’automatisation technique, Meta pour la veille Instagram et Cloudflare pour certains relais réseau du Studio. Les polices utilisées par l’interface sont hébergées directement avec le site : leur chargement ne déclenche pas de requête vers Google Fonts ou Fontsource depuis le navigateur.</p>
   <p>Les pages d’actualités ou de matériel peuvent également afficher des images fournies par les sources éditoriales d’origine. Le chargement d’une image distante peut entraîner une requête directe vers le serveur qui l’héberge.</p>
   <p>Ces acteurs peuvent traiter des données hors de l’Espace économique européen selon leurs propres conditions et garanties. Leurs politiques de confidentialité sont accessibles sur leurs sites respectifs.</p>
 </section>
@@ -81,8 +87,8 @@
 </section>
 <section>
   <h2>Mises à jour</h2>
-  <p>Cette politique pourra évoluer avec Kissa Soko, notamment lors de l’arrivée de comptes utilisateurs, d’un espace communautaire ou de nouvelles fonctionnalités. Toute modification importante sera reflétée sur cette page.</p>
-  <p>Dernière mise à jour : 12 octobre 2026.</p>
+  <p>Cette politique pourra évoluer avec les fonctionnalités communautaires et les prestataires utilisés. Toute modification importante sera reflétée sur cette page.</p>
+  <p>Dernière mise à jour : 15 octobre 2026.</p>
 </section></article>
       <aside class="legal-side">
         <strong>Un droit, une question ?</strong>
