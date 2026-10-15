@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { communityConfigured, communityDb } from '../lib/communityClient'
 import { MemberBar, useCommunityAuth } from './CommunityAuth'
+import ModeratorPanel from './ModeratorPanel'
 
 const CATEGORIES = [
   { id: 'tous', label: 'Tout le comptoir' },
@@ -101,6 +102,7 @@ export default function CommunityPage() {
         <p>Questions pointues, curiosités, découvertes. On discute café sans barrière à l'entrée.</p>
       </div>
       <MemberBar />
+      <ModeratorPanel onChanged={refresh} />
       {error && <div className="ks-forum-alert" role="alert">{error} <button type="button" onClick={()=>setError('')}>Fermer</button></div>}
       <div className="ks-forum-toolbar">
         <nav className="ks-forum-filters" aria-label="Catégories des discussions">
