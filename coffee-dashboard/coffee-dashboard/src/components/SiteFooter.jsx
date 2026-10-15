@@ -9,6 +9,7 @@ export default function SiteFooter() {
         <nav aria-label="Informations légales">
           <a href="/mentions-legales.html">Mentions légales</a>
           <a href="/confidentialite.html">Confidentialité</a>
+          <a href="/conditions-communaute.html">Le Comptoir</a>
           <a href="/credits.html">Crédits</a>
           <a href="/contact.html">Contact</a>
         </nav>
