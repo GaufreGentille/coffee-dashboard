@@ -41,6 +41,26 @@ export async function writeFeed(key, data) {
   return record
 }
 
+// Dernière tentative de génération déclenchée par un visiteur (blob vide).
+const COOLDOWN_MS = 10 * 60 * 1000
+
+async function readAttempt(key) {
+  try {
+    const v = await store().get(`${key}:tentative`, { type: 'json' })
+    return typeof v?.at === 'number' ? v.at : null
+  } catch {
+    return null
+  }
+}
+
+async function markAttempt(key) {
+  try {
+    await store().setJSON(`${key}:tentative`, { at: Date.now() })
+  } catch (e) {
+    console.error('marqueur de tentative KO:', key, e.message)
+  }
+}
+
 // Reconstruit un flux et l'écrit en blob.
 export async function refreshFeed(key, build) {
   const data = await build()
@@ -70,6 +90,21 @@ export async function serveFeed(req, { key, build, transform, maxAge = 3600 }) {
   let origin = 'blob'
 
   if (!record) {
+    // Blob vide et visiteur ordinaire : on ne tente la génération qu'une fois
+    // toutes les 10 minutes. Sinon, si le build plante, chaque visite relance
+    // un appel payant, et des visites simultanées en lancent plusieurs.
+    if (!force) {
+      const derniere = await readAttempt(key)
+      if (derniere && Date.now() - derniere < COOLDOWN_MS) {
+        const reste = Math.ceil((COOLDOWN_MS - (Date.now() - derniere)) / 1000)
+        return json(req, { error: 'flux en préparation, réessaie dans quelques minutes' }, 503, {
+          'Retry-After': String(reste),
+          'Cache-Control': 'no-store',
+          'X-Feed': 'cooldown',
+        })
+      }
+      await markAttempt(key)
+    }
     try {
       record = await refreshFeed(key, build)
       origin = force ? 'refresh' : 'cold'
