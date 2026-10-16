@@ -254,11 +254,13 @@ a{color:inherit}
   .ks-app a,.ks-app button{cursor:pointer}
   .ggc-cursor,.ggc-cursor-dot{display:none}
 
-  .ks-site-header{min-height:0;padding:12px 14px 0;grid-template-columns:auto 1fr auto;gap:10px;align-items:center}
+  /* Mobile : logo et actions sur la premiere ligne, navigation en dessous. */
+  .ks-site-header{min-height:0;padding:12px 14px 0;grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"brand . actions" "nav nav nav";gap:10px;align-items:center}
+  .ks-site-brand{grid-area:brand}
   .ks-site-brand .ks-brand-logo{width:56px;height:56px}
-  .ks-site-actions{justify-self:end}
+  .ks-site-actions{grid-area:actions;justify-self:end}
   .ks-site-actions button{width:34px;height:34px}
-  .ks-site-nav{grid-column:1/-1;justify-content:flex-start;overflow-x:auto;gap:18px;padding:4px 0 12px;scrollbar-width:none}
+  .ks-site-nav{grid-area:nav;justify-content:flex-start;overflow-x:auto;gap:18px;padding:4px 0 12px;scrollbar-width:none}
   .ks-site-nav::-webkit-scrollbar{display:none}
   .ks-site-nav button{font-size:8px;flex-shrink:0;padding:6px 0}
   .ks-site-nav button.is-active:after{bottom:0}
