@@ -259,7 +259,10 @@
 
 /* Les thèmes du chapitre, dans la carte au survol. C'est là que
    les variétés, le lait ou les fermentations deviennent visibles. */
-.ks-journey-topics{
+/* .ks-journey-card>.ks-journey-topics : il faut battre la règle
+   .ks-journey-card>span{display:block}, sinon les pastilles se coupent
+   en plein milieu comme du texte. */
+.ks-journey-card>.ks-journey-topics{
   display:flex;flex-wrap:wrap;gap:5px;
   margin-top:12px
 }
@@ -316,7 +319,7 @@
   .ks-journey-stop>div:hover .ks-journey-point{
     background:var(--ks-ink);border-color:rgba(247,241,232,.34);transform:none
   }
-  .ks-journey-topics{display:none}
+  .ks-journey-card>.ks-journey-topics{display:none}
 
   /* Une annexe se lit décalée, sous le chapitre qu'elle prolonge. */
   .ks-journey-stop.is-annexe{padding-left:26px;padding-bottom:22px}
