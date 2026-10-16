@@ -1,0 +1,44 @@
+name: Diagnostic provisoire des images Veille
+on:
+  push:
+    branches: [feature/menu-musique-suno]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Tester des URLs Instagram sans divulguer le flux
+        env:
+          VEILLE_SECRET: ${{ secrets.VEILLE_SECRET }}
+        run: |
+          node --input-type=module <<'JS'
+          const secret=process.env.VEILLE_SECRET || '';
+          if (!secret) { console.log('collector secret absent'); process.exit(2); }
+          const urls = [
+            'https://kissasoko.gg/.netlify/functions/get-insta',
+            'https://deploy-preview-3--kissasoko.netlify.app/.netlify/functions/get-insta'
+          ];
+          for(const url of urls){
+            try {
+              const response=await fetch(url,{headers:{'x-veille-secret':secret},signal:AbortSignal.timeout(15000)});
+              console.log('FEED',new URL(url).hostname,'http',response.status);
+              if(!response.ok)continue;
+              const data=await response.json();
+              const all=(data.accounts||[]).flatMap(a=>a.posts||[]);
+              const images=all.filter(p=>p.image && /^https?:\/\//.test(p.image));
+              const noImage=all.length-images.length;
+              console.log('STATS',JSON.stringify({fetchedAt:data.fetchedAt,accounts:data.accounts?.length,posts:all.length,withImage:images.length,withoutImage:noImage}));
+              const result={};
+              for(const p of images.slice(0,12)){
+                try {
+                  const r=await fetch(p.image,{signal:AbortSignal.timeout(9500),headers:{'User-Agent':'Mozilla/5.0','Accept':'image/avif,image/webp,image/*,*/*;q=0.8'}});
+                  const type=r.headers.get('content-type')||'none';
+                  const label=r.status+' '+type.split(';')[0];
+                  result[label]=(result[label]||0)+1;
+                  await r.body?.cancel();
+                } catch(e) {result['fetch-error']=(result['fetch-error']||0)+1;}
+              }
+              console.log('SAMPLE_IMAGE_HTTP',JSON.stringify(result));
+            } catch(e){console.log('DIAG_ERROR',String(e.message));}
+          }
+          JS
