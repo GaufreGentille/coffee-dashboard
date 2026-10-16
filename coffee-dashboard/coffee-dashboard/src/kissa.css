@@ -138,20 +138,6 @@ a{color:inherit}
 .ks-market-tools a:hover{opacity:1;transform:translateY(-1px)}
 .ks-market-tools img{display:block;width:26px;height:26px;border-radius:5px;object-fit:cover}
 
-.ks-music-panel{padding:26px clamp(18px,4.5vw,68px) 30px;background:var(--ks-paper-2);animation:fadeUp .22s ease both}
-.ks-music-head{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--ks-dim);margin-bottom:18px}
-.ks-music-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;max-width:1200px;margin:0 auto}
-.ks-playlist-card{display:grid;grid-template-columns:116px 1fr;text-decoration:none;background:transparent;border-top:1px solid var(--ks-border);padding-top:12px;transition:transform .18s}
-.ks-playlist-card:hover{transform:translateY(-2px)}
-.ks-playlist-cover{height:116px;background-size:cover;background-position:center;position:relative}
-.ks-playlist-cover>span{position:absolute;right:7px;top:7px;background:rgba(7,23,43,.76);color:#fff;font-size:8px;padding:3px 6px;border-radius:99px}
-.ks-playlist-copy{padding:4px 0 0 14px;display:flex;flex-direction:column;justify-content:space-between;gap:12px}
-.ks-playlist-copy>div{display:flex;flex-direction:column;gap:4px}
-.ks-playlist-copy small{font-size:8px;color:var(--ks-orange);font-weight:700;letter-spacing:.08em;text-transform:uppercase}
-.ks-playlist-copy strong{font-family:'Bodoni Moda',Georgia,serif;font-size:20px;line-height:1;color:var(--ks-ink)}
-.ks-playlist-copy em{font-size:11px;color:var(--ks-dim);font-style:normal}
-.ks-playlist-copy>b{align-self:flex-start;font-size:9px;color:var(--ks-orange)}
-
 .ks-page-shell{max-width:1280px;margin:0 auto;padding:68px clamp(20px,4.5vw,68px) 120px}
 .ks-page-intro{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(260px,.7fr);gap:48px;align-items:end;margin-bottom:58px}
 .ks-page-meta{font-size:9px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--ks-faint);margin-bottom:14px}
@@ -268,10 +254,6 @@ a{color:inherit}
   .ks-market-track{padding-left:14px}
   .ks-market-item,.ks-market-updated{padding:9px 12px 8px 0;margin-right:16px}
   .ks-market-tools{padding:0 12px 0 4px}.ks-market-tools img{width:24px;height:24px}
-
-  .ks-music-panel{padding:22px 14px 26px}
-  .ks-music-grid{grid-template-columns:1fr}
-  .ks-playlist-card{grid-template-columns:96px 1fr}.ks-playlist-cover{height:96px}
 
   .ks-page-shell{padding:46px 16px 90px}
   .ks-page-intro{margin-bottom:38px}
