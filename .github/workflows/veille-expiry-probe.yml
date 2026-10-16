@@ -1,0 +1,42 @@
+name: Diagnostic temporaire expiration Instagram
+on:
+  push:
+    branches: [feature/menu-musique-suno]
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Comparer dates de validite et erreurs
+        env:
+          VEILLE_SECRET: ${{ secrets.VEILLE_SECRET }}
+        run: |
+          node --input-type=module <<'JS'
+          const secret=process.env.VEILLE_SECRET||'';
+          const r=await fetch('https://kissasoko.gg/.netlify/functions/get-insta',{headers:{'x-veille-secret':secret},signal:AbortSignal.timeout(15000)});
+          console.log('FEED_HTTP',r.status);
+          if(!r.ok)process.exit(0);
+          const feed=await r.json();
+          const posts=(feed.accounts||[]).flatMap(a=>a.posts||[]).filter(p=>p.image);
+          const expiries=[];
+          const domains={};
+          for(const p of posts){
+            try{
+              const u=new URL(p.image);
+              const host=u.hostname;
+              domains[host]=(domains[host]||0)+1;
+              const raw=u.searchParams.get('oe');
+              if(raw && /^[0-9a-f]{8}$/i.test(raw)){
+                const ts=parseInt(raw,16)*1000;
+                if(ts>1600000000000 && ts<2100000000000)expiries.push(ts);
+              }
+            }catch(e){}
+          }
+          const now=Date.now();
+          console.log('SUMMARY',JSON.stringify({fetchedAt:feed.fetchedAt,count:posts.length,hosts:domains,urlsWithExpiry:expiries.length,alreadyExpired:expiries.filter(x=>x<=now).length,earliest:expiries.length?new Date(Math.min(...expiries)).toISOString().slice(0,10):null,latest:expiries.length?new Date(Math.max(...expiries)).toISOString().slice(0,10):null}));
+          const indices=[0,Math.floor(posts.length/5),Math.floor(posts.length*2/5),Math.floor(posts.length*3/5),Math.floor(posts.length*4/5),posts.length-1];
+          const statuses=await Promise.all(indices.map(async i=>{
+            try{const response=await fetch(posts[i].image,{headers:{Accept:'image/*','User-Agent':'Mozilla/5.0'},signal:AbortSignal.timeout(10000)});await response.body?.cancel();return response.status;}catch(e){return 'error';}
+          }));
+          console.log('DISTRIBUTED_SAMPLE',JSON.stringify(statuses));
+          JS
