@@ -3,7 +3,7 @@
 // POST → modifications, protégées par le header x-admin-key (env VEILLE_ADMIN_KEY)
 //        actions : ping | add | remove | replace
 import { getStore } from "@netlify/blobs";
-import { isMember, isCollector, privateHeaders } from "../lib/member-auth.mjs";
+import { isMember, isCollector, isVeilleAdmin, privateHeaders } from "../lib/member-auth.mjs";
 
 const json = (data, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -29,8 +29,9 @@ export default async (req) => {
   if (req.method !== "POST") return json({ error: "GET ou POST uniquement" }, 405);
 
   // ── Auth admin ──
-  const adminKey = process.env.VEILLE_ADMIN_KEY;
-  if (!adminKey || req.headers.get("x-admin-key") !== adminKey) {
+  if (!isVeilleAdmin(req)) {
+    // Freine le balayage de la clé admin (l'action ping sert de test de clé).
+    await new Promise((r) => setTimeout(r, 400));
     return json({ error: "non autorisé" }, 401);
   }
 

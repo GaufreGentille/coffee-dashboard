@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // Kissa Soko — Veille Instagram via Business Discovery API (Meta Graph)
-// Exécuté quotidiennement par GitHub Actions (.github/workflows/instagram-veille.yml)
+// Exécuté chaque dimanche par GitHub Actions (.github/workflows/instagram-veille.yml)
 //
 // Env requis :
 //   IG_USER_ID      → ID Instagram Business du compte de veille
@@ -9,6 +9,12 @@
 // Env optionnel :
 //   VEILLE_PUSH_URL → défaut : https://kissasoko.netlify.app/.netlify/functions/insta-store
 //   VEILLE_READ_URL → défaut : https://kissasoko.netlify.app/.netlify/functions/get-insta
+//   VEILLE_MEDIA_URL → défaut : https://kissasoko.netlify.app/.netlify/functions/insta-media
+//
+// Images : les URLs du CDN Instagram expirent en quelques jours et le CDN
+// bloque souvent l'affichage depuis un autre site. Chaque visuel est donc
+// téléchargé ici, réduit en WebP si sharp est installé, puis stocké dans
+// Netlify Blobs via insta-media. Le feed pointe vers ces copies locales.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { readFileSync } from "node:fs";
@@ -28,7 +34,7 @@ if (!IG_USER_ID || !IG_ACCESS_TOKEN || !VEILLE_SECRET) {
   process.exit(1);
 }
 
-const GRAPH = "https://graph.facebook.com/v25.0";
+const GRAPH = process.env.IG_GRAPH_URL || "https://graph.facebook.com/v25.0";
 const THROTTLE_MS = 19_000; // ~189 appels/heure, sous le plafond de 200/h
 const MAX_POSTS = 4;
 const MAX_CAPTION = 350;
@@ -61,6 +67,93 @@ async function loadHandles() {
 }
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// ─── Copies locales des images ───────────────────────────────────────────────
+const MEDIA_URL =
+  process.env.VEILLE_MEDIA_URL ||
+  "https://kissasoko.netlify.app/.netlify/functions/insta-media";
+const MEDIA_PUBLIC = "/.netlify/functions/insta-media?k=";
+const isLocal = (u) => typeof u === "string" && u.startsWith(MEDIA_PUBLIC);
+
+let sharp = null;
+try { sharp = (await import("sharp")).default; } catch { /* sans sharp : octets bruts */ }
+
+let mediaOnline = true;          // passe à false si insta-media n'est pas déployée
+const storedKeys = new Set();    // clés déjà présentes côté Netlify
+const mediaStats = { uploaded: 0, reused: 0, failed: 0 };
+
+async function loadStoredKeys() {
+  try {
+    const r = await fetch(`${MEDIA_URL}?list=1`, { headers: { "x-veille-secret": VEILLE_SECRET } });
+    if (!r.ok) {
+      mediaOnline = r.status !== 404;
+      console.log(`🖼️  insta-media ${r.status} : ${mediaOnline ? "liste illisible" : "non déployée, on garde les URLs Instagram"}`);
+      return;
+    }
+    const { keys } = await r.json();
+    for (const k of keys || []) storedKeys.add(k);
+    console.log(`🖼️  ${storedKeys.size} image(s) déjà en cache${sharp ? "" : " (sharp absent : pas de redimensionnement)"}`);
+  } catch (e) {
+    mediaOnline = false;
+    console.log("🖼️  insta-media injoignable, on garde les URLs Instagram :", e.message);
+  }
+}
+
+// Renvoie l'URL locale si la copie a réussi, sinon l'URL d'origine.
+async function cacheImage(key, srcUrl, { width = 640, force = false } = {}) {
+  if (!srcUrl || isLocal(srcUrl)) return srcUrl || null;
+  if (!mediaOnline) return srcUrl;
+  if (!force && storedKeys.has(key)) { mediaStats.reused++; return MEDIA_PUBLIC + key; }
+  try {
+    const src = await fetch(srcUrl, { signal: AbortSignal.timeout(20_000) });
+    if (!src.ok) throw new Error(`CDN ${src.status}`);
+    let body = Buffer.from(await src.arrayBuffer());
+    let type = (src.headers.get("content-type") || "image/jpeg").split(";")[0];
+    if (sharp) {
+      body = await sharp(body).rotate().resize({ width, height: width, fit: "cover" }).webp({ quality: 72 }).toBuffer();
+      type = "image/webp";
+    }
+    const up = await fetch(`${MEDIA_URL}?k=${encodeURIComponent(key)}`, {
+      method: "POST",
+      headers: { "Content-Type": type, "x-veille-secret": VEILLE_SECRET },
+      body,
+      signal: AbortSignal.timeout(30_000),
+    });
+    if (!up.ok) throw new Error(`upload ${up.status}`);
+    storedKeys.add(key);
+    mediaStats.uploaded++;
+    return MEDIA_PUBLIC + key;
+  } catch (e) {
+    mediaStats.failed++;
+    if (mediaStats.failed <= 5) console.warn(`🖼️  ${key} non copiée :`, e.message);
+    return srcUrl;
+  }
+}
+
+async function pruneMedia(keep) {
+  if (!mediaOnline || keep.size === 0) return;
+  try {
+    const r = await fetch(`${MEDIA_URL}?prune=1`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-veille-secret": VEILLE_SECRET },
+      body: JSON.stringify({ keep: [...keep] }),
+    });
+    const j = await r.json().catch(() => ({}));
+    console.log(r.ok ? `🧹 Cache images : ${j.kept} gardées, ${j.removed} supprimées` : `🧹 Purge refusée (${r.status})`);
+  } catch (e) {
+    console.log("🧹 Purge impossible :", e.message);
+  }
+}
+
+function localKeys(list) {
+  const keys = new Set();
+  for (const it of list) {
+    for (const u of [it?.image, it?.profilePic]) {
+      if (isLocal(u)) keys.add(decodeURIComponent(u.slice(MEDIA_PUBLIC.length)));
+    }
+  }
+  return keys;
+}
 
 function trimCaption(c) {
   if (!c) return "";
@@ -193,10 +286,10 @@ async function refreshPins() {
   let pins;
   try {
     pins = await fetch(PINS_URL, { headers: { "x-veille-secret": VEILLE_SECRET } }).then((r) => (r.ok ? r.json() : null));
-  } catch { return; }
-  if (!pins || typeof pins !== "object") return;
+  } catch { return {}; }
+  if (!pins || typeof pins !== "object") return {};
   const ids = Object.keys(pins);
-  if (!ids.length) return;
+  if (!ids.length) return {};
 
   console.log(`\n📌 Rafraîchissement de ${ids.length} épingle(s)…`);
   const byAccount = {};
@@ -210,8 +303,9 @@ async function refreshPins() {
       const bd = await fetchAccountDeep(handle);
       for (const m of bd.media?.data || []) {
         if (pins[m.id]) {
-          pins[m.id].image =
+          const fresh =
             m.media_type === "VIDEO" ? (m.thumbnail_url || m.media_url) : m.media_url;
+          pins[m.id].image = await cacheImage(`p-${m.id}`, fresh);
           if (m.like_count != null) pins[m.id].likes = m.like_count;
           if (m.comments_count != null) pins[m.id].comments = m.comments_count;
         }
@@ -226,10 +320,12 @@ async function refreshPins() {
     body: JSON.stringify({ action: "refresh", pins }),
   });
   console.log(push.ok ? "📌 Épingles rafraîchies ✓" : `📌 Échec refresh épingles: ${push.status}`);
+  return pins;
 }
 
 async function main() {
   await preflight();
+  await loadStoredKeys();
 
   const handles = await loadHandles();
   console.log(`📋 ${handles.length} comptes dans la liste de veille`);
@@ -255,7 +351,7 @@ async function main() {
   }
 
   // Rythme hebdomadaire : on retente les comptes en skip-list une fois par mois
-  // (lors du run tombant dans les 7 premiers jours du mois = 1er mardi)
+  // (lors du run tombant dans les 7 premiers jours du mois = 1er dimanche)
   const isRetryRun = new Date().getUTCDate() <= 7;
   const accounts = [];
   let ok = 0, failed = 0, skipped = 0;
@@ -270,25 +366,30 @@ async function main() {
       continue; // pas d'appel API → pas de throttle
     }
 
+    const t0 = Date.now();
     try {
       const bd = await fetchAccount(handle);
-      const posts = (bd.media?.data || []).map((m) => ({
+      const posts = [];
+      for (const m of bd.media?.data || []) {
+        const raw = m.media_type === "VIDEO" ? (m.thumbnail_url || m.media_url) : m.media_url;
+        posts.push({
         id: m.id,
         caption: trimCaption(m.caption),
-        image: m.media_type === "VIDEO" ? (m.thumbnail_url || m.media_url) : m.media_url,
+        image: await cacheImage(`p-${m.id}`, raw),
         type: m.media_type,
         permalink: m.permalink,
         timestamp: m.timestamp,
         likes: m.like_count ?? null,
         comments: m.comments_count ?? null,
-      }));
+        });
+      }
       accounts.push({
         handle,
         name,
         category,
         igName: bd.name || bd.username,
         followers: bd.followers_count,
-        profilePic: bd.profile_picture_url || null,
+        profilePic: await cacheImage(`a-${handle}`, bd.profile_picture_url || null, { width: 96, force: true }),
         posts,
         failCount: 0,
       });
@@ -336,7 +437,8 @@ async function main() {
     if ((i + 1) % 25 === 0) {
       console.log(`… ${i + 1}/${handles.length} (ok:${ok} ko:${failed} skip:${skipped})`);
     }
-    await sleep(THROTTLE_MS);
+    // Le téléchargement des images compte dans l'intervalle : le rythme Graph reste le même.
+    await sleep(Math.max(0, THROTTLE_MS - (Date.now() - t0)));
   }
 
   const payload = {
@@ -346,6 +448,7 @@ async function main() {
   };
 
   console.log(`\n📊 Terminé — ok:${ok} échecs:${failed} skippés:${skipped}`);
+  console.log(`🖼️  Images : ${mediaStats.uploaded} copiées, ${mediaStats.reused} déjà en cache, ${mediaStats.failed} en échec`);
   console.log(`📦 Payload : ${(JSON.stringify(payload).length / 1024).toFixed(0)} Ko`);
 
   if (ok === 0) {
@@ -371,7 +474,15 @@ async function main() {
   }
   console.log("✅ Données poussées vers Netlify Blobs");
 
-  await refreshPins();
+  const pins = await refreshPins();
+
+  // Purge des images qui ne servent plus (posts sortis du feed, épingles retirées).
+  const keep = localKeys([
+    ...accounts,
+    ...accounts.flatMap((a) => a.posts || []),
+    ...Object.values(pins || {}),
+  ]);
+  await pruneMedia(keep);
 }
 
 main().catch((e) => {

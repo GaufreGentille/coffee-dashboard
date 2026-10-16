@@ -5,7 +5,7 @@ import { communityDb } from "../lib/communityClient.js";
 import { memberFetch } from "../lib/memberFetch.js";
 
 // ─── Kissa Soko — Panneau Veille Instagram (v3 : épingles admin) ─────────────
-// Feed : /.netlify/functions/get-insta — rempli chaque mardi par GitHub Actions
+// Feed : /.netlify/functions/get-insta — rempli chaque dimanche par GitHub Actions
 // Votes : Supabase, identité réelle (un vote par compte) et droits RLS
 // Épingles : /.netlify/functions/pins — posts mis en avant par l'admin, sans
 //            limite de durée, images rafraîchies chaque semaine par le script.

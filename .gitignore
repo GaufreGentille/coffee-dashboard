@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+.netlify/
+coffee-dashboard/coffee-dashboard/public/fonts/
+coffee-dashboard/coffee-dashboard/public/fonts.css
+.DS_Store

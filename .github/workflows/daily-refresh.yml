@@ -1,28 +1,36 @@
 name: Daily Refresh
 
+# Les crons Netlify (cron-*.mjs) reconstruisent déjà chaque flux tous les jours.
+# Ce workflow sert de filet de sécurité. ?refresh=1 exige le jeton KISSA_TOKEN
+# depuis le durcissement de feeds.mjs : sans lui la requête renvoie 401.
+# Secret GitHub à créer : KISSA_TOKEN (même valeur que la variable Netlify).
+
 on:
   schedule:
     - cron: '0 6 * * *'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   refresh:
     runs-on: ubuntu-latest
+    env:
+      BASE: https://kissasoko.netlify.app/.netlify/functions
+      KISSA_TOKEN: ${{ secrets.KISSA_TOKEN }}
     steps:
-      - name: Refresh news cache
-        run: curl -s "https://kissasoko.netlify.app/.netlify/functions/get-news?refresh=1"
-
-      - name: Refresh markets cache
-        run: curl -s "https://kissasoko.netlify.app/.netlify/functions/get-markets"
-
-      - name: Refresh Sprudge community cache
-        run: curl -s "https://kissasoko.netlify.app/.netlify/functions/get-sprudge?refresh=1"
-
-      - name: Refresh gear cache
-        run: curl -s "https://kissasoko.netlify.app/.netlify/functions/get-gear?refresh=1"
-
-      - name: Refresh science cache
-        run: curl -s "https://kissasoko.netlify.app/.netlify/functions/get-science?refresh=1"
-
-      - name: Done
-        run: echo "All caches refreshed at $(date)"
+      - name: Refresh caches
+        run: |
+          set -u
+          fail=0
+          for feed in get-news get-sprudge get-gear get-science; do
+            code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 60 \
+              -H "x-kissa-jeton: $KISSA_TOKEN" "$BASE/$feed?refresh=1")
+            echo "$feed → HTTP $code"
+            [ "$code" = "200" ] || fail=1
+          done
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 60 "$BASE/get-markets")
+          echo "get-markets → HTTP $code"
+          [ "$code" = "200" ] || fail=1
+          exit $fail
