@@ -15,7 +15,11 @@ jobs:
           const base = 'https://kissasoko.gg';
           const secret=process.env.VEILLE_SECRET||'';
           const result=await fetch(base+'/.netlify/functions/get-insta', {headers:{'x-veille-secret':secret}});
-          console.log('feed status', result.status, 'credential configured', secret.length>=16);
+          console.log('feed status', result.status, 'secret state', secret.length===0?'missing':secret.length<16?'short':'long');
+          // Submit an invalid payload: 400 means credential accepted, 401 rejected.
+          // This is read-only in effect; a bad payload cannot replace the feed.
+          const authCheck=await fetch(base+'/.netlify/functions/insta-store',{method:'POST',headers:{'Content-Type':'application/json','x-veille-secret':secret},body:'{}',signal:AbortSignal.timeout(10000)});
+          console.log('store auth check',authCheck.status);
           if(!result.ok) process.exit(0);
           const feed=await result.json();
           const posts=(feed.accounts||[]).flatMap(account=>account.posts||[]);
