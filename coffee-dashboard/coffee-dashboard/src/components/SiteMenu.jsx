@@ -44,7 +44,7 @@ export default function SiteMenu({ open, onClose, onNavigate, tabs = [] }) {
 
   if (!open) return null
 
-  const universes = tabs.filter(t => t.id !== 'home' && t.id !== 'game')
+  const universes = tabs.filter(t => t.id !== 'home' && t.id !== 'game' && t.id !== 'market')
   const go = id => { onNavigate(id); onClose() }
 
   return (
