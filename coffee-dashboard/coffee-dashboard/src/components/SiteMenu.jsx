@@ -13,11 +13,15 @@ import { BOOK_BASE, BOOK_CHAPTERS, bookHref } from '../data/book'
    la page est bloqué pendant l'ouverture.
    ───────────────────────────────────────────────────────────── */
 
-// Liens officiels des trois playlists. Aucun panneau ni iframe à maintenir.
+// Playlists Suno : anciennes et nouvelles, avec de courtes descriptions.
+// Pour les nouvelles playlists, descriptions éditoriales à affiner si besoin.
 const SUNO_PLAYLISTS = [
-  { name: 'Fantastic Mix', url: 'https://suno.com/playlist/759e9713-916c-433c-a0cd-d0276f30133c' },
-  { name: 'Aveugle 3011', url: 'https://suno.com/playlist/eabb7d82-f594-494d-be1e-520dda30cd2d' },
-  { name: 'Midnight cassette V2', url: 'https://suno.com/playlist/6685c993-3e96-4e33-8ab7-a1f216b24605' },
+  { name: 'Fantastic Mix', description: 'Mix éclectique · Styles variés', url: 'https://suno.com/playlist/759e9713-916c-433c-a0cd-d0276f30133c' },
+  { name: 'Aveugle 3011', description: 'Ambiance futuriste · Électronique', url: 'https://suno.com/playlist/eabb7d82-f594-494d-be1e-520dda30cd2d' },
+  { name: 'Midnight cassette V2', description: 'City pop · J-pop · Late night drives', url: 'https://suno.com/playlist/6685c993-3e96-4e33-8ab7-a1f216b24605' },
+  { name: 'Midnight Cassette', description: 'City pop · J-pop · Late night drives', url: 'https://suno.com/playlist/6400cd5b-e7a3-4d8a-8c5b-a5c07bb02ecd' },
+  { name: 'Kagemusha', description: 'Tokyo nights · Neon · Electronic', url: 'https://suno.com/playlist/a1394680-db07-46e7-b7cd-60f42412989c' },
+  { name: 'Kowareta Kagami', description: 'Ambient · Cinematic · Japan', url: 'https://suno.com/playlist/b6243889-9e57-46cb-90ae-fad1f0adb8a0' },
 ]
 
 const TOOLS = [
@@ -148,7 +152,7 @@ export default function SiteMenu({ open, onClose, onNavigate, tabs = [] }) {
               {SUNO_PLAYLISTS.map(pl => (
                 <li key={pl.url}>
                   <a href={pl.url} target="_blank" rel="noopener noreferrer" onClick={onClose}>
-                    <span>{pl.name}<small>Écouter sur Suno</small></span>
+                    <span>{pl.name}<small>{pl.description}</small></span>
                     <b aria-hidden="true">↗</b>
                   </a>
                 </li>
