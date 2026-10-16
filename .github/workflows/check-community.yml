@@ -1,9 +1,9 @@
 name: Vérification du build Kissa Soko
 on:
   push:
-    branches: [feature/community-auth-watch]
+    branches: [main]
   pull_request:
-    branches: [legal-and-privacy]
+    branches: [main]
 permissions:
   contents: read
 jobs:
@@ -17,9 +17,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '20'
-          cache: ''
+          cache: npm
+          cache-dependency-path: coffee-dashboard/coffee-dashboard/package-lock.json
+      # npm ci installe exactement les versions du lockfile, sans surprise.
       - name: Installer les dépendances
-        run: npm install --no-audit --no-fund
+        run: npm ci --no-audit --no-fund
       - name: Vérifier les catégories des images Matériel
         run: node --test tests/gearVisual.test.mjs
       - name: Compiler les pages et le forum

@@ -4,6 +4,7 @@
 // POST → action pin/unpin (header x-admin-key) ou refresh (header x-veille-secret, script hebdo)
 import { getStore } from "@netlify/blobs";
 import { isMember, isCollector, isVeilleAdmin, headerMatches, privateHeaders } from "../lib/member-auth.mjs";
+import { attenteRestante, noterEchec, reponseBloquee } from "../lib/limiteur.mjs";
 
 const json = (data, status = 200) =>
   new Response(JSON.stringify(data), {
@@ -22,9 +23,14 @@ export default async (req) => {
 
   if (req.method !== "POST") return json({ error: "GET ou POST uniquement" }, 405);
 
+  const attente = await attenteRestante(req, "admin");
+  if (attente > 0) return reponseBloquee(attente);
   const okAdmin = isVeilleAdmin(req);
   const okScript = headerMatches(req, "x-veille-secret", process.env.VEILLE_SECRET, 1);
-  if (!okAdmin && !okScript) return json({ error: "non autorisé" }, 401);
+  if (!okAdmin && !okScript) {
+    await noterEchec(req, "admin");
+    return json({ error: "non autorisé" }, 401);
+  }
 
   let body;
   try { body = await req.json(); } catch { return json({ error: "JSON invalide" }, 400); }

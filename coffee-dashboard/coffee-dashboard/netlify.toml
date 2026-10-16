@@ -11,9 +11,7 @@
 [functions."*"]
   timeout = 30
 
-# En-têtes de sécurité. Volontairement sans Content-Security-Policy :
-# une CSP écrite sans tester casse le site en silence, elle se met en place
-# à part, en mode report-only d'abord.
+# En-têtes de sécurité.
 [[headers]]
   for = "/*"
   [headers.values]
@@ -22,6 +20,14 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     # camera et micro restent autorisés pour la page studio, sur ce site seulement
     Permissions-Policy = "geolocation=(), payment=(), usb=(), camera=(self), microphone=(self)"
+    # CSP en mode OBSERVATION : rien n'est bloqué, le navigateur signale seulement
+    # ce qui serait bloqué à /.netlify/functions/csp-report (visible dans les logs
+    # Netlify de cette fonction). Quand les logs restent calmes une ou deux
+    # semaines, renommer l'en-tête en Content-Security-Policy pour l'appliquer.
+    #   img-src https:  les visuels des actus, de la science et du matériel
+    #                   viennent de nombreux sites
+    #   supabase.co     connexion des membres, Comptoir, votes
+    Content-Security-Policy-Report-Only = "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; media-src 'self' blob:; font-src 'self' data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co; frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; report-uri /.netlify/functions/csp-report"
 
 # La page de connexion ne doit jamais être mise en cache ni indexée.
 [[headers]]

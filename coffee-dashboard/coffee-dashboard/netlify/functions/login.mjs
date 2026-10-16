@@ -4,6 +4,7 @@
 //   DELETE  → retire le cookie
 
 import { autorise, cookieDeSession, cookieVide, memeChaine, cors } from '../lib/auth.mjs'
+import { attenteRestante, noterEchec, effacerEchecs, reponseBloquee } from '../lib/limiteur.mjs'
 
 const base = (req) => ({
   'content-type': 'application/json',
@@ -34,6 +35,10 @@ export default async (req) => {
     return json(req, { erreur: 'KISSA_PASSWORD absente ou trop courte' }, 500)
   }
 
+  // 10 mots de passe faux en 15 minutes depuis une même IP : porte fermée.
+  const attente = await attenteRestante(req, 'login')
+  if (attente > 0) return reponseBloquee(attente, cors(req))
+
   let corps
   try {
     corps = await req.json()
@@ -46,8 +51,10 @@ export default async (req) => {
   await new Promise((r) => setTimeout(r, 400))
 
   if (!memeChaine(String(corps?.motdepasse || ''), attendu)) {
+    await noterEchec(req, 'login')
     return json(req, { erreur: 'mot de passe incorrect' }, 401)
   }
+  await effacerEchecs(req, 'login')
 
   try {
     return json(req, { ok: true }, 200, { 'set-cookie': cookieDeSession() })
