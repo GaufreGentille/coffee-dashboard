@@ -10,6 +10,8 @@ jobs:
       - name: Tester des URLs Instagram sans divulguer le flux
         env:
           VEILLE_SECRET: ${{ secrets.VEILLE_SECRET }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
         run: |
           node --input-type=module <<'JS'
           const secret=process.env.VEILLE_SECRET || '';
@@ -40,5 +42,28 @@ jobs:
               }
               console.log('SAMPLE_IMAGE_HTTP',JSON.stringify(result));
             } catch(e){console.log('DIAG_ERROR',String(e.message));}
+          }
+          for(const u of [
+            'https://kissasoko.gg/.netlify/functions/handles',
+            'https://kissasoko.netlify.app/.netlify/functions/get-insta'
+          ]) {
+            try {const r=await fetch(u,{headers:{'x-veille-secret':secret},signal:AbortSignal.timeout(12000)});
+              console.log('COLLECTOR_HEALTH',new URL(u).hostname,new URL(u).pathname,r.status);
+              await r.body?.cancel();
+            }catch(e){console.log('COLLECTOR_ERROR',e.message);}
+          }
+          const igUser=process.env.IG_USER_ID,igToken=process.env.IG_ACCESS_TOKEN;
+          if(igUser && igToken) {
+            const fields='business_discovery.username(nasjaafar){media.limit(1){media_url,thumbnail_url,media_type}}';
+            try {
+              const meta=await fetch('https://graph.facebook.com/v25.0/'+encodeURIComponent(igUser)+'?fields='+encodeURIComponent(fields)+'&access_token='+encodeURIComponent(igToken),{signal:AbortSignal.timeout(15000)});
+              const payload=await meta.json();
+              console.log('GRAPH_SAMPLE',meta.status,!!payload.business_discovery?.media?.data?.length);
+              const item=payload.business_discovery?.media?.data?.[0];
+              const url=item?.media_type==='VIDEO'?(item?.thumbnail_url||item?.media_url):item?.media_url;
+              if(url){const r=await fetch(url,{signal:AbortSignal.timeout(15000),headers:{'User-Agent':'Mozilla/5.0'}});
+                console.log('GRAPH_FRESH_IMAGE_HTTP',r.status,r.headers.get('content-type'));
+                await r.body?.cancel();}
+            }catch(e){console.log('GRAPH_ERROR',e.message);}
           }
           JS
