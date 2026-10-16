@@ -37,30 +37,6 @@ const TOPIC_COLORS = {
   competition: BRAND.orange, producteur: '#7a9e78', technique: BRAND.purple, materiel: BRAND.yellow,
 }
 
-const PLAYLISTS = [
-  {
-    name: 'Midnight Cassette',
-    url: 'https://suno.com/playlist/6400cd5b-e7a3-4d8a-8c5b-a5c07bb02ecd',
-    tracks: 26,
-    cover: '/playlist-midnight.jpg',
-    vibe: 'City pop · J-pop · Late night drives',
-  },
-  {
-    name: 'Kagemusha',
-    url: 'https://suno.com/playlist/a1394680-db07-46e7-b7cd-60f42412989c',
-    tracks: 18,
-    cover: '/playlist-kagemusha.jpg',
-    vibe: 'Tokyo nights · Neon · Electronic',
-  },
-  {
-    name: 'Kowareta Kagami',
-    url: 'https://suno.com/playlist/b6243889-9e57-46cb-90ae-fad1f0adb8a0',
-    tracks: '—',
-    cover: '/playlist-sakura.jpg',
-    vibe: 'Ambient · Cinematic · Japan',
-  },
-]
-
 // Source unique de la navigation. L'en-tete d'accueil, l'en-tete des pages
 // interieures et l'index des univers lisent tous cette liste : un libelle
 // se change ici, et il se change partout.
@@ -68,7 +44,6 @@ const PLAYLISTS = [
 //   tile  : entre dans l'index des univers en bas de l'accueil
 //   goTo  : onglet reellement ouvert, quand il differe de l'id
 //   href  : lien externe, l'entree sort du site
-//   music : ouvre le panneau musique au lieu d'un onglet
 const TABS = [
   { id:'home',      label:'Accueil',    nav:false },
   { id:'news',      label:'Actualités', nav:true  },
@@ -77,11 +52,7 @@ const TABS = [
   { id:'gear',      label:'Matériel',   nav:true  },
   { id:'instagram', label:'Veille', nav:true },
   { id:'community', label:'Communauté', nav:true  },
-  // Marche n'est pas une page : le bandeau des cours est visible partout.
-  // Ces trois entrees sortent de la barre de navigation mais vivent dans
-  // le menu, ou elles ouvrent les actualites, le panneau musique ou le jeu.
-  { id:'market',    label:'Marché',     nav:false, goTo:'news' },
-  { id:'music',     label:'Musique',    nav:false, music:true },
+  // Les marchés sont visibles dans le bandeau, les playlists dans le menu.
   { id:'game',      label:'Jeu',        nav:false, href:'/hangar-torref-843/' },
 ]
 
@@ -867,7 +838,7 @@ function OriginsPage({ harvestData, harvestLoading, harvestError }) {
   )
 }
 
-function SiteHeader({ tab, setTab, refresh, lastRefresh, showMusic, setShowMusic, onMenu, menuOpen }) {
+function SiteHeader({ tab, setTab, refresh, lastRefresh, onMenu, menuOpen }) {
   const nav = NAV_TABS
   return (
     <header className="ks-site-header">
@@ -884,7 +855,6 @@ function SiteHeader({ tab, setTab, refresh, lastRefresh, showMusic, setShowMusic
       <div className="ks-site-actions">
         {lastRefresh && <span className="ks-last-refresh">MAJ {lastRefresh}</span>}
         <button onClick={refresh} aria-label="Actualiser les données" title="Actualiser">↺</button>
-        <button className={showMusic ? 'is-active' : ''} onClick={()=>setShowMusic(v=>!v)} aria-label="Afficher la musique" title="Musique">♫</button>
         <button
           className={`ks-menu-button${menuOpen ? ' is-open' : ''}`}
           onClick={onMenu}
@@ -924,27 +894,6 @@ function MarketTicker({ rows, updatedAt }) {
   )
 }
 
-function MusicPanel() {
-  return (
-    <section className="ks-music-panel">
-      <div className="ks-music-head">Musique · GaufreGentille · {PLAYLISTS.length} playlists sur Suno</div>
-      <div className="ks-music-grid">
-        {PLAYLISTS.map(pl => (
-          <a key={pl.url} href={pl.url} target="_blank" rel="noopener noreferrer" className="ks-playlist-card">
-            <div className="ks-playlist-cover" style={{backgroundImage:`url(${pl.cover})`}}>
-              <span>{pl.tracks} tracks</span>
-            </div>
-            <div className="ks-playlist-copy">
-              <div><small>GaufreGentille</small><strong>{pl.name}</strong><em>{pl.vibe}</em></div>
-              <b>▶ Suno</b>
-            </div>
-          </a>
-        ))}
-      </div>
-    </section>
-  )
-}
-
 /* ---------- Bouton retour en haut ----------
    Encre au repos, orange au survol (styles dans kissa.css, .ks-to-top).
    N'apparait qu'apres 600 px de defilement. */
@@ -978,7 +927,6 @@ function ScrollTopButton() {
 
 export default function App() {
   const [tab, setTab] = useState('home')
-  const [showMusic, setShowMusic] = useState(false)
   const [lastRefresh, setLastRefresh] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
 
@@ -989,14 +937,11 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'instant' })
   }, [tab])
 
-  // Une seule porte d'entree vers la navigation : elle sait lire goTo,
-  // href et music, donc l'accueil, le menu et l'en-tete se comportent
-  // pareil sans dupliquer la regle.
+  // Une seule porte d'entree vers la navigation du site.
   const openTab = useCallback((id) => {
     const cible = TABS.find(t => t.id === id)
     if (!cible) return
     if (cible.href) { window.open(cible.href, '_blank', 'noopener,noreferrer'); return }
-    if (cible.music) { setShowMusic(true); setTab('news'); return }
     setTab(cible.goTo || id)
     window.scrollTo({ top: 0 })
   }, [])
@@ -1050,13 +995,10 @@ export default function App() {
             setTab={setTab}
             refresh={refresh}
             lastRefresh={lastRefresh}
-            showMusic={showMusic}
-            setShowMusic={setShowMusic}
             onMenu={() => setMenuOpen(v => !v)}
             menuOpen={menuOpen}
           />
           <MarketTicker rows={marketRows} updatedAt={mktTime} />
-          {showMusic && <MusicPanel />}
 
           <main className="ks-page-shell">
             {tab==='news' && (<>
