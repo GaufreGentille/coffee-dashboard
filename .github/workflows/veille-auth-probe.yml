@@ -19,6 +19,13 @@ jobs:
           const auth=await fetch(base+'insta-store',{method:'POST',headers:{'Content-Type':'application/json','x-veille-secret':secret},body:'{}',signal:AbortSignal.timeout(15000)});
           console.log('SECRET_VALIDATED_BY_NETLIFY',auth.status===400,'WRITE_ENDPOINT_HTTP',auth.status);
           await auth.body?.cancel();
+          const preview='https://deploy-preview-3--kissasoko.netlify.app/.netlify/functions/';
+          const previewAuth=await fetch(preview+'insta-store',{method:'POST',headers:{'Content-Type':'application/json','x-veille-secret':secret},body:'{}',signal:AbortSignal.timeout(15000)});
+          console.log('PREVIEW_SECRET_VALIDATED',previewAuth.status===400,'PREVIEW_WRITE_ENDPOINT_HTTP',previewAuth.status);
+          await previewAuth.body?.cancel();
+          const previewRead=await fetch(preview+'get-insta',{headers:{'x-veille-secret':secret},signal:AbortSignal.timeout(15000)});
+          console.log('PREVIEW_READ_FEED_HTTP',previewRead.status);
+          await previewRead.body?.cancel();
           const response=await fetch(base+'get-insta',options);
           console.log('READ_FEED_HTTP',response.status);
           if(!response.ok){await response.body?.cancel();process.exit(0);}
