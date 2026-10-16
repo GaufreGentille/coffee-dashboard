@@ -1055,8 +1055,14 @@ a{color:inherit}
 
 .ks-journey-stop{
   position:absolute;left:var(--jx);top:var(--jy);
-  z-index:2;transform:translate(-50%,-50%)
+  z-index:2;transform:translate(-50%,-50%);
+  /* Le transform fait de chaque escale une couche à part : la carte (z-index 10)
+     ne peut pas dépasser les escales suivantes, sauf si toute l'escale survolée
+     passe devant. Le retour à 2 attend la fin du fondu de la carte. */
+  transition:z-index 0s .24s
 }
+.ks-journey-stop:hover,
+.ks-journey-stop:focus-within{z-index:20;transition-delay:0s}
 .ks-journey-stop>a{display:block;position:relative;text-decoration:none;color:var(--ks-paper-2);outline:none}
 .ks-journey-point{
   width:72px;height:72px;border-radius:50%;
