@@ -129,9 +129,9 @@ function AuthModal({ onClose, recovering }) {
         <button className="ks-auth-close" type="button" onClick={onClose} aria-label="Fermer">×</button>
         <p className="ks-overline">KISSA SOKO · LES MEMBRES</p>
         <h2 id="ks-auth-title">
-          {mode === 'signup' ? 'Rejoins le comptoir.' :
+          {mode === 'signup' ? 'Rejoins le Kissaten.' :
            mode === 'reset' ? 'Retrouve ton accès.' :
-           mode === 'newpassword' ? 'Nouveau mot de passe.' : 'Bienvenue au comptoir.'}
+           mode === 'newpassword' ? 'Nouveau mot de passe.' : 'Bienvenue au Kissaten.'}
         </h2>
         <p className="ks-auth-subtitle">La Communauté est publique en lecture. Un compte gratuit ouvre l'accès à la Veille, aux publications et aux votes.</p>
         <form onSubmit={submit}>
