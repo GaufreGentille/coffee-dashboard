@@ -22,12 +22,15 @@ export function rememberAIDisclosure() {
 
 export default function AIDisclosure({ onDismiss }) {
   const buttonRef = useRef(null)
+  const dialogRef = useRef(null)
 
   useEffect(() => {
     const previousFocus = document.activeElement
     const previousOverflow = document.body.style.overflow
     document.body.style.overflow = 'hidden'
-    buttonRef.current?.focus()
+    // Garder le titre visible sur les petits écrans : focaliser le dialogue,
+    // plutôt que le bouton situé tout en bas du contenu.
+    dialogRef.current?.focus({ preventScroll: true })
 
     // Un seul contrôle dans la fenêtre : garder le clavier dans le dialogue.
     const onKeyDown = event => {
@@ -52,6 +55,8 @@ export default function AIDisclosure({ onDismiss }) {
   return (
     <div className="ks-ai-overlay">
       <section
+        ref={dialogRef}
+        tabIndex={-1}
         className="ks-ai-dialog"
         role="dialog"
         aria-modal="true"
