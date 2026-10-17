@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { BOOK_BASE, BOOK_CHAPTERS, bookHref } from '../data/book'
+import { KOFI_TIP_URL } from './KoFiLink'
 
 /* ─────────────────────────────────────────────────────────────
    SiteMenu — le menu du bouton rond
@@ -83,6 +84,12 @@ export default function SiteMenu({ open, onClose, onNavigate, tabs = [] }) {
                   </button>
                 </li>
               ))}
+              <li className="ks-menu-support">
+                <a href={KOFI_TIP_URL} target="_blank" rel="noopener noreferrer" onClick={onClose}>
+                  <span>Offrir un café<small>Un café pour le Kissaten ?</small></span>
+                  <b aria-hidden="true">↗</b>
+                </a>
+              </li>
             </ul>
           </nav>
 
