@@ -74,7 +74,7 @@ export default function ModeratorPanel({ onChanged }) {
   if (!allowed) return null
   const open = reports.filter(r => r.status === 'open')
   return (
-    <section className="ks-mod-panel" aria-label="Modération du Comptoir">
+    <section className="ks-mod-panel" aria-label="Modération du Kissaten">
       <button className="ks-mod-toggle" type="button" aria-expanded={expanded}
         onClick={() => setExpanded(v => !v)}>
         Modération · {open.length} signalement{open.length !== 1 ? 's' : ''} à traiter {expanded ? '−' : '+'}

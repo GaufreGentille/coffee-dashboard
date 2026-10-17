@@ -458,3 +458,33 @@
 @media(max-width:560px){
   .ks-menu-cva-files{grid-template-columns:1fr}
 }
+
+/* ── Soutien Ko-fi : même bouton sur l'accueil et les pages intérieures ── */
+.ks-home-actions{display:flex;align-items:center;justify-self:end;gap:12px}
+.ks-kofi-link{
+  display:inline-flex;align-items:center;justify-content:center;gap:9px;
+  flex-shrink:0;min-height:38px;padding:0 15px;
+  background:var(--ks-ink);border:1px solid var(--ks-ink);
+  border-radius:999px;color:var(--ks-paper-2);text-decoration:none;
+  white-space:nowrap;font:700 10px/1 'DM Sans',sans-serif;
+  letter-spacing:.05em;
+  transition:background .18s,border-color .18s,transform .18s
+}
+.ks-kofi-link svg{display:block;width:18px;height:18px;flex-shrink:0;color:var(--ks-yellow)}
+.ks-kofi-link:hover{background:var(--ks-orange);border-color:var(--ks-orange);color:#fff;transform:translateY(-1px)}
+.ks-kofi-link:focus-visible{outline:2px solid var(--ks-orange);outline-offset:3px}
+.ks-site-actions .ks-kofi-link{min-height:36px}
+.ks-menu-support a{color:var(--ks-paper-2)}
+.ks-menu-support a span{color:var(--ks-paper-2)}
+.ks-menu-support a:hover span{color:var(--ks-orange)}
+@media(max-width:1100px){
+  .ks-kofi-link{width:38px;min-height:38px;padding:0}
+  .ks-kofi-label{display:none}
+}
+@media(max-width:760px){
+  .ks-site-actions .ks-kofi-link{width:34px;min-height:34px}
+  .ks-home-actions{gap:8px}
+}
+@media(max-width:640px){
+  .ks-home-nav{gap:12px}
+}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { BOOK_BASE, JOURNEY_STOPS, JOURNEY_LINKS, bookHref } from './data/book'
+import KoFiLink from './components/KoFiLink'
 
 /* ─────────────────────────────────────────────────────────────
    HomePage — vitrine Kissa Soko
@@ -385,16 +386,19 @@ export default function HomePage({
         ))}
       </nav>
 
-      <button
-        className={`ks-menu-button${menuOpen ? ' is-open' : ''}`}
-        onClick={onMenu}
-        data-cursor="active"
-        aria-controls="ks-site-menu"
-        aria-expanded={menuOpen}
-        aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
-      >
-        <span></span><span></span>
-      </button>
+      <div className="ks-home-actions">
+        <KoFiLink />
+        <button
+          className={`ks-menu-button${menuOpen ? ' is-open' : ''}`}
+          onClick={onMenu}
+          data-cursor="active"
+          aria-controls="ks-site-menu"
+          aria-expanded={menuOpen}
+          aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+        >
+          <span></span><span></span>
+        </button>
+      </div>
     </header>
 
     <main>
