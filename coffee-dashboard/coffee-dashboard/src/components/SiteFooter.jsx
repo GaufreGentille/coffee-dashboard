@@ -1,6 +1,6 @@
 import { KOFI_TIP_URL } from './KoFiLink'
 
-export default function SiteFooter() {
+export default function SiteFooter({ onOpenAIDisclosure }) {
   return (
     <footer className="ks-legal-footer">
       <div className="ks-shell ks-legal-footer-inner">
@@ -14,6 +14,7 @@ export default function SiteFooter() {
           <a href="/conditions-communaute.html">Le Kissaten</a>
           <a href="/credits.html">Crédits</a>
           <a href="/contact.html">Contact</a>
+          <button type="button" className="ks-footer-ai" onClick={onOpenAIDisclosure}>Transparence IA</button>
           <a href={KOFI_TIP_URL} target="_blank" rel="noopener noreferrer">Offrir un café</a>
         </nav>
         <small>© 2026 Kissa Soko</small>
