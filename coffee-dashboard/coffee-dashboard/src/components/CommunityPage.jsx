@@ -4,7 +4,7 @@ import { MemberBar, useCommunityAuth } from './CommunityAuth'
 import ModeratorPanel from './ModeratorPanel'
 
 const CATEGORIES = [
-  { id: 'tous', label: 'Tout le comptoir' },
+  { id: 'tous', label: 'Toutes les discussions' },
   { id: 'discussion', label: 'Discussions' },
   { id: 'questions', label: 'Questions' },
   { id: 'extraction', label: 'Extraction' },
@@ -98,8 +98,8 @@ export default function CommunityPage() {
     <section className="ks-forum">
       <div className="ks-forum-heading">
         <p className="ks-forum-eyebrow">L'ESPACE DES PASSIONNÉS</p>
-        <h1>Le Comptoir<span>.</span></h1>
-        <p>Questions pointues, curiosités, découvertes. On discute café sans barrière à l'entrée.</p>
+        <h1>Le Kissaten<span>.</span></h1>
+        <p>Installez-vous, prenez un café. La discussion est ouverte.</p>
       </div>
       <MemberBar />
       <ModeratorPanel onChanged={refresh} />
@@ -130,7 +130,7 @@ export default function CommunityPage() {
             </label>
           </div>
           {!communityConfigured ? (
-            <div className="ks-forum-empty"><h2>Le Comptoir prend forme.</h2>
+            <div className="ks-forum-empty"><h2>Le Kissaten prend forme.</h2>
               <p>Les discussions publiques apparaîtront ici dès que la base Supabase aura été connectée au site.</p></div>
           ) : busy && !topics.length ? (
             <div className="ks-forum-empty">Chargement des discussions…</div>
