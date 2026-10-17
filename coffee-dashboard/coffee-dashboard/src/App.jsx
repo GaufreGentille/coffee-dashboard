@@ -8,10 +8,12 @@ import HomePage from './HomePage'
 import SiteMenu from './components/SiteMenu'
 import SiteFooter from './components/SiteFooter'
 import KoFiLink from './components/KoFiLink'
+import AIDisclosure, { hasSeenAIDisclosure, rememberAIDisclosure } from './components/AIDisclosure'
 import { ORIGIN_COUNTRIES } from './data/origins'
 import './kissa.css'
 import './kissa-menu.css'
 import './community.css'
+import './ai-disclosure.css'
 
 // GaufreGentille brand palette
 const BRAND = {
@@ -931,6 +933,12 @@ export default function App() {
   const [tab, setTab] = useState('home')
   const [lastRefresh, setLastRefresh] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [aiDisclosureOpen, setAIDisclosureOpen] = useState(() => !hasSeenAIDisclosure())
+  const dismissAIDisclosure = useCallback(() => {
+    rememberAIDisclosure()
+    setAIDisclosureOpen(false)
+  }, [])
+  const reopenAIDisclosure = useCallback(() => setAIDisclosureOpen(true), [])
 
   // Remonte en haut a chaque changement d'onglet, quel que soit le bouton
   // utilise (en-tete, menu, boutons de l'accueil). "instant" pour ne pas
@@ -973,6 +981,7 @@ export default function App() {
     <div className="ks-app">
       <GGCursor />
       <ScrollTopButton />
+      {aiDisclosureOpen && <AIDisclosure onDismiss={dismissAIDisclosure} />}
 
       <SiteMenu
         open={menuOpen}
@@ -1054,7 +1063,7 @@ export default function App() {
           </main>
         </>
       )}
-      <SiteFooter />
+      <SiteFooter onOpenAIDisclosure={reopenAIDisclosure} />
     </div>
   )
 }
