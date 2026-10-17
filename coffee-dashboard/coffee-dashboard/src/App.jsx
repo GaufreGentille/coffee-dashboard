@@ -7,6 +7,7 @@ import { useCommunityAuth } from './components/CommunityAuth'
 import HomePage from './HomePage'
 import SiteMenu from './components/SiteMenu'
 import SiteFooter from './components/SiteFooter'
+import KoFiLink from './components/KoFiLink'
 import { ORIGIN_COUNTRIES } from './data/origins'
 import './kissa.css'
 import './kissa-menu.css'
@@ -211,7 +212,7 @@ function PrivateVeillePage() {
           <button type="button" className="ks-primary-action" onClick={openAuth}>
             Se connecter ou s'inscrire →
           </button>
-          <small>Le Comptoir reste accessible à tous en lecture.</small>
+          <small>Le Kissaten reste accessible à tous en lecture.</small>
         </div>
       )}
     </section>
@@ -853,6 +854,7 @@ function SiteHeader({ tab, setTab, refresh, lastRefresh, onMenu, menuOpen }) {
       </nav>
 
       <div className="ks-site-actions">
+        <KoFiLink />
         {lastRefresh && <span className="ks-last-refresh">MAJ {lastRefresh}</span>}
         <button onClick={refresh} aria-label="Actualiser les données" title="Actualiser">↺</button>
         <button
