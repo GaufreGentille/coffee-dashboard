@@ -1,0 +1,20 @@
+{
+  "id": "/",
+  "name": "Kissa Soko",
+  "short_name": "Kissa Soko",
+  "description": "Café, curiosité, communauté.",
+  "lang": "fr",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f4ede3",
+  "theme_color": "#f4ede3",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "1254x1254",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ]
+}
