@@ -234,7 +234,7 @@ function JourneyMark({ kind }) {
       {kind === 'sieve' && <>
         <rect x="8" y="9" width="28" height="27" rx="2" />
         <path d="M8 18h28M8 27h28M17 9v27M27 9v27" />
-      </>
+      </>}
       {kind === 'vapor' && <>
         <path d="M15 36c-3-4-1-7 1-9s3-5 0-8 0-6 1-7" />
         <path d="M23 36c-3-4-1-7 1-9s3-5 0-8 0-6 1-7" />
