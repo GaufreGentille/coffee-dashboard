@@ -1,7 +1,7 @@
 /* ─────────────────────────────────────────────────────────────
    Tasse imparfaite — source unique de vérité
 
-   Sept chapitres et six annexes, dans l'ordre du manuscrit.
+   Huit chapitres et six annexes, dans l'ordre du manuscrit.
    Tout ce qui parle du livre lit ce fichier : la carte de
    l'aventure café, le menu du site, et plus tard le sommaire.
 
@@ -80,6 +80,15 @@ export const BOOK_CHAPTERS = [
     topics: ['La caféine dans le grain', 'Cadre réglementaire', 'Solvants, eau, CO₂ supercritique', 'Torréfier un décaféiné'],
     x: '49%', y: '72%', card: 'up', mark: 'drop',
   },
+  {
+    kind: 'chapter',
+    id: 'grades', n: '08', title: 'Grades du café vert', kicker: 'LE CLASSEMENT',
+    file: 'chapitre-8.html', ready: true,
+    summary: "Les classifications nationales et commerciales : calibrage, défauts, altitude et lecture des offres de café vert.",
+    topics: ['Systèmes de classement par pays', 'Calibrage et comptage des défauts', 'Contrôle qualité à l’achat'],
+    x: '25%', y: '84%', card: 'up', mark: 'sieve',
+  },
+
 ]
 
 export const BOOK_ANNEXES = [

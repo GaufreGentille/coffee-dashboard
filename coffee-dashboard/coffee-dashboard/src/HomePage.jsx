@@ -231,6 +231,10 @@ function JourneyMark({ kind }) {
         <path d="M22 6c7 10 11 16 11 22a11 11 0 0 1-22 0c0-6 4-12 11-22Z" />
         <path d="M17 29c2 3 6 4 9 1" />
       </>}
+      {kind === 'sieve' && <>
+        <rect x="8" y="9" width="28" height="27" rx="2" />
+        <path d="M8 18h28M8 27h28M17 9v27M27 9v27" />
+      </>
       {kind === 'vapor' && <>
         <path d="M15 36c-3-4-1-7 1-9s3-5 0-8 0-6 1-7" />
         <path d="M23 36c-3-4-1-7 1-9s3-5 0-8 0-6 1-7" />
@@ -322,7 +326,7 @@ function CoffeeJourney() {
           <h2>L&apos;aventure<br />du café<span>.</span></h2>
           <p>
             De la plante à la tasse, avec quelques détours par l&apos;histoire,
-            la chimie et les accidents de parcours. Sept escales, une par chapitre,
+            la chimie et les accidents de parcours. Huit escales, une par chapitre,
             et six annexes accrochées au chapitre qu&apos;elles prolongent.
           </p>
           <a className="ks-journey-index" href={`${BOOK_BASE}/index.html`} data-cursor="active">
@@ -333,7 +337,7 @@ function CoffeeJourney() {
         <div className="ks-journey-map" aria-label="Les chapitres et les annexes de Tasse imparfaite">
           <svg className="ks-journey-route" viewBox="0 0 1000 560" preserveAspectRatio="none" aria-hidden="true">
             <path className="ks-journey-route-main" d="M80 170 C150 56 220 56 270 86 S390 219 455 175 S560 54 635 80 S750 199 820 175 C888 152 903 234 870 318 S854 384 820 384" />
-            <path className="ks-journey-route-detour" d="M455 175 C466 274 454 334 490 400" />
+            <path className="ks-journey-route-detour" d="M455 175 C466 274 454 334 490 400 S364 456 250 470" />
             {JOURNEY_LINKS.map(link => (
               <line
                 key={link.id}
